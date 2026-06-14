@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The DiD Time Machine | Econometrics Lab | MacroNations</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0E0C20;--bg2:#161330;--bg3:#1E1A3E;--line:#2A2550;--ink:#E8E6F5;--ink-dim:#A9A5C9;--ink-faint:#6F6A95;
+--teal:#19C3B2;--teal-bright:#3FE0D0;--violet:#7C5CFF;--gold:#FBBF24;--coral:#FF6B6B;--green:#34D399;
+--serif:'Instrument Serif',Georgia,serif;--sans:'Inter',sans-serif;--mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:var(--teal-bright);text-decoration:none}
+.wrap{max-width:940px;margin:0 auto;padding:30px 22px 90px}
+.kicker{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);margin-bottom:6px}
+h1{font-family:var(--serif);font-weight:400;font-size:38px;line-height:1.1;margin-bottom:8px}
+h2{font-family:var(--serif);font-weight:400;font-size:23px;margin:0 0 8px}
+p{color:var(--ink-dim);margin-bottom:12px}
+p strong,li strong{color:var(--ink)}
+.lede{font-size:17px;color:var(--ink)}
+ul.body{margin:0 0 12px 20px;color:var(--ink-dim)}
+.hud{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:11px 15px;margin:16px 0}
+.pill{background:var(--bg3);border:1px solid var(--line);border-radius:999px;padding:5px 13px;font-family:var(--mono);font-size:12.5px;color:var(--ink-dim)}
+.pill b{color:var(--gold)}
+.stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:20px;margin:18px 0}
+.stage.done{border-color:var(--green)}
+.tag{display:inline-block;background:rgba(25,195,178,.14);color:var(--teal-bright);font-size:11px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;border-radius:6px;padding:3px 10px;margin-bottom:10px}
+.controls{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:12px 0}
+.controls label{font-size:13px;color:var(--ink-dim)}
+input[type=range]{width:230px;accent-color:var(--teal)}
+input[type=text]{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:8px 12px;font-family:var(--mono);font-size:14px;width:140px}
+select{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:8px 12px;font-family:var(--sans);font-size:14px}
+.btn{background:var(--teal);color:#062a26;border:none;border-radius:9px;padding:9px 17px;font-weight:600;font-size:14px;cursor:pointer;font-family:var(--sans)}
+.btn:hover{background:var(--teal-bright)} .btn:disabled{opacity:.45;cursor:default}
+.btn.gold{background:var(--gold);color:#3a2a00} .btn.ghost{background:transparent;color:var(--teal-bright);border:1px solid var(--teal)}
+.btn.coral{background:var(--coral);color:#3a0c0c}
+.val{font-family:var(--mono);font-size:13px;color:var(--teal-bright);min-width:60px;display:inline-block}
+.out{margin-top:12px}
+.reg-table{background:#070613;border:1px solid var(--line);border-radius:10px;color:#C9E7E2;font-family:var(--mono);font-size:12.4px;line-height:1.55;padding:13px;overflow-x:auto;white-space:pre;margin:10px 0 0}
+.figure-card{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:10px;margin:10px 0 0;text-align:center}
+.figure-card img{max-width:100%;border-radius:8px}
+.figure-card .cap{font-size:12.5px;color:var(--ink-faint);margin-top:7px;text-align:left}
+.status{font-size:12.5px;color:var(--ink-faint);margin-left:8px} .status.err{color:var(--coral)}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:12px 0}
+.opt{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:13px 15px;cursor:pointer}
+.opt:hover{border-color:var(--teal)} .opt.sel{border-color:var(--teal-bright);background:rgba(25,195,178,.08)}
+.opt.good{border-color:var(--green)} .opt.bad{border-color:var(--coral)}
+.opt h3{font-size:14.5px;color:var(--ink);margin-bottom:4px} .opt p{font-size:12.8px;margin:0;color:var(--ink-dim)}
+.mcq{margin:12px 0} .mcq .q{color:var(--ink);margin-bottom:8px}
+.mcq label{display:block;padding:7px 11px;border:1px solid var(--line);border-radius:9px;margin-bottom:6px;color:var(--ink-dim);cursor:pointer;font-size:14px}
+.mcq label:hover{border-color:var(--teal)} .mcq label.correct{border-color:var(--green);color:var(--green)} .mcq label.wrong{border-color:var(--coral);color:var(--coral)}
+.meter{height:10px;background:var(--bg3);border:1px solid var(--line);border-radius:6px;overflow:hidden;flex:1;min-width:140px}
+.meter .fill{height:100%;width:0%;background:var(--teal);transition:width .3s}
+.meter .fill.hot{background:var(--coral)}
+.scorecard{background:linear-gradient(135deg,rgba(251,191,36,.10),rgba(25,195,178,.07));border:1px solid var(--gold);border-radius:16px;padding:20px;margin:22px 0;text-align:center;display:none}
+.scorecard.show{display:block}
+.scorecard .big{font-family:var(--serif);font-size:48px;color:var(--gold)}
+.debrief{background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.4);border-radius:14px;padding:15px 18px;margin:18px 0;display:none}
+.debrief.show{display:block}
+.debrief .db-label{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--green);font-weight:700;margin-bottom:6px}
+.debrief p{color:var(--ink);margin:0}
+.sharma-take{background:linear-gradient(135deg,rgba(251,191,36,.08),rgba(251,191,36,.03));border:1px solid rgba(251,191,36,.4);border-radius:14px;padding:14px 18px;margin:18px 0}
+.sharma-take .st-label{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:6px}
+.sharma-take p{color:var(--ink);margin:0}
+.note{font-size:12.5px;color:var(--ink-faint)}
+.loadbar{height:6px;background:var(--bg3);border-radius:4px;overflow:hidden;margin:8px 0;display:none}
+.loadbar.show{display:block}.loadbar .fill{height:100%;width:0%;background:var(--teal);transition:width .4s}
+#gate{display:none;position:fixed;inset:0;background:rgba(14,12,32,.93);z-index:50;align-items:center;justify-content:center;padding:20px}
+#gate.show{display:flex}
+#gate .card{background:var(--bg2);border:1px solid var(--gold);border-radius:16px;padding:30px;max-width:480px;text-align:center}
+</style>
+</head>
+<body>
+<div id="gate"><div class="card"><h2>This Lab is part of the full course</h2>
+<p>The free preview includes Chapters 1&ndash;2 and the Least-Squares Archer lab. The full course &mdash; 17 chapters, 14 Labs, exams, certificate &mdash; is a one-time $25.</p>
+<p><a class="btn gold" id="gate-buy" href="#" target="_blank" rel="noopener">Unlock the full course &mdash; $25</a></p>
+<p class="note">Already purchased? Open this Lab from the course app while signed in.</p></div></div>
+<div class="wrap">
+<div class="kicker">Econometrics &middot; Lab &middot; companion to Chapter 12</div>
+<h1>The Difference-in-Differences Time Machine</h1>
+<p class="lede">Two timelines: a treated state and a control state. A policy hits at period 5. Your machine lets you project the treated group's <strong>counterfactual</strong> &mdash; the dashed world where the policy never happened &mdash; by borrowing the control group's trend. Then a stress dial bends history with a pre-trend, and you must catch the forgery with an event study.</p>
+<div class="hud"><span class="pill">Clean estimate: <b id="hud1">&ndash;</b></span><span class="pill">Forgery: <b id="hud2">&ndash;</b></span><span class="pill" id="pystate">Python: idle</span></div>
+<div class="loadbar" id="loadbar"><div class="fill" id="loadfill"></div></div>
+
+<div class="stage" id="stage1">
+<span class="tag">Trial 1 &middot; Parallel worlds</span>
+<h2>Project the counterfactual, read off the effect</h2>
+<p>Slide your guess for the treatment effect: the dashed line is control's trend transplanted onto the treated group. The gap between treated reality and your dashed counterfactual at the end is your DiD reading. Lock it in, then let TWFE check you.</p>
+<div class="controls">
+  <label>Your effect guess <input type="range" id="guess" min="-1" max="5" step="0.1" value="0"> <span class="val" id="guessv">0.0</span></label>
+  <button class="btn" id="view1">View timelines</button>
+  <button class="btn gold" id="lock1">Lock in &amp; verify with TWFE</button>
+  <span class="status" id="st1"></span>
+</div>
+<div class="out" id="out1"></div>
+</div>
+
+<div class="stage" id="stage2">
+<span class="tag">Trial 2 &middot; The stress dial</span>
+<h2>Bend history, then catch the bend</h2>
+<p>The dial gives the treated group its own drift before the policy. The 2&times;2 DiD will happily report a contaminated number. Run the <strong>event study</strong> in both worlds and answer: which world's design is broken, and how do you know?</p>
+<div class="controls">
+  <label>Pre-trend dial <input type="range" id="dial" min="0" max="0.5" step="0.05" value="0"> <span class="val" id="dialv">0.00</span></label>
+  <button class="btn" id="view2">Re-run DiD at this dial</button>
+  <button class="btn coral" id="event">Run the event study</button>
+  <span class="status" id="st2"></span>
+</div>
+<div class="out" id="out2"></div>
+<div class="mcq" id="mcq1">
+<div class="q">With the dial above zero, the event study shows sloped, significant lead coefficients. The correct conclusion:</div>
+<label data-i="0">The policy effect is even bigger than DiD says</label>
+<label data-i="1">Parallel trends is violated &mdash; the "effect" partly continues a pre-existing differential trend, so the DiD estimate is not credible without fixing the design</label>
+<label data-i="2">The leads prove the policy worked before it was passed</label>
+<label data-i="3">Clustering will fix it</label>
+</div>
+</div>
+
+<div class="scorecard" id="scorecard"><div style="font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-dim)">DiD Time Machine &mdash; final score</div>
+<div class="big" id="finalscore">0</div><div id="scoredetail" style="color:var(--ink-dim);font-size:14px"></div>
+<p class="note" style="margin-top:8px">Saved locally<span id="savemsg"></span>.</p></div>
+
+<div class="debrief" id="debrief"><div class="db-label">What you just learned</div>
+<p>DiD is a transplant operation: it grafts the control group's trend onto the treated group as the counterfactual, and the estimate is the treated group's departure from that graft. The whole design lives on parallel trends &mdash; and you watched a pre-trend dial quietly poison the estimate while the 2&times;2 arithmetic kept smiling. The event study is the detector: flat leads keep the design alive; sloped leads are the forgery showing through.</p></div>
+
+<div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
+<p>No event-study figure, no trust &mdash; that is the modern referee's reflex, and now it is yours. Always show the leads.</p></div>
+<p class="note">Part of <a href="https://econometrics.macronations.com">Econometrics</a> on MacroNations.</p>
+</div>
+
+<script type="text/x-python" id="lab-module">
+import numpy as np, pandas as pd, json
+import statsmodels.formula.api as smf
+
+_TAU = 2.0; _T0 = 5; _T = 10; _N = 60
+
+def _panel(pretrend):
+    r = np.random.default_rng(1212)
+    rows = []
+    for i in range(_N):
+        treat = int(i < _N // 2)
+        ai = r.normal(0, 1.2)
+        for t in range(_T):
+            y = (10 + ai + 0.4*t + pretrend*t*treat
+                 + _TAU*treat*(t >= _T0) + r.normal(0, .8))
+            rows.append((i, t, treat, int(t >= _T0), y))
+    return pd.DataFrame(rows, columns=["unit","t","treat","post","y"])
+
+def scene(guess, pretrend):
+    df = _panel(float(pretrend))
+    g = df.groupby(["treat","t"])["y"].mean().unstack(0)
+    plt.figure(figsize=(7.4, 4.0))
+    plt.plot(g.index, g[0], marker="o", linewidth=2.0, label="control")
+    plt.plot(g.index, g[1], marker="o", linewidth=2.0, label="treated")
+    base = g[1][_T0 - 1]
+    ctrl_slope = g[0].diff().loc[_T0:].mean()
+    xs = np.arange(_T0 - 1, _T)
+    cf = base + ctrl_slope*(xs - (_T0 - 1))
+    plt.plot(xs, cf, "--", linewidth=1.8, color="#94A3B8", label="counterfactual (control trend grafted)")
+    yg = cf[-1] + float(guess)
+    plt.scatter([_T - 1], [yg], s=70, color="#FBBF24", zorder=5, label="your guess endpoint")
+    plt.axvline(_T0 - .5, linestyle=":", linewidth=1.1)
+    plt.xlabel("period"); plt.ylabel("mean outcome"); plt.legend(fontsize=8.5)
+    plt.title("two timelines and your projected counterfactual"); plt.tight_layout()
+    gap = float(g[1][_T - 1] - cf[-1])
+    return json.dumps({"visual_gap": round(gap, 3)})
+
+def estimate(pretrend):
+    df = _panel(float(pretrend))
+    m = smf.ols("y ~ treat*post + C(t) + C(unit)", data=df).fit(
+        cov_type="cluster", cov_kwds={"groups": df["unit"]})
+    return json.dumps({"twfe": round(float(m.params["treat:post"]), 3),
+                       "se": round(float(m.bse["treat:post"]), 3),
+                       "true": _TAU, "pretrend": float(pretrend)})
+
+def event(pretrend):
+    df = _panel(float(pretrend))
+    df["k"] = df["t"] - _T0
+    # explicit lead/lag dummies (interacted with treat), k = -1 as the omitted reference.
+    # unit fixed effects absorb the treat main effect, avoiding the C(k):treat / C(t) collinearity
+    # that otherwise makes the design matrix singular (NaN standard errors).
+    names = {}
+    for k in sorted(df["k"].unique()):
+        if k == -1:
+            continue
+        nm = ("lag%d" % k) if k >= 0 else ("lead%d" % (-k))
+        df[nm] = ((df["k"] == k) & (df["treat"] == 1)).astype(float)
+        names[nm] = k
+    terms = list(names.keys())
+    m = smf.ols("y ~ " + " + ".join(terms) + " + C(t) + C(unit)", data=df).fit(
+        cov_type="cluster", cov_kwds={"groups": df["unit"]})
+    pairs = sorted([(names[nm], float(m.params[nm]), float(m.bse[nm])) for nm in terms])
+    ks = [-_T0 + i for i in range(_T)]
+    cs = []; ss = []
+    lookup = {k: (c, s) for k, c, s in pairs}
+    for k in ks:
+        if k == -1:
+            cs.append(0.0); ss.append(0.0)
+        else:
+            c, s = lookup[k]; cs.append(c); ss.append(s)
+    lead_ks = [k for k in ks if k < 0]
+    lead_cs = [cs[ks.index(k)] for k in lead_ks]
+    lead_slope = float(np.polyfit(lead_ks, lead_cs, 1)[0])
+    flagged = abs(lead_slope) > 0.12
+    plt.figure(figsize=(7.2, 3.8))
+    plt.errorbar(ks, cs, yerr=[1.96*s for s in ss], fmt="o", capsize=3)
+    plt.axhline(0, linewidth=1); plt.axvline(-0.5, linestyle="--", linewidth=1)
+    plt.xlabel("event time k"); plt.ylabel("effect vs k = -1")
+    plt.title("event study at dial = %.2f  (lead slope %.2f)" % (float(pretrend), lead_slope))
+    plt.tight_layout()
+    return json.dumps({"lead_slope": round(lead_slope, 3), "violated": flagged,
+                       "pretrend": float(pretrend)})
+</script>
+
+<script>
+var S = { guessPts: null, twfeClean: null, ranEventClean: false, ranEventDial: false, mc: null };
+function labInit() {
+  el('guess').oninput = function () { el('guessv').textContent = Number(this.value).toFixed(1); };
+  el('dial').oninput = function () { el('dialv').textContent = Number(this.value).toFixed(2); };
+  el('view1').onclick = function () {
+    setStatus('st1', PY.pyodide ? 'projecting...' : 'loading Python (~10s first time)...');
+    callPy('scene(' + el('guess').value + ', 0)').then(function (res) {
+      renderOut('out1', ['Slide your guess until the gold endpoint sits on the treated timeline, then lock in.'], res.figs,
+        ['Dashed grey: the counterfactual built from the control trend. The end-of-sample gap IS the DiD estimate.']);
+      setStatus('st1', '');
+    }).then(null, function (e) { fail('out1', 'st1', e); });
+  };
+  el('lock1').onclick = function () {
+    setStatus('st1', 'verifying with two-way fixed effects...');
+    callPy('estimate(0)').then(function (res) {
+      var d = res.data;
+      S.twfeClean = d.twfe;
+      var g = Number(el('guess').value);
+      var miss = Math.abs(g - d.twfe);
+      S.guessPts = Math.max(0, Math.round(100 - 40 * miss));
+      el('hud1').textContent = d.twfe + ' (you: ' + g.toFixed(1) + ')';
+      renderOut('out1', [
+        'TWFE DiD estimate: ' + d.twfe + '  (clustered se ' + d.se + ')   true effect: ' + d.true,
+        'your visual reading: ' + g.toFixed(1) + '   ->  ' + S.guessPts + ' pts'
+      ], res.figs);
+      setStatus('st1', 'locked');
+      maybeFinish();
+    }).then(null, function (e) { fail('out1', 'st1', e); });
+  };
+  el('view2').onclick = function () {
+    setStatus('st2', 'bending history...');
+    var dial = el('dial').value;
+    callPy('estimate(' + dial + ')').then(function (res) {
+      var d = res.data;
+      renderOut('out2', [
+        'dial = ' + d.pretrend + '   TWFE "estimate": ' + d.twfe + '   true policy effect: ' + d.true,
+        d.pretrend > 0 ? 'The 2x2 arithmetic still runs - and now reports trend + effect mixed together.' : 'Dial at zero: the design is clean.'
+      ], res.figs);
+      setStatus('st2', '');
+    }).then(null, function (e) { fail('out2', 'st2', e); });
+  };
+  el('event').onclick = function () {
+    setStatus('st2', 'running event study...');
+    var dial = el('dial').value;
+    callPy('event(' + dial + ')').then(function (res) {
+      var d = res.data;
+      if (d.pretrend === 0) { S.ranEventClean = true; } else { S.ranEventDial = true; }
+      el('hud2').textContent = d.violated ? 'caught' : 'none seen';
+      renderOut('out2', [
+        'event study at dial ' + d.pretrend + ':   pre-period lead slope ' + d.lead_slope,
+        d.violated ? 'LEADS ARE SLOPED AND SIGNIFICANT: parallel trends violated. The forgery is visible in the pre-period.'
+                   : 'Leads flat around zero: the pre-period supports parallel trends.'
+      ], res.figs, ['The canonical leads/lags figure. Flat leads = design alive; sloped leads = forgery.']);
+      setStatus('st2', 'event study complete');
+      maybeFinish();
+    }).then(null, function (e) { fail('out2', 'st2', e); });
+  };
+  var labels = el('mcq1').getElementsByTagName('label');
+  for (var m = 0; m < labels.length; m++) {
+    labels[m].onclick = function () {
+      if (S.mc !== null) { return; }
+      var pick = parseInt(this.getAttribute('data-i'), 10);
+      if (pick === 1) { this.className = 'correct'; S.mc = 100; }
+      else { this.className = 'wrong'; labels[1].className = 'correct'; S.mc = 40; }
+      maybeFinish();
+    };
+  }
+}
+function maybeFinish() {
+  if (S.guessPts === null || S.mc === null || !S.ranEventDial) { return; }
+  var detect = S.ranEventDial ? 100 : 0;
+  var final = Math.round(0.45 * S.guessPts + 0.25 * detect + 0.30 * S.mc);
+  showFinal(final, 'Counterfactual read ' + S.guessPts + ' | Forgery caught via event study | PT understood ' + (S.mc === 100 ? 'yes' : 'partly'),
+            { guess: S.guessPts, event: detect, mc: S.mc });
+}
+</script>
+<script type="text/x-python" id="lab-prelude">
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import io, base64
+plt.rcParams["figure.facecolor"] = "#1E1A3E"; plt.rcParams["axes.facecolor"] = "#1E1A3E"
+plt.rcParams["savefig.facecolor"] = "#1E1A3E"; plt.rcParams["text.color"] = "#E8E6F5"
+plt.rcParams["axes.labelcolor"] = "#A9A5C9"; plt.rcParams["xtick.color"] = "#A9A5C9"
+plt.rcParams["ytick.color"] = "#A9A5C9"; plt.rcParams["axes.edgecolor"] = "#2A2550"
+plt.rcParams["axes.prop_cycle"] = matplotlib.cycler(color=["#19C3B2","#FBBF24","#7C5CFF","#FF6B6B","#94A3B8"])
+plt.rcParams["legend.facecolor"] = "#161330"; plt.rcParams["grid.color"] = "#2A2550"
+def __figs():
+    out = []
+    for num in plt.get_fignums():
+        fig = plt.figure(num); buf = io.BytesIO()
+        fig.savefig(buf, format="png", dpi=110, bbox_inches="tight")
+        out.append(base64.b64encode(buf.getvalue()).decode("ascii"))
+    plt.close("all"); return out
+</script>
+<script>
+/* ===== shared Lab runtime (inlined eq-progress pattern) - Safari-safe ===== */
+var EQ_SUPABASE_URL = 'PASTE_NEW_PROJECT_URL';
+var EQ_SUPABASE_ANON_KEY = 'PASTE_NEW_ANON_KEY';
+var DEV_PREVIEW = true;
+var SUPER_ADMIN_EMAIL = 'sharmaaa9@yahoo.com';
+var STRIPE_LINK = 'https://buy.stripe.com/8x2cMYbjfcsk2ON7se5ZC01';
+var LAB_ID = 'did-time-machine';
+var LAB_FREE = false;
+var PYODIDE_URL = 'https://cdn.jsdelivr.net/pyodide/v0.29.4/full/pyodide.js';
+var PY_PACKAGES = ['numpy', 'pandas', 'scipy', 'matplotlib', 'statsmodels'];
+
+var PY = { pyodide: null, promise: null };
+var SB = null, SESSION = null, BEST = -1;
+
+function el(id) { return document.getElementById(id); }
+function setStatus(id, txt, err) { var s = el(id); if (s) { s.textContent = txt; s.className = 'status' + (err ? ' err' : ''); } }
+function setPyState(t) { var s = el('pystate'); if (s) { s.textContent = 'Python: ' + t; } }
+function showLoad(p) { var lb = el('loadbar'); if (!lb) { return; } lb.className = p < 100 ? 'loadbar show' : 'loadbar'; el('loadfill').style.width = p + '%'; }
+function escapeHTML(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function loadScript(src) {
+  return new Promise(function (resolve, reject) {
+    var s = document.createElement('script'); s.src = src;
+    s.onload = function () { resolve(true); };
+    s.onerror = function () { reject(new Error('Could not load ' + src)); };
+    document.head.appendChild(s);
+  });
+}
+function ensurePy() {
+  if (PY.promise) { return PY.promise; }
+  setPyState('downloading'); showLoad(10);
+  PY.promise = loadScript(PYODIDE_URL).then(function () {
+    setPyState('starting'); showLoad(30);
+    return window.loadPyodide();
+  }).then(function (py) {
+    PY.pyodide = py;
+    setPyState('loading numpy + statsmodels'); showLoad(55);
+    return py.loadPackage(PY_PACKAGES).then(function () { return py; });
+  }).then(function (py) {
+    setPyState('preparing the lab'); showLoad(85);
+    var pre = document.getElementById('lab-prelude').textContent;
+    var mod = document.getElementById('lab-module').textContent;
+    return py.runPythonAsync(pre).then(function () { return py.runPythonAsync(mod); }).then(function () { setPyState('ready'); showLoad(100); return py; });
+  });
+  PY.promise = PY.promise.then(null, function (err) {
+    PY.promise = null; setPyState('failed - retry your last action'); showLoad(100); throw err;
+  });
+  return PY.promise;
+}
+function callPy(expr) {
+  return ensurePy().then(function (py) {
+    return py.runPythonAsync(expr).then(function (res) {
+      var data = res ? JSON.parse(res) : {};
+      var figs = py.runPython('__figs()');
+      var arr = figs ? figs.toJs() : [];
+      if (figs && figs.destroy) { figs.destroy(); }
+      return { data: data, figs: arr };
+    });
+  });
+}
+function renderOut(target, lines, figs, caps) {
+  var html = '';
+  if (lines && lines.length) { html += '<pre class="reg-table">' + escapeHTML(lines.join('\n')) + '</pre>'; }
+  for (var i = 0; i < (figs ? figs.length : 0); i++) {
+    html += '<div class="figure-card"><img alt="lab figure" src="data:image/png;base64,' + figs[i] + '">';
+    if (caps && caps[i]) { html += '<div class="cap">' + caps[i] + '</div>'; }
+    html += '</div>';
+  }
+  el(target).innerHTML = html;
+}
+function fail(target, statusId, err) {
+  setStatus(statusId, 'error', true);
+  el(target).innerHTML = '<pre class="reg-table" style="color:#FF9B9B">' + escapeHTML(err && err.message ? err.message : String(err)) + '</pre>';
+}
+/* live progress reporting: report DURING play whenever the score improves */
+function reportScore(score, detail) {
+  if (score <= BEST) { return; }
+  BEST = score;
+  try { window.localStorage.setItem('eq_lab_' + LAB_ID, JSON.stringify({ score: score, detail: detail, at: new Date().toISOString() })); } catch (e) {}
+  var sm = el('savemsg'); if (sm) { sm.textContent = ''; }
+  if (SB && SESSION) {
+    SB.from('eq_lab_results').insert({ student_id: SESSION.user.id, lab_id: LAB_ID, score: score, details: detail })
+      .then(function () { if (sm) { sm.textContent = ' and to your course record'; } });
+  }
+}
+function showFinal(score, detailText, detailObj) {
+  el('finalscore').textContent = score;
+  el('scoredetail').textContent = detailText;
+  el('scorecard').className = 'scorecard show';
+  var db = el('debrief'); if (db) { db.className = 'debrief show'; }
+  reportScore(score, detailObj);
+}
+function resolveGate() {
+  var buy = el('gate-buy'); if (buy) { buy.href = STRIPE_LINK; }
+  if (LAB_FREE || DEV_PREVIEW) { return; }
+  if (EQ_SUPABASE_URL.indexOf('http') !== 0 || !window.supabase) { el('gate').className = 'show'; return; }
+  SB = window.supabase.createClient(EQ_SUPABASE_URL, EQ_SUPABASE_ANON_KEY);
+  SB.auth.getSession().then(function (r) {
+    SESSION = (r && r.data && r.data.session) ? r.data.session : null;
+    if (!SESSION) { el('gate').className = 'show'; return; }
+    if (String(SESSION.user.email).toLowerCase() === SUPER_ADMIN_EMAIL) { return; }
+    SB.from('eq_profiles').select('role').eq('id', SESSION.user.id).maybeSingle().then(function (pr) {
+      var role = (pr && pr.data && pr.data.role) ? pr.data.role : 'student';
+      if (role === 'instructor' || role === 'admin') { return; }
+      SB.from('eq_subscriptions').select('id').eq('student_id', SESSION.user.id).eq('status', 'active').limit(1)
+        .then(function (s) { if (!(s && s.data && s.data.length)) { el('gate').className = 'show'; } });
+    });
+  });
+}
+function bootLab() {
+  resolveGate();
+  if (window.labInit) { window.labInit(); }
+}
+if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', bootLab); } else { bootLab(); }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</body>
+</html>

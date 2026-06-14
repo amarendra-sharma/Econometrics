@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Fixed-Effects X-Ray | Econometrics Lab | MacroNations</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0E0C20;--bg2:#161330;--bg3:#1E1A3E;--line:#2A2550;--ink:#E8E6F5;--ink-dim:#A9A5C9;--ink-faint:#6F6A95;
+--teal:#19C3B2;--teal-bright:#3FE0D0;--violet:#7C5CFF;--gold:#FBBF24;--coral:#FF6B6B;--green:#34D399;
+--serif:'Instrument Serif',Georgia,serif;--sans:'Inter',sans-serif;--mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:var(--teal-bright);text-decoration:none}
+.wrap{max-width:940px;margin:0 auto;padding:30px 22px 90px}
+.kicker{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);margin-bottom:6px}
+h1{font-family:var(--serif);font-weight:400;font-size:38px;line-height:1.1;margin-bottom:8px}
+h2{font-family:var(--serif);font-weight:400;font-size:23px;margin:0 0 8px}
+p{color:var(--ink-dim);margin-bottom:12px}
+p strong,li strong{color:var(--ink)}
+.lede{font-size:17px;color:var(--ink)}
+ul.body{margin:0 0 12px 20px;color:var(--ink-dim)}
+.hud{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:11px 15px;margin:16px 0}
+.pill{background:var(--bg3);border:1px solid var(--line);border-radius:999px;padding:5px 13px;font-family:var(--mono);font-size:12.5px;color:var(--ink-dim)}
+.pill b{color:var(--gold)}
+.stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:20px;margin:18px 0}
+.stage.done{border-color:var(--green)}
+.tag{display:inline-block;background:rgba(25,195,178,.14);color:var(--teal-bright);font-size:11px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;border-radius:6px;padding:3px 10px;margin-bottom:10px}
+.controls{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:12px 0}
+.controls label{font-size:13px;color:var(--ink-dim)}
+input[type=range]{width:230px;accent-color:var(--teal)}
+input[type=text]{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:8px 12px;font-family:var(--mono);font-size:14px;width:140px}
+select{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:8px 12px;font-family:var(--sans);font-size:14px}
+.btn{background:var(--teal);color:#062a26;border:none;border-radius:9px;padding:9px 17px;font-weight:600;font-size:14px;cursor:pointer;font-family:var(--sans)}
+.btn:hover{background:var(--teal-bright)} .btn:disabled{opacity:.45;cursor:default}
+.btn.gold{background:var(--gold);color:#3a2a00} .btn.ghost{background:transparent;color:var(--teal-bright);border:1px solid var(--teal)}
+.btn.coral{background:var(--coral);color:#3a0c0c}
+.val{font-family:var(--mono);font-size:13px;color:var(--teal-bright);min-width:60px;display:inline-block}
+.out{margin-top:12px}
+.reg-table{background:#070613;border:1px solid var(--line);border-radius:10px;color:#C9E7E2;font-family:var(--mono);font-size:12.4px;line-height:1.55;padding:13px;overflow-x:auto;white-space:pre;margin:10px 0 0}
+.figure-card{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:10px;margin:10px 0 0;text-align:center}
+.figure-card img{max-width:100%;border-radius:8px}
+.figure-card .cap{font-size:12.5px;color:var(--ink-faint);margin-top:7px;text-align:left}
+.status{font-size:12.5px;color:var(--ink-faint);margin-left:8px} .status.err{color:var(--coral)}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:12px 0}
+.opt{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:13px 15px;cursor:pointer}
+.opt:hover{border-color:var(--teal)} .opt.sel{border-color:var(--teal-bright);background:rgba(25,195,178,.08)}
+.opt.good{border-color:var(--green)} .opt.bad{border-color:var(--coral)}
+.opt h3{font-size:14.5px;color:var(--ink);margin-bottom:4px} .opt p{font-size:12.8px;margin:0;color:var(--ink-dim)}
+.mcq{margin:12px 0} .mcq .q{color:var(--ink);margin-bottom:8px}
+.mcq label{display:block;padding:7px 11px;border:1px solid var(--line);border-radius:9px;margin-bottom:6px;color:var(--ink-dim);cursor:pointer;font-size:14px}
+.mcq label:hover{border-color:var(--teal)} .mcq label.correct{border-color:var(--green);color:var(--green)} .mcq label.wrong{border-color:var(--coral);color:var(--coral)}
+.meter{height:10px;background:var(--bg3);border:1px solid var(--line);border-radius:6px;overflow:hidden;flex:1;min-width:140px}
+.meter .fill{height:100%;width:0%;background:var(--teal);transition:width .3s}
+.meter .fill.hot{background:var(--coral)}
+.scorecard{background:linear-gradient(135deg,rgba(251,191,36,.10),rgba(25,195,178,.07));border:1px solid var(--gold);border-radius:16px;padding:20px;margin:22px 0;text-align:center;display:none}
+.scorecard.show{display:block}
+.scorecard .big{font-family:var(--serif);font-size:48px;color:var(--gold)}
+.debrief{background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.4);border-radius:14px;padding:15px 18px;margin:18px 0;display:none}
+.debrief.show{display:block}
+.debrief .db-label{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--green);font-weight:700;margin-bottom:6px}
+.debrief p{color:var(--ink);margin:0}
+.sharma-take{background:linear-gradient(135deg,rgba(251,191,36,.08),rgba(251,191,36,.03));border:1px solid rgba(251,191,36,.4);border-radius:14px;padding:14px 18px;margin:18px 0}
+.sharma-take .st-label{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:6px}
+.sharma-take p{color:var(--ink);margin:0}
+.note{font-size:12.5px;color:var(--ink-faint)}
+.loadbar{height:6px;background:var(--bg3);border-radius:4px;overflow:hidden;margin:8px 0;display:none}
+.loadbar.show{display:block}.loadbar .fill{height:100%;width:0%;background:var(--teal);transition:width .4s}
+#gate{display:none;position:fixed;inset:0;background:rgba(14,12,32,.93);z-index:50;align-items:center;justify-content:center;padding:20px}
+#gate.show{display:flex}
+#gate .card{background:var(--bg2);border:1px solid var(--gold);border-radius:16px;padding:30px;max-width:480px;text-align:center}
+</style>
+</head>
+<body>
+<div id="gate"><div class="card"><h2>This Lab is part of the full course</h2>
+<p>The free preview includes Chapters 1&ndash;2 and the Least-Squares Archer lab. The full course &mdash; 17 chapters, 14 Labs, exams, certificate &mdash; is a one-time $25.</p>
+<p><a class="btn gold" id="gate-buy" href="#" target="_blank" rel="noopener">Unlock the full course &mdash; $25</a></p>
+<p class="note">Already purchased? Open this Lab from the course app while signed in.</p></div></div>
+<div class="wrap">
+<div class="kicker">Econometrics &middot; Lab &middot; companion to Chapter 10</div>
+<h1>The Fixed-Effects X-Ray</h1>
+<p class="lede">Forty firms, eight years, and a pooled slope that is confidently <strong>wrong-signed</strong>. The x-ray slider morphs the data from pooled (all variation) to within (each firm collapsed onto its own mean). Watch unobserved heterogeneity get differenced out of existence &mdash; and the slope flip to the truth as it goes.</p>
+<div class="hud"><span class="pill">Slope now: <b id="hud1">&ndash;</b></span><span class="pill">Tables: <b id="hud2">&ndash;</b></span><span class="pill" id="pystate">Python: idle</span></div>
+<div class="loadbar" id="loadbar"><div class="fill" id="loadfill"></div></div>
+
+<div class="stage" id="stage1">
+<span class="tag">Trial 1 &middot; The x-ray</span>
+<h2>Slide from pooled to within</h2>
+<div class="controls">
+  <label>X-ray depth &theta; <input type="range" id="theta" min="0" max="1" step="0.1" value="0"> <span class="val" id="thetav">0.0</span></label>
+  <button class="btn" id="xray">Expose</button>
+  <span class="status" id="st1"></span>
+</div>
+<div class="out" id="out1"></div>
+</div>
+
+<div class="stage" id="stage2">
+<span class="tag">Trial 2 &middot; The two tables</span>
+<h2>Reproduce both estimates and explain the flip</h2>
+<div class="controls"><button class="btn gold" id="tables">Run pooled OLS and FE side by side</button><span class="status" id="st2"></span></div>
+<div class="out" id="out2"></div>
+<div class="mcq" id="mcq1">
+<div class="q">Why is the within (FE) slope the credible causal estimate in this dataset?</div>
+<label data-i="0">FE uses more observations than pooled OLS</label>
+<label data-i="1">The confounder here is a firm-level trait that never changes (it raises both x and y across firms); demeaning removes it entirely, so the FE slope uses only within-firm changes that the confounder cannot touch</label>
+<label data-i="2">FE always gives smaller standard errors</label>
+<label data-i="3">Pooled OLS is biased whenever data are panel-shaped</label>
+</div>
+</div>
+
+<div class="scorecard" id="scorecard"><div style="font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-dim)">Fixed-Effects X-Ray &mdash; final score</div>
+<div class="big" id="finalscore">0</div><div id="scoredetail" style="color:var(--ink-dim);font-size:14px"></div>
+<p class="note" style="margin-top:8px">Saved locally<span id="savemsg"></span>.</p></div>
+
+<div class="debrief" id="debrief"><div class="db-label">What you just learned</div>
+<p>The within transformation is not a black box: it is literally subtracting each firm's own averages, and you watched it happen geometrically &mdash; clusters collapsing onto a common origin, the between-firm confounding evaporating, the slope flipping from the seductive pooled lie to the within truth. Fixed effects buys immunity to every time-constant confounder; what it cannot fix (time-varying confounders, anything you care about that never changes) you also now understand, because you saw exactly which variation survives the x-ray.</p></div>
+
+<div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
+<p>When pooled and FE disagree violently, do not average them &mdash; ask what time-constant trait could drive both x and y across units. The disagreement is the diagnosis.</p></div>
+<p class="note">Part of <a href="https://econometrics.macronations.com">Econometrics</a> on MacroNations.</p>
+</div>
+
+<script type="text/x-python" id="lab-module">
+import numpy as np, pandas as pd, json
+import statsmodels.formula.api as smf
+
+_r = np.random.default_rng(1010)
+_N, _T, _B = 40, 8, -0.40
+_a = _r.normal(0, 2.0, _N)
+_rows = []
+for i in range(_N):
+    x = 5 + 1.2*_a[i] + _r.normal(0, 0.8, _T)
+    y = 10 + _B*x + 2.0*_a[i] + _r.normal(0, 0.7, _T)
+    for t in range(_T):
+        _rows.append((i, x[t], y[t]))
+_df = pd.DataFrame(_rows, columns=["firm","x","y"])
+_xm = _df.groupby("firm")["x"].transform("mean")
+_ym = _df.groupby("firm")["y"].transform("mean")
+
+def xray(theta):
+    th = float(theta)
+    xs = _df["x"] - th*( _xm - _df["x"].mean() )
+    ys = _df["y"] - th*( _ym - _df["y"].mean() )
+    import statsmodels.api as sm
+    fit = sm.OLS(ys, sm.add_constant(xs)).fit()
+    b = float(fit.params.iloc[1])
+    plt.figure(figsize=(7.2, 4.2))
+    for i in range(10):
+        m = _df["firm"] == i
+        plt.scatter(xs[m], ys[m], s=16, alpha=.8)
+    xr = np.linspace(xs.min(), xs.max(), 20)
+    plt.plot(xr, float(fit.params.iloc[0]) + b*xr, "--", linewidth=2.2, color="#FBBF24",
+             label="slope at this depth: %.2f" % b)
+    plt.xlabel("x (theta-demeaned)"); plt.ylabel("y (theta-demeaned)")
+    plt.title("x-ray depth theta = %.1f   (0 = pooled, 1 = within)" % th)
+    plt.legend(); plt.tight_layout()
+    return json.dumps({"theta": th, "slope": round(b, 3), "true": _B})
+
+def tables():
+    pooled = smf.ols("y ~ x", data=_df).fit()
+    fe = smf.ols("y ~ x + C(firm)", data=_df).fit()
+    return json.dumps({"pooled": round(float(pooled.params["x"]), 3),
+                       "pooled_se": round(float(pooled.bse["x"]), 3),
+                       "fe": round(float(fe.params["x"]), 3),
+                       "fe_se": round(float(fe.bse["x"]), 3), "true": _B,
+                       "ptab": str(pooled.summary().tables[1]),
+                       "ftab_row": "x  coef %.4f  se %.4f" % (float(fe.params["x"]), float(fe.bse["x"]))})
+</script>
+
+<script>
+var S = { saw0: false, saw1: false, tables: false, mc: null };
+function labInit() {
+  el('theta').oninput = function () { el('thetav').textContent = Number(this.value).toFixed(1); };
+  el('xray').onclick = function () {
+    setStatus('st1', PY.pyodide ? 'exposing...' : 'loading Python (~10s first time)...');
+    var th = el('theta').value;
+    callPy('xray(' + th + ')').then(function (res) {
+      var d = res.data;
+      if (d.theta === 0) { S.saw0 = true; }
+      if (d.theta === 1) { S.saw1 = true; }
+      el('hud1').textContent = d.slope + ' @ \u03B8=' + d.theta;
+      renderOut('out1', [
+        'slope at theta ' + d.theta + ': ' + d.slope + '   (true within effect: ' + d.true + ')',
+        d.theta === 0 ? 'Pooled view: between-firm confounding makes the cloud slope the WRONG way.'
+        : (d.theta === 1 ? 'Full x-ray: every firm sits on its own mean; only within-firm changes remain - and the slope is the truth.'
+                         : 'Partway: the firm clusters are collapsing toward a common origin.')
+      ], res.figs, ['Ten firms shown, colored. Slide theta from 0 to 1 and re-expose: watch the clusters collapse and the slope flip.']);
+      setStatus('st1', '');
+      maybeFinish();
+    }).then(null, function (e) { fail('out1', 'st1', e); });
+  };
+  el('tables').onclick = function () {
+    setStatus('st2', 'estimating both...');
+    callPy('tables()').then(function (res) {
+      var d = res.data;
+      S.tables = true;
+      el('hud2').textContent = 'reproduced';
+      renderOut('out2', [
+        'POOLED OLS', d.ptab, '',
+        'FIXED EFFECTS (firm dummies / within): ' + d.ftab_row,
+        'pooled ' + d.pooled + ' (se ' + d.pooled_se + ')  vs  FE ' + d.fe + ' (se ' + d.fe_se + ')   true ' + d.true,
+        'Same data. Opposite signs. The firm effect a_i is the entire difference.'
+      ], res.figs);
+      setStatus('st2', 'both tables on record');
+      maybeFinish();
+    }).then(null, function (e) { fail('out2', 'st2', e); });
+  };
+  var labels = el('mcq1').getElementsByTagName('label');
+  for (var m = 0; m < labels.length; m++) {
+    labels[m].onclick = function () {
+      if (S.mc !== null) { return; }
+      var pick = parseInt(this.getAttribute('data-i'), 10);
+      if (pick === 1) { this.className = 'correct'; S.mc = 100; }
+      else { this.className = 'wrong'; labels[1].className = 'correct'; S.mc = 40; }
+      maybeFinish();
+    };
+  }
+}
+function maybeFinish() {
+  if (!(S.saw0 && S.saw1 && S.tables) || S.mc === null) { return; }
+  var explore = 100;
+  var final = Math.round(0.5 * explore + 0.5 * S.mc);
+  showFinal(final, 'X-ray complete (\u03B8=0 and \u03B8=1 seen) | Tables reproduced | Explanation ' + (S.mc === 100 ? 'right' : 'partial'),
+            { mc: S.mc });
+}
+</script>
+<script type="text/x-python" id="lab-prelude">
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import io, base64
+plt.rcParams["figure.facecolor"] = "#1E1A3E"; plt.rcParams["axes.facecolor"] = "#1E1A3E"
+plt.rcParams["savefig.facecolor"] = "#1E1A3E"; plt.rcParams["text.color"] = "#E8E6F5"
+plt.rcParams["axes.labelcolor"] = "#A9A5C9"; plt.rcParams["xtick.color"] = "#A9A5C9"
+plt.rcParams["ytick.color"] = "#A9A5C9"; plt.rcParams["axes.edgecolor"] = "#2A2550"
+plt.rcParams["axes.prop_cycle"] = matplotlib.cycler(color=["#19C3B2","#FBBF24","#7C5CFF","#FF6B6B","#94A3B8"])
+plt.rcParams["legend.facecolor"] = "#161330"; plt.rcParams["grid.color"] = "#2A2550"
+def __figs():
+    out = []
+    for num in plt.get_fignums():
+        fig = plt.figure(num); buf = io.BytesIO()
+        fig.savefig(buf, format="png", dpi=110, bbox_inches="tight")
+        out.append(base64.b64encode(buf.getvalue()).decode("ascii"))
+    plt.close("all"); return out
+</script>
+<script>
+/* ===== shared Lab runtime (inlined eq-progress pattern) - Safari-safe ===== */
+var EQ_SUPABASE_URL = 'PASTE_NEW_PROJECT_URL';
+var EQ_SUPABASE_ANON_KEY = 'PASTE_NEW_ANON_KEY';
+var DEV_PREVIEW = true;
+var SUPER_ADMIN_EMAIL = 'sharmaaa9@yahoo.com';
+var STRIPE_LINK = 'https://buy.stripe.com/8x2cMYbjfcsk2ON7se5ZC01';
+var LAB_ID = 'panel-xray';
+var LAB_FREE = false;
+var PYODIDE_URL = 'https://cdn.jsdelivr.net/pyodide/v0.29.4/full/pyodide.js';
+var PY_PACKAGES = ['numpy', 'pandas', 'scipy', 'matplotlib', 'statsmodels'];
+
+var PY = { pyodide: null, promise: null };
+var SB = null, SESSION = null, BEST = -1;
+
+function el(id) { return document.getElementById(id); }
+function setStatus(id, txt, err) { var s = el(id); if (s) { s.textContent = txt; s.className = 'status' + (err ? ' err' : ''); } }
+function setPyState(t) { var s = el('pystate'); if (s) { s.textContent = 'Python: ' + t; } }
+function showLoad(p) { var lb = el('loadbar'); if (!lb) { return; } lb.className = p < 100 ? 'loadbar show' : 'loadbar'; el('loadfill').style.width = p + '%'; }
+function escapeHTML(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function loadScript(src) {
+  return new Promise(function (resolve, reject) {
+    var s = document.createElement('script'); s.src = src;
+    s.onload = function () { resolve(true); };
+    s.onerror = function () { reject(new Error('Could not load ' + src)); };
+    document.head.appendChild(s);
+  });
+}
+function ensurePy() {
+  if (PY.promise) { return PY.promise; }
+  setPyState('downloading'); showLoad(10);
+  PY.promise = loadScript(PYODIDE_URL).then(function () {
+    setPyState('starting'); showLoad(30);
+    return window.loadPyodide();
+  }).then(function (py) {
+    PY.pyodide = py;
+    setPyState('loading numpy + statsmodels'); showLoad(55);
+    return py.loadPackage(PY_PACKAGES).then(function () { return py; });
+  }).then(function (py) {
+    setPyState('preparing the lab'); showLoad(85);
+    var pre = document.getElementById('lab-prelude').textContent;
+    var mod = document.getElementById('lab-module').textContent;
+    return py.runPythonAsync(pre).then(function () { return py.runPythonAsync(mod); }).then(function () { setPyState('ready'); showLoad(100); return py; });
+  });
+  PY.promise = PY.promise.then(null, function (err) {
+    PY.promise = null; setPyState('failed - retry your last action'); showLoad(100); throw err;
+  });
+  return PY.promise;
+}
+function callPy(expr) {
+  return ensurePy().then(function (py) {
+    return py.runPythonAsync(expr).then(function (res) {
+      var data = res ? JSON.parse(res) : {};
+      var figs = py.runPython('__figs()');
+      var arr = figs ? figs.toJs() : [];
+      if (figs && figs.destroy) { figs.destroy(); }
+      return { data: data, figs: arr };
+    });
+  });
+}
+function renderOut(target, lines, figs, caps) {
+  var html = '';
+  if (lines && lines.length) { html += '<pre class="reg-table">' + escapeHTML(lines.join('\n')) + '</pre>'; }
+  for (var i = 0; i < (figs ? figs.length : 0); i++) {
+    html += '<div class="figure-card"><img alt="lab figure" src="data:image/png;base64,' + figs[i] + '">';
+    if (caps && caps[i]) { html += '<div class="cap">' + caps[i] + '</div>'; }
+    html += '</div>';
+  }
+  el(target).innerHTML = html;
+}
+function fail(target, statusId, err) {
+  setStatus(statusId, 'error', true);
+  el(target).innerHTML = '<pre class="reg-table" style="color:#FF9B9B">' + escapeHTML(err && err.message ? err.message : String(err)) + '</pre>';
+}
+/* live progress reporting: report DURING play whenever the score improves */
+function reportScore(score, detail) {
+  if (score <= BEST) { return; }
+  BEST = score;
+  try { window.localStorage.setItem('eq_lab_' + LAB_ID, JSON.stringify({ score: score, detail: detail, at: new Date().toISOString() })); } catch (e) {}
+  var sm = el('savemsg'); if (sm) { sm.textContent = ''; }
+  if (SB && SESSION) {
+    SB.from('eq_lab_results').insert({ student_id: SESSION.user.id, lab_id: LAB_ID, score: score, details: detail })
+      .then(function () { if (sm) { sm.textContent = ' and to your course record'; } });
+  }
+}
+function showFinal(score, detailText, detailObj) {
+  el('finalscore').textContent = score;
+  el('scoredetail').textContent = detailText;
+  el('scorecard').className = 'scorecard show';
+  var db = el('debrief'); if (db) { db.className = 'debrief show'; }
+  reportScore(score, detailObj);
+}
+function resolveGate() {
+  var buy = el('gate-buy'); if (buy) { buy.href = STRIPE_LINK; }
+  if (LAB_FREE || DEV_PREVIEW) { return; }
+  if (EQ_SUPABASE_URL.indexOf('http') !== 0 || !window.supabase) { el('gate').className = 'show'; return; }
+  SB = window.supabase.createClient(EQ_SUPABASE_URL, EQ_SUPABASE_ANON_KEY);
+  SB.auth.getSession().then(function (r) {
+    SESSION = (r && r.data && r.data.session) ? r.data.session : null;
+    if (!SESSION) { el('gate').className = 'show'; return; }
+    if (String(SESSION.user.email).toLowerCase() === SUPER_ADMIN_EMAIL) { return; }
+    SB.from('eq_profiles').select('role').eq('id', SESSION.user.id).maybeSingle().then(function (pr) {
+      var role = (pr && pr.data && pr.data.role) ? pr.data.role : 'student';
+      if (role === 'instructor' || role === 'admin') { return; }
+      SB.from('eq_subscriptions').select('id').eq('student_id', SESSION.user.id).eq('status', 'active').limit(1)
+        .then(function (s) { if (!(s && s.data && s.data.length)) { el('gate').className = 'show'; } });
+    });
+  });
+}
+function bootLab() {
+  resolveGate();
+  if (window.labInit) { window.labInit(); }
+}
+if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', bootLab); } else { bootLab(); }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</body>
+</html>

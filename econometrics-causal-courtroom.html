@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Causal Courtroom | Econometrics Lab | MacroNations</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0E0C20;--bg2:#161330;--bg3:#1E1A3E;--line:#2A2550;--ink:#E8E6F5;--ink-dim:#A9A5C9;--ink-faint:#6F6A95;
+--teal:#19C3B2;--teal-bright:#3FE0D0;--violet:#7C5CFF;--gold:#FBBF24;--coral:#FF6B6B;--green:#34D399;
+--serif:'Instrument Serif',Georgia,serif;--sans:'Inter',sans-serif;--mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:var(--teal-bright);text-decoration:none}
+.wrap{max-width:940px;margin:0 auto;padding:30px 22px 90px}
+.kicker{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);margin-bottom:6px}
+h1{font-family:var(--serif);font-weight:400;font-size:38px;line-height:1.1;margin-bottom:8px}
+h2{font-family:var(--serif);font-weight:400;font-size:23px;margin:0 0 8px}
+p{color:var(--ink-dim);margin-bottom:12px}
+p strong,li strong{color:var(--ink)}
+.lede{font-size:17px;color:var(--ink)}
+ul.body{margin:0 0 12px 20px;color:var(--ink-dim)}
+.hud{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:11px 15px;margin:16px 0}
+.pill{background:var(--bg3);border:1px solid var(--line);border-radius:999px;padding:5px 13px;font-family:var(--mono);font-size:12.5px;color:var(--ink-dim)}
+.pill b{color:var(--gold)}
+.stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:20px;margin:18px 0}
+.stage.done{border-color:var(--green)}
+.tag{display:inline-block;background:rgba(25,195,178,.14);color:var(--teal-bright);font-size:11px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;border-radius:6px;padding:3px 10px;margin-bottom:10px}
+.controls{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:12px 0}
+.controls label{font-size:13px;color:var(--ink-dim)}
+input[type=range]{width:230px;accent-color:var(--teal)}
+input[type=text]{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:8px 12px;font-family:var(--mono);font-size:14px;width:140px}
+select{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:8px 12px;font-family:var(--sans);font-size:14px}
+.btn{background:var(--teal);color:#062a26;border:none;border-radius:9px;padding:9px 17px;font-weight:600;font-size:14px;cursor:pointer;font-family:var(--sans)}
+.btn:hover{background:var(--teal-bright)} .btn:disabled{opacity:.45;cursor:default}
+.btn.gold{background:var(--gold);color:#3a2a00} .btn.ghost{background:transparent;color:var(--teal-bright);border:1px solid var(--teal)}
+.btn.coral{background:var(--coral);color:#3a0c0c}
+.val{font-family:var(--mono);font-size:13px;color:var(--teal-bright);min-width:60px;display:inline-block}
+.out{margin-top:12px}
+.reg-table{background:#070613;border:1px solid var(--line);border-radius:10px;color:#C9E7E2;font-family:var(--mono);font-size:12.4px;line-height:1.55;padding:13px;overflow-x:auto;white-space:pre;margin:10px 0 0}
+.figure-card{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:10px;margin:10px 0 0;text-align:center}
+.figure-card img{max-width:100%;border-radius:8px}
+.figure-card .cap{font-size:12.5px;color:var(--ink-faint);margin-top:7px;text-align:left}
+.status{font-size:12.5px;color:var(--ink-faint);margin-left:8px} .status.err{color:var(--coral)}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:12px 0}
+.opt{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:13px 15px;cursor:pointer}
+.opt:hover{border-color:var(--teal)} .opt.sel{border-color:var(--teal-bright);background:rgba(25,195,178,.08)}
+.opt.good{border-color:var(--green)} .opt.bad{border-color:var(--coral)}
+.opt h3{font-size:14.5px;color:var(--ink);margin-bottom:4px} .opt p{font-size:12.8px;margin:0;color:var(--ink-dim)}
+.mcq{margin:12px 0} .mcq .q{color:var(--ink);margin-bottom:8px}
+.mcq label{display:block;padding:7px 11px;border:1px solid var(--line);border-radius:9px;margin-bottom:6px;color:var(--ink-dim);cursor:pointer;font-size:14px}
+.mcq label:hover{border-color:var(--teal)} .mcq label.correct{border-color:var(--green);color:var(--green)} .mcq label.wrong{border-color:var(--coral);color:var(--coral)}
+.meter{height:10px;background:var(--bg3);border:1px solid var(--line);border-radius:6px;overflow:hidden;flex:1;min-width:140px}
+.meter .fill{height:100%;width:0%;background:var(--teal);transition:width .3s}
+.meter .fill.hot{background:var(--coral)}
+.scorecard{background:linear-gradient(135deg,rgba(251,191,36,.10),rgba(25,195,178,.07));border:1px solid var(--gold);border-radius:16px;padding:20px;margin:22px 0;text-align:center;display:none}
+.scorecard.show{display:block}
+.scorecard .big{font-family:var(--serif);font-size:48px;color:var(--gold)}
+.debrief{background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.4);border-radius:14px;padding:15px 18px;margin:18px 0;display:none}
+.debrief.show{display:block}
+.debrief .db-label{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--green);font-weight:700;margin-bottom:6px}
+.debrief p{color:var(--ink);margin:0}
+.sharma-take{background:linear-gradient(135deg,rgba(251,191,36,.08),rgba(251,191,36,.03));border:1px solid rgba(251,191,36,.4);border-radius:14px;padding:14px 18px;margin:18px 0}
+.sharma-take .st-label{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:6px}
+.sharma-take p{color:var(--ink);margin:0}
+.note{font-size:12.5px;color:var(--ink-faint)}
+.loadbar{height:6px;background:var(--bg3);border-radius:4px;overflow:hidden;margin:8px 0;display:none}
+.loadbar.show{display:block}.loadbar .fill{height:100%;width:0%;background:var(--teal);transition:width .4s}
+#gate{display:none;position:fixed;inset:0;background:rgba(14,12,32,.93);z-index:50;align-items:center;justify-content:center;padding:20px}
+#gate.show{display:flex}
+#gate .card{background:var(--bg2);border:1px solid var(--gold);border-radius:16px;padding:30px;max-width:480px;text-align:center}
+</style>
+</head>
+<body>
+<div id="gate"><div class="card"><h2>This Lab is part of the full course</h2>
+<p>The free preview includes Chapters 1&ndash;2 and the Least-Squares Archer lab. The full course &mdash; 17 chapters, 14 Labs, exams, certificate &mdash; is a one-time $25.</p>
+<p><a class="btn gold" id="gate-buy" href="#" target="_blank" rel="noopener">Unlock the full course &mdash; $25</a></p>
+<p class="note">Already purchased? Open this Lab from the course app while signed in.</p></div></div>
+<div class="wrap">
+<div class="kicker">Econometrics &middot; Lab &middot; capstone &middot; companion to Chapter 1 and everything after</div>
+<h1>The Causal Courtroom</h1>
+<p class="lede">You are the econometrician on the stand. Four cases, each a causal claim under attack &mdash; confounding, reverse causality, selection, manipulation. For each case, the defense names the threat; you must call the right <strong>identification strategy as your witness</strong> and enter real evidence (the analysis runs live). Call the wrong witness and the judge will watch your "evidence" miss the truth.</p>
+<div class="hud"><span class="pill">Cases won: <b id="hud1">0/4</b></span><span class="pill">On the stand: <b id="hud2">&ndash;</b></span><span class="pill" id="pystate">Python: idle</span></div>
+<div class="loadbar" id="loadbar"><div class="fill" id="loadfill"></div></div>
+
+<div class="stage" id="stage1">
+<span class="tag">The docket</span>
+<h2>Select a case</h2>
+<div class="opts" id="docket">
+  <div class="opt" data-c="0"><h3>&#9878; Case 1: The Training Program</h3><p>"Job training raised earnings." Defense: motivated workers self-selected into training. A randomized lottery exists in the records.</p></div>
+  <div class="opt" data-c="1"><h3>&#9878; Case 2: The Minimum Wage</h3><p>"The 2019 wage hike cut county employment." Defense: the treated counties were on a different path anyway? Neighboring counties never got the hike.</p></div>
+  <div class="opt" data-c="2"><h3>&#9878; Case 3: The Scholarship</h3><p>"Merit scholarships raise graduation." Defense: scholarship winners are simply stronger students. Awards switch on at a sharp test-score cutoff.</p></div>
+  <div class="opt" data-c="3"><h3>&#9878; Case 4: The Police Budget</h3><p>"More police caused more crime &mdash; look at the positive correlation!" Defense: cities hire police BECAUSE crime is high. Federal grant waves shifted police levels for reasons unrelated to local crime.</p></div>
+</div>
+<div class="controls">
+  <span class="note">Call your witness:</span>
+  <select id="witness">
+    <option value="rct">The Randomized Experiment (RCT)</option>
+    <option value="did">Difference-in-Differences</option>
+    <option value="rd">Regression Discontinuity</option>
+    <option value="fe">Fixed Effects</option>
+    <option value="iv">Instrumental Variables</option>
+    <option value="naive">Naive correlation (no design)</option>
+  </select>
+  <button class="btn gold" id="testify" disabled>Enter evidence</button>
+  <span class="status" id="st1"></span>
+</div>
+<div class="out" id="out1"></div>
+</div>
+
+<div class="scorecard" id="scorecard"><div style="font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-dim)">Causal Courtroom &mdash; final verdict</div>
+<div class="big" id="finalscore">0</div><div id="scoredetail" style="color:var(--ink-dim);font-size:14px"></div>
+<p class="note" style="margin-top:8px">Saved locally<span id="savemsg"></span>.</p></div>
+
+<div class="debrief" id="debrief"><div class="db-label">What you just learned</div>
+<p>Identification strategies are not buttons on a menu; each one answers a specific attack. Self-selection is answered by randomization; "they were on a different path" is answered by difference-in-differences with parallel trends; "winners are just better" is answered by comparing near-identical students across a sharp cutoff; reverse causality is answered by an instrument that moves the regressor for unrelated reasons. You watched the wrong witness produce confident, biased evidence and the right witness land on the truth &mdash; the design, not the regression, is the argument.</p></div>
+
+<div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
+<p>In seminar, the question is never "what did you regress?" It is "what is your identification?" If you can name the threat and the witness that answers it, you are doing econometrics. Everything else is typing.</p></div>
+<p class="note">Part of <a href="https://econometrics.macronations.com">Econometrics</a> on MacroNations.</p>
+</div>
+
+<script type="text/x-python" id="lab-module">
+import numpy as np, pandas as pd, json
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+
+_CORRECT = {0: "rct", 1: "did", 2: "rd", 3: "iv"}
+_TRUTH = {0: 2.0, 1: -1.5, 2: 8.0, 3: -0.6}
+
+def _case0():
+    r = np.random.default_rng(81); n = 1000
+    motiv = r.normal(0, 1, n)
+    lottery = r.integers(0, 2, n).astype(float)
+    chose = (motiv + r.normal(0, 1, n) > 0).astype(float)     # self-selected sample
+    earn_lottery = 30 + 2.0*lottery + 1.8*motiv + r.normal(0, 2, n)
+    earn_chose = 30 + 2.0*chose + 1.8*motiv + r.normal(0, 2, n)
+    return pd.DataFrame({"lottery": lottery, "chose": chose,
+                         "earn_l": earn_lottery, "earn_c": earn_chose})
+
+def _case1():
+    r = np.random.default_rng(82); rows = []
+    for i in range(40):
+        treat = int(i < 20); a = r.normal(0, 1.5)
+        for t in range(8):
+            y = 50 + a + 0.5*t - 1.5*treat*(t >= 4) - 2.0*treat + r.normal(0, .8)
+            rows.append((i, t, treat, int(t >= 4), y))
+    return pd.DataFrame(rows, columns=["county","t","treat","post","emp"])
+
+def _case2():
+    r = np.random.default_rng(83); n = 1200
+    score = r.uniform(40, 100, n)
+    D = (score >= 70).astype(float)
+    grad = 20 + 0.6*score + 8.0*D + r.normal(0, 5, n)
+    return pd.DataFrame({"score": score, "D": D, "grad": grad})
+
+def _case3():
+    r = np.random.default_rng(84); n = 800
+    crime_base = r.normal(0, 1, n)                      # latent local crime conditions
+    grants = r.normal(0, 1, n)                          # federal waves, unrelated to crime_base
+    police = 10 + 1.2*crime_base + 0.9*grants + r.normal(0, .8, n)
+    crime = 50 - 0.6*police + 6.0*crime_base + r.normal(0, 2, n)
+    return pd.DataFrame({"police": police, "crime": crime, "grants": grants})
+
+def testify(case, design):
+    case = int(case); truth = _TRUTH[case]; correct = (_CORRECT[case] == design)
+    est = None; se = None; label = ""
+    if case == 0:
+        df = _case0()
+        if design == "rct":
+            m = smf.ols("earn_l ~ lottery", data=df).fit(); est, se = m.params["lottery"], m.bse["lottery"]; label = "lottery (randomized) effect"
+        else:
+            m = smf.ols("earn_c ~ chose", data=df).fit(); est, se = m.params["chose"], m.bse["chose"]; label = "comparison of self-selected trainees (" + design + " does not undo selection here)"
+    elif case == 1:
+        df = _case1()
+        if design == "did":
+            m = smf.ols("emp ~ treat*post + C(t) + C(county)", data=df).fit(cov_type="cluster", cov_kwds={"groups": df["county"]})
+            est, se = m.params["treat:post"], m.bse["treat:post"]; label = "DiD (treated vs neighbor counties, clustered)"
+        else:
+            sub = df[df["post"] == 1]
+            m = smf.ols("emp ~ treat", data=sub).fit(); est, se = m.params["treat"], m.bse["treat"]; label = "post-period level comparison (" + design + " ignores the pre-existing gap)"
+    elif case == 2:
+        df = _case2()
+        if design == "rd":
+            w = np.abs(df["score"] - 70) <= 8
+            d = df[w].copy(); d["c"] = d["score"] - 70
+            mb = smf.ols("grad ~ c", data=d[d["D"] == 0]).fit(); ma = smf.ols("grad ~ c", data=d[d["D"] == 1]).fit()
+            est = float(ma.params["Intercept"] - mb.params["Intercept"])
+            se = float(np.sqrt(ma.bse["Intercept"]**2 + mb.bse["Intercept"]**2)); label = "RD jump at the cutoff (h = 8)"
+        else:
+            m = smf.ols("grad ~ D", data=df).fit(); est, se = m.params["D"], m.bse["D"]; label = "winners vs non-winners overall (" + design + " compares different students)"
+    else:
+        df = _case3()
+        if design == "iv":
+            s1 = sm.OLS(df["police"], sm.add_constant(df["grants"])).fit()
+            s2 = sm.OLS(df["crime"], sm.add_constant(s1.fittedvalues)).fit()
+            est, se = s2.params.iloc[1], s2.bse.iloc[1]; label = "2SLS using grant waves (F = %.0f)" % float(s1.tvalues.iloc[1]**2)
+        else:
+            m = smf.ols("crime ~ police", data=df).fit(); est, se = m.params["police"], m.bse["police"]; label = "naive/level correlation (" + design + " cannot break the feedback loop)"
+    est = float(est); se = float(se)
+    miss = abs(est - truth)
+    plt.figure(figsize=(6.8, 3.2))
+    plt.errorbar([0], [est], yerr=[1.96*se], fmt="o", capsize=5, markersize=9, label="your evidence")
+    plt.axhline(truth, linestyle="--", linewidth=1.5, color="#FBBF24", label="the truth (%.1f)" % truth)
+    plt.xlim(-1, 1); plt.xticks([])
+    plt.ylabel("estimated effect"); plt.legend(fontsize=9)
+    plt.title("case %d: your witness vs the truth" % (case + 1))
+    plt.tight_layout()
+    won = bool(correct and miss < max(0.6, 2.5*se))
+    return json.dumps({"case": case, "design": design, "correct_design": correct,
+                       "est": round(est, 3), "se": round(se, 3), "truth": truth,
+                       "label": label, "won": won})
+</script>
+
+<script>
+var S = { sel: null, won: {}, tried: {}, mcDone: true };
+var VERDICTS = {
+  0: { rct: 'JUDGE: "Random assignment severs selection. Evidence admitted."' },
+  1: { did: 'JUDGE: "Neighbor counties supply the missing path. Evidence admitted."' },
+  2: { rd: 'JUDGE: "At the cutoff, winners and losers are twins. Evidence admitted."' },
+  3: { iv: 'JUDGE: "The grant waves move police for reasons crime did not choose. Evidence admitted."' }
+};
+function labInit() {
+  var opts = el('docket').getElementsByClassName('opt');
+  for (var i = 0; i < opts.length; i++) {
+    opts[i].onclick = function () {
+      for (var j = 0; j < opts.length; j++) { opts[j].className = opts[j].className.replace(' sel', ''); }
+      this.className += ' sel';
+      S.sel = parseInt(this.getAttribute('data-c'), 10);
+      el('hud2').textContent = 'Case ' + (S.sel + 1);
+      el('testify').disabled = false;
+    };
+  }
+  el('testify').onclick = function () {
+    if (S.sel === null) { return; }
+    var design = el('witness').value;
+    setStatus('st1', PY.pyodide ? 'running the analysis...' : 'loading Python (~10s first time)...');
+    callPy('testify(' + S.sel + ', "' + design + '")').then(function (res) {
+      var d = res.data;
+      S.tried[d.case] = true;
+      var lines = [
+        'CASE ' + (d.case + 1) + '   witness: ' + d.design.toUpperCase(),
+        'evidence: ' + d.label,
+        'estimate ' + d.est + ' (se ' + d.se + ')   truth built into the record: ' + d.truth
+      ];
+      if (d.won) {
+        if (!S.won[d.case]) { S.won[d.case] = true; }
+        lines.push(VERDICTS[d.case][d.design] || 'JUDGE: "Evidence admitted."');
+        lines.push('CASE WON.');
+        var card = el('docket').getElementsByClassName('opt')[d.case];
+        card.className = 'opt good';
+      } else if (d.correct_design) {
+        lines.push('JUDGE: "Right witness, shaky delivery." (Estimate strayed - rerun.)');
+      } else {
+        lines.push('JUDGE: "Objection sustained. Your design does not answer the named threat - the evidence misses the truth, confidently."');
+      }
+      el('hud1').textContent = Object.keys(S.won).length + '/4';
+      renderOut('out1', lines, res.figs, ['Gold dashed line: the true effect in this record. Watch where the wrong witness lands you.']);
+      setStatus('st1', '');
+      maybeFinish();
+    }).then(null, function (e) { fail('out1', 'st1', e); });
+  };
+}
+function maybeFinish() {
+  var wonN = Object.keys(S.won).length;
+  if (wonN < 4) { return; }
+  var triedExtra = 0;
+  var final = Math.round(100 * wonN / 4);
+  showFinal(final, 'All four cases won - the bench congratulates the witness-caller', { won: wonN });
+}
+</script>
+<script type="text/x-python" id="lab-prelude">
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import io, base64
+plt.rcParams["figure.facecolor"] = "#1E1A3E"; plt.rcParams["axes.facecolor"] = "#1E1A3E"
+plt.rcParams["savefig.facecolor"] = "#1E1A3E"; plt.rcParams["text.color"] = "#E8E6F5"
+plt.rcParams["axes.labelcolor"] = "#A9A5C9"; plt.rcParams["xtick.color"] = "#A9A5C9"
+plt.rcParams["ytick.color"] = "#A9A5C9"; plt.rcParams["axes.edgecolor"] = "#2A2550"
+plt.rcParams["axes.prop_cycle"] = matplotlib.cycler(color=["#19C3B2","#FBBF24","#7C5CFF","#FF6B6B","#94A3B8"])
+plt.rcParams["legend.facecolor"] = "#161330"; plt.rcParams["grid.color"] = "#2A2550"
+def __figs():
+    out = []
+    for num in plt.get_fignums():
+        fig = plt.figure(num); buf = io.BytesIO()
+        fig.savefig(buf, format="png", dpi=110, bbox_inches="tight")
+        out.append(base64.b64encode(buf.getvalue()).decode("ascii"))
+    plt.close("all"); return out
+</script>
+<script>
+/* ===== shared Lab runtime (inlined eq-progress pattern) - Safari-safe ===== */
+var EQ_SUPABASE_URL = 'PASTE_NEW_PROJECT_URL';
+var EQ_SUPABASE_ANON_KEY = 'PASTE_NEW_ANON_KEY';
+var DEV_PREVIEW = true;
+var SUPER_ADMIN_EMAIL = 'sharmaaa9@yahoo.com';
+var STRIPE_LINK = 'https://buy.stripe.com/8x2cMYbjfcsk2ON7se5ZC01';
+var LAB_ID = 'causal-courtroom';
+var LAB_FREE = false;
+var PYODIDE_URL = 'https://cdn.jsdelivr.net/pyodide/v0.29.4/full/pyodide.js';
+var PY_PACKAGES = ['numpy', 'pandas', 'scipy', 'matplotlib', 'statsmodels'];
+
+var PY = { pyodide: null, promise: null };
+var SB = null, SESSION = null, BEST = -1;
+
+function el(id) { return document.getElementById(id); }
+function setStatus(id, txt, err) { var s = el(id); if (s) { s.textContent = txt; s.className = 'status' + (err ? ' err' : ''); } }
+function setPyState(t) { var s = el('pystate'); if (s) { s.textContent = 'Python: ' + t; } }
+function showLoad(p) { var lb = el('loadbar'); if (!lb) { return; } lb.className = p < 100 ? 'loadbar show' : 'loadbar'; el('loadfill').style.width = p + '%'; }
+function escapeHTML(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function loadScript(src) {
+  return new Promise(function (resolve, reject) {
+    var s = document.createElement('script'); s.src = src;
+    s.onload = function () { resolve(true); };
+    s.onerror = function () { reject(new Error('Could not load ' + src)); };
+    document.head.appendChild(s);
+  });
+}
+function ensurePy() {
+  if (PY.promise) { return PY.promise; }
+  setPyState('downloading'); showLoad(10);
+  PY.promise = loadScript(PYODIDE_URL).then(function () {
+    setPyState('starting'); showLoad(30);
+    return window.loadPyodide();
+  }).then(function (py) {
+    PY.pyodide = py;
+    setPyState('loading numpy + statsmodels'); showLoad(55);
+    return py.loadPackage(PY_PACKAGES).then(function () { return py; });
+  }).then(function (py) {
+    setPyState('preparing the lab'); showLoad(85);
+    var pre = document.getElementById('lab-prelude').textContent;
+    var mod = document.getElementById('lab-module').textContent;
+    return py.runPythonAsync(pre).then(function () { return py.runPythonAsync(mod); }).then(function () { setPyState('ready'); showLoad(100); return py; });
+  });
+  PY.promise = PY.promise.then(null, function (err) {
+    PY.promise = null; setPyState('failed - retry your last action'); showLoad(100); throw err;
+  });
+  return PY.promise;
+}
+function callPy(expr) {
+  return ensurePy().then(function (py) {
+    return py.runPythonAsync(expr).then(function (res) {
+      var data = res ? JSON.parse(res) : {};
+      var figs = py.runPython('__figs()');
+      var arr = figs ? figs.toJs() : [];
+      if (figs && figs.destroy) { figs.destroy(); }
+      return { data: data, figs: arr };
+    });
+  });
+}
+function renderOut(target, lines, figs, caps) {
+  var html = '';
+  if (lines && lines.length) { html += '<pre class="reg-table">' + escapeHTML(lines.join('\n')) + '</pre>'; }
+  for (var i = 0; i < (figs ? figs.length : 0); i++) {
+    html += '<div class="figure-card"><img alt="lab figure" src="data:image/png;base64,' + figs[i] + '">';
+    if (caps && caps[i]) { html += '<div class="cap">' + caps[i] + '</div>'; }
+    html += '</div>';
+  }
+  el(target).innerHTML = html;
+}
+function fail(target, statusId, err) {
+  setStatus(statusId, 'error', true);
+  el(target).innerHTML = '<pre class="reg-table" style="color:#FF9B9B">' + escapeHTML(err && err.message ? err.message : String(err)) + '</pre>';
+}
+/* live progress reporting: report DURING play whenever the score improves */
+function reportScore(score, detail) {
+  if (score <= BEST) { return; }
+  BEST = score;
+  try { window.localStorage.setItem('eq_lab_' + LAB_ID, JSON.stringify({ score: score, detail: detail, at: new Date().toISOString() })); } catch (e) {}
+  var sm = el('savemsg'); if (sm) { sm.textContent = ''; }
+  if (SB && SESSION) {
+    SB.from('eq_lab_results').insert({ student_id: SESSION.user.id, lab_id: LAB_ID, score: score, details: detail })
+      .then(function () { if (sm) { sm.textContent = ' and to your course record'; } });
+  }
+}
+function showFinal(score, detailText, detailObj) {
+  el('finalscore').textContent = score;
+  el('scoredetail').textContent = detailText;
+  el('scorecard').className = 'scorecard show';
+  var db = el('debrief'); if (db) { db.className = 'debrief show'; }
+  reportScore(score, detailObj);
+}
+function resolveGate() {
+  var buy = el('gate-buy'); if (buy) { buy.href = STRIPE_LINK; }
+  if (LAB_FREE || DEV_PREVIEW) { return; }
+  if (EQ_SUPABASE_URL.indexOf('http') !== 0 || !window.supabase) { el('gate').className = 'show'; return; }
+  SB = window.supabase.createClient(EQ_SUPABASE_URL, EQ_SUPABASE_ANON_KEY);
+  SB.auth.getSession().then(function (r) {
+    SESSION = (r && r.data && r.data.session) ? r.data.session : null;
+    if (!SESSION) { el('gate').className = 'show'; return; }
+    if (String(SESSION.user.email).toLowerCase() === SUPER_ADMIN_EMAIL) { return; }
+    SB.from('eq_profiles').select('role').eq('id', SESSION.user.id).maybeSingle().then(function (pr) {
+      var role = (pr && pr.data && pr.data.role) ? pr.data.role : 'student';
+      if (role === 'instructor' || role === 'admin') { return; }
+      SB.from('eq_subscriptions').select('id').eq('student_id', SESSION.user.id).eq('status', 'active').limit(1)
+        .then(function (s) { if (!(s && s.data && s.data.length)) { el('gate').className = 'show'; } });
+    });
+  });
+}
+function bootLab() {
+  resolveGate();
+  if (window.labInit) { window.labInit(); }
+}
+if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', bootLab); } else { bootLab(); }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</body>
+</html>

@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ML Foundry | Econometrics Lab 14 | MacroNations</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0E0C20;--bg2:#161330;--bg3:#1E1A3E;--line:#2A2550;--ink:#E8E6F5;--ink-dim:#A9A5C9;--ink-faint:#6F6A95;
+--teal:#19C3B2;--teal-bright:#3FE0D0;--violet:#7C5CFF;--gold:#FBBF24;--coral:#FF6B6B;--green:#34D399;
+--serif:'Instrument Serif',Georgia,serif;--sans:'Inter',sans-serif;--mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:var(--teal-bright);text-decoration:none}
+.wrap{max-width:920px;margin:0 auto;padding:30px 22px 90px}
+.kicker{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);margin-bottom:6px}
+h1{font-family:var(--serif);font-weight:400;font-size:40px;line-height:1.1;margin-bottom:8px}
+h2{font-family:var(--serif);font-weight:400;font-size:24px;margin:0 0 8px}
+p{color:var(--ink-dim);margin-bottom:12px}
+p strong{color:var(--ink)}
+.lede{font-size:17.5px;color:var(--ink)}
+.hud{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:18px 0}
+.hud .pill{background:var(--bg3);border:1px solid var(--line);border-radius:999px;padding:5px 14px;font-family:var(--mono);font-size:12.5px;color:var(--ink-dim)}
+.hud .pill b{color:var(--gold)}
+.stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:22px;margin:20px 0}
+.stage.done{border-color:var(--green)}
+.stage .tag{display:inline-block;background:rgba(25,195,178,.14);color:var(--teal-bright);font-size:11px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;border-radius:6px;padding:3px 10px;margin-bottom:10px}
+.controls{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:14px 0}
+.controls label{font-size:13px;color:var(--ink-dim)}
+input[type=range]{width:260px;accent-color:var(--teal)}
+select{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:8px 12px;font-family:var(--sans);font-size:14px}
+.btn{background:var(--teal);color:#062a26;border:none;border-radius:9px;padding:9px 18px;font-weight:600;font-size:14px;cursor:pointer;font-family:var(--sans)}
+.btn:hover{background:var(--teal-bright)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.gold{background:var(--gold);color:#3a2a00}
+.btn.ghost{background:transparent;color:var(--teal-bright);border:1px solid var(--teal)}
+.val{font-family:var(--mono);font-size:13px;color:var(--teal-bright);min-width:54px;display:inline-block}
+.out{margin-top:12px}
+.reg-table{background:#070613;border:1px solid var(--line);border-radius:10px;color:#C9E7E2;font-family:var(--mono);font-size:12.5px;line-height:1.55;padding:13px;overflow-x:auto;white-space:pre;margin:10px 0 0}
+.figure-card{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:10px;margin:10px 0 0;text-align:center}
+.figure-card img{max-width:100%;border-radius:8px}
+.status{font-size:12.5px;color:var(--ink-faint);margin-left:10px}
+.status.err{color:var(--coral)}
+.scorecard{background:linear-gradient(135deg,rgba(251,191,36,.10),rgba(25,195,178,.07));border:1px solid var(--gold);border-radius:16px;padding:22px;margin:24px 0;text-align:center;display:none}
+.scorecard.show{display:block}
+.scorecard .big{font-family:var(--serif);font-size:52px;color:var(--gold)}
+.sharma-take{background:linear-gradient(135deg,rgba(251,191,36,.08),rgba(251,191,36,.03));border:1px solid rgba(251,191,36,.4);border-radius:14px;padding:14px 18px;margin:18px 0}
+.sharma-take .st-label{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:6px}
+.sharma-take p{color:var(--ink);margin:0}
+.note{font-size:12.5px;color:var(--ink-faint)}
+.loadbar{height:6px;background:var(--bg3);border-radius:4px;overflow:hidden;margin:8px 0;display:none}
+.loadbar.show{display:block}
+.loadbar .fill{height:100%;width:0%;background:var(--teal);transition:width .4s}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="kicker">Econometrics &middot; Lab 14 &middot; companion to Chapter 17</div>
+<h1>ML Foundry</h1>
+<p class="lede">Three trials. In the first you will overfit on purpose and feel the test set punish you. In the second you will tune the lasso's penalty with your own hands. In the third you face the <strong>hidden holdout</strong>: pick a model, commit, and be scored on data you will never see. Real scikit-learn runs in your browser &mdash; nothing here is faked.</p>
+<div class="hud">
+  <span class="pill">Trial 1: <b id="hud1">&ndash;</b></span>
+  <span class="pill">Trial 2: <b id="hud2">&ndash;</b></span>
+  <span class="pill">Tournament: <b id="hud3">&ndash;</b></span>
+  <span class="pill" id="pystate">Python: idle</span>
+</div>
+<div class="loadbar" id="loadbar"><div class="fill" id="loadfill"></div></div>
+
+<!-- ============ STAGE 1 ============ -->
+<div class="stage" id="stage1">
+<span class="tag">Trial 1 &middot; The Overfitting Gauntlet</span>
+<h2>Fit the curve &mdash; without memorizing the noise</h2>
+<p>You get <strong>40 training points</strong> from a wavy economic relationship. Choose a polynomial degree and fit. Your train RMSE will keep falling as the degree rises; the <strong>test RMSE</strong> (200 fresh points) will not. Find the degree the test set loves.</p>
+<div class="controls">
+  <label>Polynomial degree <input type="range" id="deg" min="1" max="12" step="1" value="1"> <span class="val" id="degv">1</span></label>
+  <button class="btn" id="run1">Fit it</button>
+  <button class="btn gold" id="lock1" disabled>Lock in this degree</button>
+  <span class="status" id="st1"></span>
+</div>
+<div class="out" id="out1"></div>
+</div>
+
+<!-- ============ STAGE 2 ============ -->
+<div class="stage" id="stage2">
+<span class="tag">Trial 2 &middot; The Lasso Lever</span>
+<h2>One dial controls bias and variance</h2>
+<p>150 observations, <strong>60 candidate predictors, only 4 real</strong>. The lever is the lasso penalty &alpha;. Slide it: high &alpha; strangles everything (bias), low &alpha; lets all 60 in (variance). The 5-fold <strong>cross-validation curve</strong> is your instrument &mdash; park the lever at its minimum.</p>
+<div class="controls">
+  <label>Penalty position <input type="range" id="alp" min="0" max="24" step="1" value="0"> <span class="val" id="alpv">&alpha;</span></label>
+  <button class="btn" id="run2">Pull the lever</button>
+  <button class="btn gold" id="lock2" disabled>Lock in this &alpha;</button>
+  <span class="status" id="st2"></span>
+</div>
+<div class="out" id="out2"></div>
+</div>
+
+<!-- ============ STAGE 3 ============ -->
+<div class="stage" id="stage3">
+<span class="tag">Trial 3 &middot; The Hidden-Holdout Tournament</span>
+<h2>Commit, then meet the future</h2>
+<p>A fresh problem: 140 training observations, 80 predictors, sparse truth. Choose your weapon and (if regularized) your &alpha;, then <strong>submit</strong>. Your model is scored on <strong>100 holdout observations that are never displayed</strong>. Score 0 = no better than predicting the mean; score 100 = matches the cross-validated oracle. Beat the oracle and you go above 100.</p>
+<div class="controls">
+  <label>Model
+    <select id="mdl">
+      <option value="ols">OLS &mdash; all 80 in</option>
+      <option value="ridge">Ridge</option>
+      <option value="lasso" selected>Lasso</option>
+    </select>
+  </label>
+  <label>&alpha; (ridge/lasso) <input type="range" id="alp3" min="0" max="24" step="1" value="12"> <span class="val" id="alp3v"></span></label>
+  <button class="btn" id="probe3">Probe (5-fold CV on training data)</button>
+  <button class="btn gold" id="run3">Submit to the holdout</button>
+  <span class="status" id="st3"></span>
+</div>
+<div class="out" id="out3"></div>
+</div>
+
+<div class="scorecard" id="scorecard">
+  <div style="font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-dim)">ML Foundry &mdash; final score</div>
+  <div class="big" id="finalscore">0</div>
+  <div id="scoredetail" style="color:var(--ink-dim);font-size:14px"></div>
+  <p class="note" style="margin-top:10px">Saved locally<span id="savemsg"></span>. Trials can be retried; your best run counts.</p>
+</div>
+
+<div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
+<p>Every quant desk, every forecasting shop, every ML team runs this exact ritual daily: tune inside the training data, commit, get judged by data you never met. If the tournament humbles you, good &mdash; better here than with money. The discipline you are building has a name: out-of-sample honesty.</p></div>
+<p class="note">Part of <a href="https://econometrics.macronations.com">Econometrics</a> on MacroNations &middot; companion to Chapter 17 (<a href="econometrics-curriculum.html#chapter-17">Machine Learning for Econometrics</a>) &middot; first run downloads the in-browser Python environment with scikit-learn (~15s).</p>
+</div>
+<script type="text/x-python" id="lab-module">
+import numpy as np, json
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import io, base64
+from sklearn.linear_model import LinearRegression, Ridge, Lasso
+from sklearn.model_selection import KFold
+
+plt.rcParams["figure.facecolor"] = "#1E1A3E"; plt.rcParams["axes.facecolor"] = "#1E1A3E"
+plt.rcParams["savefig.facecolor"] = "#1E1A3E"; plt.rcParams["text.color"] = "#E8E6F5"
+plt.rcParams["axes.labelcolor"] = "#A9A5C9"; plt.rcParams["xtick.color"] = "#A9A5C9"
+plt.rcParams["ytick.color"] = "#A9A5C9"; plt.rcParams["axes.edgecolor"] = "#2A2550"
+plt.rcParams["axes.prop_cycle"] = matplotlib.cycler(color=["#19C3B2","#FBBF24","#7C5CFF","#FF6B6B"])
+plt.rcParams["legend.facecolor"] = "#161330"
+
+def __figs():
+    out = []
+    for num in plt.get_fignums():
+        fig = plt.figure(num); buf = io.BytesIO()
+        fig.savefig(buf, format="png", dpi=110, bbox_inches="tight")
+        out.append(base64.b64encode(buf.getvalue()).decode("ascii"))
+    plt.close("all"); return out
+
+# ---------------- Trial 1: overfitting gauntlet ----------------
+_r1 = np.random.default_rng(2026)
+def _truth(x): return np.sin(1.3*x) + 0.3*x
+_X1 = np.sort(_r1.uniform(-3, 3, 40)); _y1 = _truth(_X1) + _r1.normal(0, .35, 40)
+_X1t = np.sort(_r1.uniform(-3, 3, 200)); _y1t = _truth(_X1t) + _r1.normal(0, .35, 200)
+_S1 = []
+for _d in range(1, 13):
+    _c = np.polyfit(_X1, _y1, _d)
+    _S1.append(float(np.sqrt(np.mean((np.polyval(_c, _X1t) - _y1t)**2))))
+BEST_DEG = int(np.argmin(_S1)) + 1
+
+def stage1(degree):
+    degree = int(degree)
+    c = np.polyfit(_X1, _y1, degree)
+    tr = float(np.sqrt(np.mean((np.polyval(c, _X1) - _y1)**2)))
+    te = float(np.sqrt(np.mean((np.polyval(c, _X1t) - _y1t)**2)))
+    fig, ax = plt.subplots(1, 2, figsize=(8.8, 3.6))
+    ax[0].scatter(_X1, _y1, s=18, label="train (n=40)")
+    xs = np.linspace(-3, 3, 300)
+    ax[0].plot(xs, np.polyval(c, xs), linewidth=2.2, label="degree %d" % degree)
+    ax[0].plot(xs, _truth(xs), "--", linewidth=1.2, label="truth")
+    ax[0].set_ylim(-2.8, 2.8); ax[0].legend(fontsize=8); ax[0].set_title("your fit", fontsize=10)
+    ax[1].plot(range(1, 13), _S1, marker="o", linewidth=1.8, label="test RMSE")
+    ax[1].axvline(degree, linestyle="--", linewidth=1.1)
+    ax[1].set_xlabel("degree"); ax[1].legend(fontsize=8); ax[1].set_title("the gauntlet", fontsize=10)
+    plt.tight_layout()
+    return json.dumps({"train": round(tr, 4), "test": round(te, 4),
+                       "degree": degree, "best": BEST_DEG})
+
+# ---------------- Trial 2: lasso lever ----------------
+_r2 = np.random.default_rng(7)
+_n2, _p2 = 150, 60
+_X2 = _r2.normal(0, 1, (_n2, _p2))
+_b2 = np.zeros(_p2); _b2[:4] = [3.0, -2.0, 1.5, 1.0]
+_y2 = _X2 @ _b2 + _r2.normal(0, 2.0, _n2)
+ALPHAS = np.logspace(-2, 1, 25)
+_CV2 = []
+_kf = KFold(n_splits=5, shuffle=True, random_state=0)
+for _a in ALPHAS:
+    errs = []
+    for tr_i, te_i in _kf.split(_X2):
+        m = Lasso(alpha=_a, max_iter=20000).fit(_X2[tr_i], _y2[tr_i])
+        errs.append(np.mean((_y2[te_i] - m.predict(_X2[te_i]))**2))
+    _CV2.append(float(np.sqrt(np.mean(errs))))
+BEST_AIDX = int(np.argmin(_CV2))
+
+def stage2(aidx):
+    aidx = int(aidx); a = float(ALPHAS[aidx])
+    m = Lasso(alpha=a, max_iter=20000).fit(_X2, _y2)
+    nnz = int(np.sum(m.coef_ != 0))
+    true_kept = int(np.sum(m.coef_[:4] != 0))
+    fig, ax = plt.subplots(1, 2, figsize=(8.8, 3.6))
+    ax[0].stem(range(_p2), m.coef_)
+    ax[0].set_title("coefficients at alpha = %.3f" % a, fontsize=10)
+    ax[0].set_xlabel("predictor index")
+    ax[1].plot(ALPHAS, _CV2, marker="o", markersize=3.5, linewidth=1.8)
+    ax[1].axvline(a, linestyle="--", linewidth=1.1)
+    ax[1].set_xscale("log"); ax[1].set_xlabel("alpha (log scale)")
+    ax[1].set_title("5-fold CV RMSE", fontsize=10)
+    plt.tight_layout()
+    return json.dumps({"alpha": round(a, 4), "nnz": nnz, "true_kept": true_kept,
+                       "cv": round(_CV2[aidx], 4), "best_idx": BEST_AIDX,
+                       "best_cv": round(_CV2[BEST_AIDX], 4), "aidx": aidx})
+
+# ---------------- Trial 3: hidden-holdout tournament ----------------
+_r3 = np.random.default_rng(99)
+_n3, _p3 = 240, 80
+_X3 = _r3.normal(0, 1, (_n3, _p3))
+_b3 = np.zeros(_p3); _b3[:6] = [2.5, -2.0, 1.5, -1.0, 0.8, 0.6]
+_y3 = _X3 @ _b3 + _r3.normal(0, 2.2, _n3)
+_Xtr, _ytr = _X3[:140], _y3[:140]
+_Xho, _yho = _X3[140:], _y3[140:]          # the hidden holdout: never plotted, never printed
+
+def _fit(model, a):
+    if model == "ols":   return LinearRegression().fit(_Xtr, _ytr)
+    if model == "ridge": return Ridge(alpha=a).fit(_Xtr, _ytr)
+    return Lasso(alpha=a, max_iter=20000).fit(_Xtr, _ytr)
+
+_NAIVE = float(np.sqrt(np.mean((_yho - _ytr.mean())**2)))
+_orc_cv = []
+for _a in ALPHAS:
+    errs = []
+    for tr_i, te_i in _kf.split(_Xtr):
+        m = Lasso(alpha=_a, max_iter=20000).fit(_Xtr[tr_i], _ytr[tr_i])
+        errs.append(np.mean((_ytr[te_i] - m.predict(_Xtr[te_i]))**2))
+    _orc_cv.append(np.sqrt(np.mean(errs)))
+_ORACLE_A = float(ALPHAS[int(np.argmin(_orc_cv))])
+_ORACLE = float(np.sqrt(np.mean((_yho - Lasso(alpha=_ORACLE_A, max_iter=20000)
+                                 .fit(_Xtr, _ytr).predict(_Xho))**2)))
+
+def probe3(model, aidx):
+    a = float(ALPHAS[int(aidx)])
+    errs = []
+    for tr_i, te_i in _kf.split(_Xtr):
+        if model == "ols":   m = LinearRegression().fit(_Xtr[tr_i], _ytr[tr_i])
+        elif model == "ridge": m = Ridge(alpha=a).fit(_Xtr[tr_i], _ytr[tr_i])
+        else: m = Lasso(alpha=a, max_iter=20000).fit(_Xtr[tr_i], _ytr[tr_i])
+        errs.append(np.mean((_ytr[te_i] - m.predict(_Xtr[te_i]))**2))
+    return json.dumps({"model": model, "alpha": round(a, 4),
+                       "cv": round(float(np.sqrt(np.mean(errs))), 4)})
+
+def stage3(model, aidx):
+    a = float(ALPHAS[int(aidx)])
+    m = _fit(model, a)
+    rm = float(np.sqrt(np.mean((_yho - m.predict(_Xho))**2)))
+    raw = 100.0 * (_NAIVE - rm) / (_NAIVE - _ORACLE)
+    score = int(round(max(0.0, min(110.0, raw))))
+    return json.dumps({"model": model, "alpha": round(a, 4), "rmse": round(rm, 4),
+                       "naive": round(_NAIVE, 4), "oracle": round(_ORACLE, 4),
+                       "score": score})
+</script>
+<script>
+/* ML Foundry app - Safari-safe (var, no optional chaining, no nullish coalescing, no template literals) */
+var EQ_SUPABASE_URL = 'PASTE_NEW_PROJECT_URL';
+var EQ_SUPABASE_ANON_KEY = 'PASTE_NEW_ANON_KEY';
+var DEV_PREVIEW = true;
+var PYODIDE_URL = 'https://cdn.jsdelivr.net/pyodide/v0.29.4/full/pyodide.js';
+
+var PY = { pyodide: null, promise: null };
+var STATE = { s1: null, s2: null, s3: null };
+
+function el(id) { return document.getElementById(id); }
+function setStatus(id, txt, err) {
+  var s = el(id); s.textContent = txt; s.className = 'status' + (err ? ' err' : '');
+}
+function setPyState(t) { el('pystate').textContent = 'Python: ' + t; }
+function showLoad(p) {
+  var lb = el('loadbar');
+  lb.className = p < 100 ? 'loadbar show' : 'loadbar';
+  el('loadfill').style.width = p + '%';
+}
+function escapeHTML(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function loadScript(src) {
+  return new Promise(function (resolve, reject) {
+    var s = document.createElement('script');
+    s.src = src;
+    s.onload = function () { resolve(true); };
+    s.onerror = function () { reject(new Error('Could not load ' + src)); };
+    document.head.appendChild(s);
+  });
+}
+function ensurePy() {
+  if (PY.promise) { return PY.promise; }
+  setPyState('downloading'); showLoad(10);
+  PY.promise = loadScript(PYODIDE_URL).then(function () {
+    setPyState('starting'); showLoad(30);
+    return window.loadPyodide();
+  }).then(function (py) {
+    PY.pyodide = py;
+    setPyState('loading numpy + scikit-learn'); showLoad(55);
+    return py.loadPackage(['numpy', 'scipy', 'matplotlib', 'scikit-learn']).then(function () { return py; });
+  }).then(function (py) {
+    setPyState('building the foundry'); showLoad(85);
+    var mod = document.getElementById('lab-module').textContent;
+    return py.runPythonAsync(mod).then(function () {
+      setPyState('ready'); showLoad(100);
+      return py;
+    });
+  });
+  PY.promise = PY.promise.then(null, function (err) {
+    PY.promise = null; setPyState('failed - check connection and retry'); showLoad(100);
+    throw err;
+  });
+  return PY.promise;
+}
+function callPy(expr) {
+  return ensurePy().then(function (py) {
+    return py.runPythonAsync(expr).then(function (res) {
+      var data = JSON.parse(res);
+      var figs = py.runPython('__figs()');
+      var arr = figs ? figs.toJs() : [];
+      if (figs && figs.destroy) { figs.destroy(); }
+      return { data: data, figs: arr };
+    });
+  });
+}
+function renderOut(target, lines, figs) {
+  var html = '<pre class="reg-table">' + escapeHTML(lines.join('\n')) + '</pre>';
+  for (var i = 0; i < figs.length; i++) {
+    html += '<div class="figure-card"><img alt="figure" src="data:image/png;base64,' + figs[i] + '"></div>';
+  }
+  el(target).innerHTML = html;
+}
+function fail(target, statusId, err) {
+  setStatus(statusId, 'error', true);
+  el(target).innerHTML = '<pre class="reg-table" style="color:#FF9B9B">' + escapeHTML(err && err.message ? err.message : String(err)) + '</pre>';
+}
+
+/* ---------- HUD + scoring ---------- */
+function trialScores() {
+  var t1 = STATE.s1 ? STATE.s1.pts : null;
+  var t2 = STATE.s2 ? STATE.s2.pts : null;
+  var t3 = STATE.s3 ? STATE.s3.score : null;
+  return { t1: t1, t2: t2, t3: t3 };
+}
+function refreshHUD() {
+  var s = trialScores();
+  el('hud1').textContent = s.t1 === null ? '-' : s.t1 + '/100';
+  el('hud2').textContent = s.t2 === null ? '-' : s.t2 + '/100';
+  el('hud3').textContent = s.t3 === null ? '-' : s.t3 + '/110';
+  if (s.t1 !== null && s.t2 !== null && s.t3 !== null) {
+    var final = Math.round((s.t1 + s.t2 + s.t3) / 3);
+    el('finalscore').textContent = final;
+    el('scoredetail').textContent = 'Gauntlet ' + s.t1 + ' | Lever ' + s.t2 + ' | Tournament ' + s.t3;
+    el('scorecard').className = 'scorecard show';
+    saveResult(final, s);
+  }
+}
+function saveResult(final, s) {
+  try {
+    var prev = window.localStorage.getItem('eq_lab_ml_foundry');
+    var best = prev ? JSON.parse(prev) : { score: -1 };
+    if (final > best.score) {
+      window.localStorage.setItem('eq_lab_ml_foundry', JSON.stringify({ score: final, detail: s, at: new Date().toISOString() }));
+    }
+  } catch (e) {}
+  /* When the backend is wired (and for graded use, via the grade-attempt
+     verification path per the backend runbook), record to eq_lab_results: */
+  if (!DEV_PREVIEW && EQ_SUPABASE_URL.indexOf('http') === 0 && window.supabase) {
+    var sb = window.supabase.createClient(EQ_SUPABASE_URL, EQ_SUPABASE_ANON_KEY);
+    sb.auth.getSession().then(function (r) {
+      var sess = (r && r.data && r.data.session) ? r.data.session : null;
+      if (!sess) { return; }
+      sb.from('eq_lab_results').insert({
+        student_id: sess.user.id, lab_id: 'ml-foundry',
+        score: final, details: s
+      }).then(function () { el('savemsg').textContent = ' and to your course record'; });
+    });
+  }
+}
+
+/* ---------- Trial 1 ---------- */
+el('deg').oninput = function () { el('degv').textContent = this.value; };
+el('run1').onclick = function () {
+  setStatus('st1', PY.pyodide ? 'fitting...' : 'loading Python (~15s first time)...');
+  callPy('stage1(' + el('deg').value + ')').then(function (res) {
+    var d = res.data;
+    STATE.last1 = d;
+    el('lock1').disabled = false;
+    renderOut('out1', [
+      'degree ' + d.degree + '   train RMSE ' + d.train.toFixed(3) + '   TEST RMSE ' + d.test.toFixed(3),
+      d.train < d.test * 0.6 ? 'train and test are diverging - you are memorizing noise' : 'fit and generalization are still close'
+    ], res.figs);
+    setStatus('st1', 'done');
+  }).then(null, function (e) { fail('out1', 'st1', e); });
+};
+el('lock1').onclick = function () {
+  if (!STATE.last1) { return; }
+  var miss = Math.abs(STATE.last1.degree - STATE.last1.best);
+  var pts = Math.max(0, 100 - 25 * miss);
+  STATE.s1 = { pts: pts, degree: STATE.last1.degree, best: STATE.last1.best };
+  el('stage1').className = 'stage done';
+  setStatus('st1', 'locked: degree ' + STATE.last1.degree + ' (test-optimal was ' + STATE.last1.best + ') -> ' + pts + ' pts');
+  refreshHUD();
+};
+
+/* ---------- Trial 2 ---------- */
+el('alp').oninput = function () { el('alpv').textContent = 'pos ' + this.value; };
+el('run2').onclick = function () {
+  setStatus('st2', PY.pyodide ? 'refitting...' : 'loading Python (~15s first time)...');
+  callPy('stage2(' + el('alp').value + ')').then(function (res) {
+    var d = res.data;
+    STATE.last2 = d;
+    el('lock2').disabled = false;
+    renderOut('out2', [
+      'alpha ' + d.alpha.toFixed(3) + '   kept ' + d.nnz + ' of 60 predictors (' + d.true_kept + ' of the 4 real ones)',
+      '5-fold CV RMSE ' + d.cv.toFixed(3) + '   (curve minimum: ' + d.best_cv.toFixed(3) + ')'
+    ], res.figs);
+    setStatus('st2', 'done');
+  }).then(null, function (e) { fail('out2', 'st2', e); });
+};
+el('lock2').onclick = function () {
+  if (!STATE.last2) { return; }
+  var miss = Math.abs(STATE.last2.aidx - STATE.last2.best_idx);
+  var pts = Math.max(0, 100 - 12 * miss);
+  STATE.s2 = { pts: pts, alpha: STATE.last2.alpha };
+  el('stage2').className = 'stage done';
+  setStatus('st2', 'locked: alpha ' + STATE.last2.alpha.toFixed(3) + ' -> ' + pts + ' pts');
+  refreshHUD();
+};
+
+/* ---------- Trial 3 ---------- */
+function alp3label() {
+  el('alp3v').textContent = 'pos ' + el('alp3').value;
+}
+el('alp3').oninput = alp3label; alp3label();
+el('probe3').onclick = function () {
+  setStatus('st3', PY.pyodide ? 'cross-validating...' : 'loading Python (~15s first time)...');
+  callPy('probe3("' + el('mdl').value + '", ' + el('alp3').value + ')').then(function (res) {
+    var d = res.data;
+    renderOut('out3', [
+      'PROBE  ' + d.model + (d.model === 'ols' ? '' : '  alpha ' + d.alpha.toFixed(3)),
+      '5-fold CV RMSE on training data: ' + d.cv.toFixed(3),
+      'The holdout remains hidden. Probe as often as you like; submit when ready.'
+    ], res.figs);
+    setStatus('st3', 'probe complete');
+  }).then(null, function (e) { fail('out3', 'st3', e); });
+};
+el('run3').onclick = function () {
+  setStatus('st3', 'facing the holdout...');
+  callPy('stage3("' + el('mdl').value + '", ' + el('alp3').value + ')').then(function (res) {
+    var d = res.data;
+    STATE.s3 = d;
+    el('stage3').className = 'stage done';
+    renderOut('out3', [
+      'THE HOLDOUT SPEAKS',
+      'your model    : ' + d.model + (d.model === 'ols' ? '' : '  alpha ' + d.alpha.toFixed(3)),
+      'holdout RMSE  : ' + d.rmse.toFixed(3),
+      'naive (mean)  : ' + d.naive.toFixed(3) + '    CV oracle : ' + d.oracle.toFixed(3),
+      'SCORE         : ' + d.score + ' / 110'
+    ], res.figs);
+    setStatus('st3', 'scored');
+    refreshHUD();
+  }).then(null, function (e) { fail('out3', 'st3', e); });
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</body>
+</html>

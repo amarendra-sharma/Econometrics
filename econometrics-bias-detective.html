@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Omitted-Variable Detective | Econometrics Lab | MacroNations</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0E0C20;--bg2:#161330;--bg3:#1E1A3E;--line:#2A2550;--ink:#E8E6F5;--ink-dim:#A9A5C9;--ink-faint:#6F6A95;
+--teal:#19C3B2;--teal-bright:#3FE0D0;--violet:#7C5CFF;--gold:#FBBF24;--coral:#FF6B6B;--green:#34D399;
+--serif:'Instrument Serif',Georgia,serif;--sans:'Inter',sans-serif;--mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:var(--teal-bright);text-decoration:none}
+.wrap{max-width:940px;margin:0 auto;padding:30px 22px 90px}
+.kicker{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);margin-bottom:6px}
+h1{font-family:var(--serif);font-weight:400;font-size:38px;line-height:1.1;margin-bottom:8px}
+h2{font-family:var(--serif);font-weight:400;font-size:23px;margin:0 0 8px}
+p{color:var(--ink-dim);margin-bottom:12px}
+p strong,li strong{color:var(--ink)}
+.lede{font-size:17px;color:var(--ink)}
+ul.body{margin:0 0 12px 20px;color:var(--ink-dim)}
+.hud{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:11px 15px;margin:16px 0}
+.pill{background:var(--bg3);border:1px solid var(--line);border-radius:999px;padding:5px 13px;font-family:var(--mono);font-size:12.5px;color:var(--ink-dim)}
+.pill b{color:var(--gold)}
+.stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:20px;margin:18px 0}
+.stage.done{border-color:var(--green)}
+.tag{display:inline-block;background:rgba(25,195,178,.14);color:var(--teal-bright);font-size:11px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;border-radius:6px;padding:3px 10px;margin-bottom:10px}
+.controls{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:12px 0}
+.controls label{font-size:13px;color:var(--ink-dim)}
+input[type=range]{width:230px;accent-color:var(--teal)}
+input[type=text]{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:8px 12px;font-family:var(--mono);font-size:14px;width:140px}
+select{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:8px 12px;font-family:var(--sans);font-size:14px}
+.btn{background:var(--teal);color:#062a26;border:none;border-radius:9px;padding:9px 17px;font-weight:600;font-size:14px;cursor:pointer;font-family:var(--sans)}
+.btn:hover{background:var(--teal-bright)} .btn:disabled{opacity:.45;cursor:default}
+.btn.gold{background:var(--gold);color:#3a2a00} .btn.ghost{background:transparent;color:var(--teal-bright);border:1px solid var(--teal)}
+.btn.coral{background:var(--coral);color:#3a0c0c}
+.val{font-family:var(--mono);font-size:13px;color:var(--teal-bright);min-width:60px;display:inline-block}
+.out{margin-top:12px}
+.reg-table{background:#070613;border:1px solid var(--line);border-radius:10px;color:#C9E7E2;font-family:var(--mono);font-size:12.4px;line-height:1.55;padding:13px;overflow-x:auto;white-space:pre;margin:10px 0 0}
+.figure-card{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:10px;margin:10px 0 0;text-align:center}
+.figure-card img{max-width:100%;border-radius:8px}
+.figure-card .cap{font-size:12.5px;color:var(--ink-faint);margin-top:7px;text-align:left}
+.status{font-size:12.5px;color:var(--ink-faint);margin-left:8px} .status.err{color:var(--coral)}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:12px 0}
+.opt{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:13px 15px;cursor:pointer}
+.opt:hover{border-color:var(--teal)} .opt.sel{border-color:var(--teal-bright);background:rgba(25,195,178,.08)}
+.opt.good{border-color:var(--green)} .opt.bad{border-color:var(--coral)}
+.opt h3{font-size:14.5px;color:var(--ink);margin-bottom:4px} .opt p{font-size:12.8px;margin:0;color:var(--ink-dim)}
+.mcq{margin:12px 0} .mcq .q{color:var(--ink);margin-bottom:8px}
+.mcq label{display:block;padding:7px 11px;border:1px solid var(--line);border-radius:9px;margin-bottom:6px;color:var(--ink-dim);cursor:pointer;font-size:14px}
+.mcq label:hover{border-color:var(--teal)} .mcq label.correct{border-color:var(--green);color:var(--green)} .mcq label.wrong{border-color:var(--coral);color:var(--coral)}
+.meter{height:10px;background:var(--bg3);border:1px solid var(--line);border-radius:6px;overflow:hidden;flex:1;min-width:140px}
+.meter .fill{height:100%;width:0%;background:var(--teal);transition:width .3s}
+.meter .fill.hot{background:var(--coral)}
+.scorecard{background:linear-gradient(135deg,rgba(251,191,36,.10),rgba(25,195,178,.07));border:1px solid var(--gold);border-radius:16px;padding:20px;margin:22px 0;text-align:center;display:none}
+.scorecard.show{display:block}
+.scorecard .big{font-family:var(--serif);font-size:48px;color:var(--gold)}
+.debrief{background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.4);border-radius:14px;padding:15px 18px;margin:18px 0;display:none}
+.debrief.show{display:block}
+.debrief .db-label{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--green);font-weight:700;margin-bottom:6px}
+.debrief p{color:var(--ink);margin:0}
+.sharma-take{background:linear-gradient(135deg,rgba(251,191,36,.08),rgba(251,191,36,.03));border:1px solid rgba(251,191,36,.4);border-radius:14px;padding:14px 18px;margin:18px 0}
+.sharma-take .st-label{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:6px}
+.sharma-take p{color:var(--ink);margin:0}
+.note{font-size:12.5px;color:var(--ink-faint)}
+.loadbar{height:6px;background:var(--bg3);border-radius:4px;overflow:hidden;margin:8px 0;display:none}
+.loadbar.show{display:block}.loadbar .fill{height:100%;width:0%;background:var(--teal);transition:width .4s}
+#gate{display:none;position:fixed;inset:0;background:rgba(14,12,32,.93);z-index:50;align-items:center;justify-content:center;padding:20px}
+#gate.show{display:flex}
+#gate .card{background:var(--bg2);border:1px solid var(--gold);border-radius:16px;padding:30px;max-width:480px;text-align:center}
+</style>
+</head>
+<body>
+<div id="gate"><div class="card"><h2>This Lab is part of the full course</h2>
+<p>The free preview includes Chapters 1&ndash;2 and the Least-Squares Archer lab. The full course &mdash; 17 chapters, 14 Labs, exams, certificate &mdash; is a one-time $25.</p>
+<p><a class="btn gold" id="gate-buy" href="#" target="_blank" rel="noopener">Unlock the full course &mdash; $25</a></p>
+<p class="note">Already purchased? Open this Lab from the course app while signed in.</p></div></div>
+<div class="wrap">
+<div class="kicker">Econometrics &middot; Lab &middot; companion to Chapter 3</div>
+<h1>The Omitted-Variable Detective</h1>
+<p class="lede">A headline estimate is on the board: <strong>wage ~ education</strong>. Four suspects are pinned beside it, each a candidate confounder. Before you interrogate a suspect (add them to the model), you must call the direction the education coefficient will move &mdash; using the OVB sign rule, not vibes. The data's true DGP is known, so every move has an exact explanation.</p>
+<div class="hud"><span class="pill">Predictions: <b id="hud1">0/4</b></span><span class="pill">Case: <b id="hud2">open</b></span><span class="pill" id="pystate">Python: idle</span></div>
+<div class="loadbar" id="loadbar"><div class="fill" id="loadfill"></div></div>
+
+<div class="stage" id="stage0">
+<span class="tag">The crime board</span>
+<h2>The headline regression</h2>
+<div class="controls"><button class="btn" id="base">Pin up the short regression</button><span class="status" id="st0"></span></div>
+<div class="out" id="out0"></div>
+</div>
+
+<div class="stage" id="stage1">
+<span class="tag">Interrogation room</span>
+<h2>Pick a suspect, call the direction, then interrogate</h2>
+<p>Sign rule: bias = (effect of the omitted variable on wages) &times; (its association with education). Positive &times; positive = the short coefficient was inflated &mdash; adding the suspect moves it <strong>down</strong>.</p>
+<div class="opts" id="suspects">
+  <div class="opt" data-s="ability"><h3>&#129504; Ability</h3><p>Raises wages directly; the able stay in school longer.</p></div>
+  <div class="opt" data-s="exper"><h3>&#128736; Experience</h3><p>Raises wages; in this sample, more schooling means fewer years worked.</p></div>
+  <div class="opt" data-s="region"><h3>&#127961; Urban region</h3><p>Urban jobs pay more, and urban residents get substantially more schooling.</p></div>
+  <div class="opt" data-s="parent"><h3>&#128106; Parental income</h3><p>Correlated with schooling &mdash; but does it pay wages on its own once ability is in the room?</p></div>
+</div>
+<div class="controls">
+  <span class="note">Your call for the education coefficient:</span>
+  <select id="dir"><option value="down">it will move DOWN</option><option value="up">it will move UP</option><option value="same">it will barely move</option></select>
+  <button class="btn" id="interrogate" disabled>Interrogate</button>
+  <span class="status" id="st1"></span>
+</div>
+<div class="out" id="out1"></div>
+</div>
+
+<div class="stage" id="stage2">
+<span class="tag">Close the case</span>
+<h2>Name the prime culprit</h2>
+<div class="mcq" id="mcq1">
+<div class="q">After all four interrogations: which omission was doing the most damage to the headline estimate?</div>
+<label data-i="0">Urban region</label>
+<label data-i="1">Ability &mdash; large wage effect and strongly tied to schooling, so its omission inflated the return most</label>
+<label data-i="2">Parental income</label>
+<label data-i="3">Experience &mdash; it biased the estimate upward the most</label>
+</div>
+</div>
+
+<div class="scorecard" id="scorecard"><div style="font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-dim)">Omitted-Variable Detective &mdash; final score</div>
+<div class="big" id="finalscore">0</div><div id="scoredetail" style="color:var(--ink-dim);font-size:14px"></div>
+<p class="note" style="margin-top:8px">Saved locally<span id="savemsg"></span>.</p></div>
+
+<div class="debrief" id="debrief"><div class="db-label">What you just learned</div>
+<p>"Controlling for" is arithmetic, not magic: adding a confounder removes the part of the education coefficient that was carrying the confounder's effect, and the direction of the correction is the sign of (its effect on y) &times; (its association with x). Ability biased the return up, experience biased it <em>down</em> (negative association, positive effect), region nudged it, and parental income &mdash; with no direct wage effect in this DGP &mdash; barely mattered. You can now sign a bias before touching data, which is exactly what referees do to your paper.</p></div>
+
+<div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
+<p>The detective's habit: before every interrogation, write the two signs in the margin. If you cannot sign them, you do not yet understand your own confounder story.</p></div>
+<p class="note">Part of <a href="https://econometrics.macronations.com">Econometrics</a> on MacroNations.</p>
+</div>
+
+<script type="text/x-python" id="lab-module">
+import numpy as np, pandas as pd, json
+import statsmodels.formula.api as smf
+
+_r = np.random.default_rng(33)
+_n = 900
+ability = _r.normal(0, 1, _n)
+parent  = _r.normal(0, 1, _n)                            # inert: no direct wage effect, uncorrelated with ability
+_urb_lat = _r.normal(0, 1, _n)                           # latent "urban-ness" driving both schooling and location
+educ    = np.clip(np.round(12 + 1.5*ability + 0.4*parent + 0.8*_urb_lat + _r.normal(0, 1.6, _n)), 8, 20)
+exper   = np.clip(np.round(30 - 0.9*educ + _r.normal(0, 4, _n)), 0, 30)   # NEGATIVE link to educ
+urban   = (_urb_lat + _r.normal(0, 0.4, _n) > 0).astype(int)
+logw    = (0.8 + 0.060*educ + 0.012*exper + 0.30*ability + 0.35*urban
+           + 0.0*parent + _r.normal(0, .30, _n))
+_df = pd.DataFrame({"logwage": logw, "educ": educ, "ability": ability,
+                    "exper": exper, "urban": urban, "parent": parent})
+TRUE_RETURN = 0.060
+_short = smf.ols("logwage ~ educ", data=_df).fit()
+EXPECT = {"ability": "down", "exper": "up", "region": "down", "parent": "same"}
+_COLMAP = {"ability": "ability", "exper": "exper", "region": "urban", "parent": "parent"}
+
+def base():
+    t = _short.summary().tables[1].as_text()
+    return json.dumps({"coef": round(float(_short.params["educ"]), 4),
+                       "true": TRUE_RETURN, "table": t})
+
+def interrogate(suspect):
+    col = _COLMAP[suspect]
+    m = smf.ols("logwage ~ educ + " + col, data=_df).fit()
+    b_short = float(_short.params["educ"]); b_long = float(m.params["educ"])
+    delta = b_long - b_short
+    moved = "same" if abs(delta) < 0.004 else ("up" if delta > 0 else "down")
+    delta_hat = float(smf.ols(col + " ~ educ", data=_df).fit().params["educ"])
+    eff = float(m.params[col])
+    plt.figure(figsize=(6.6, 3.4))
+    plt.bar(["short:\neduc only", "long:\n+ " + suspect], [b_short, b_long])
+    plt.axhline(TRUE_RETURN, linestyle="--", linewidth=1.4, label="true return 0.060")
+    plt.ylabel("educ coefficient"); plt.legend(); plt.title("the coefficient under interrogation")
+    plt.tight_layout()
+    return json.dumps({"suspect": suspect, "b_short": round(b_short, 4), "b_long": round(b_long, 4),
+                       "delta": round(delta, 4), "moved": moved, "expect": EXPECT[suspect],
+                       "delta_hat": round(delta_hat, 3), "effect": round(eff, 3)})
+</script>
+
+<script>
+var S = { done: {}, correct: 0, asked: 0, sel: null, mc: null };
+function labInit() {
+  el('base').onclick = function () {
+    setStatus('st0', PY.pyodide ? 'estimating...' : 'loading Python (~10s first time)...');
+    callPy('base()').then(function (res) {
+      var d = res.data;
+      renderOut('out0', [
+        'SHORT REGRESSION   logwage ~ educ',
+        d.table,
+        'headline return: ' + d.coef + ' log points per year   (true DGP value: ' + d.true + ')'
+      ], res.figs);
+      setStatus('st0', 'pinned');
+    }).then(null, function (e) { fail('out0', 'st0', e); });
+  };
+  var opts = el('suspects').getElementsByClassName('opt');
+  for (var i = 0; i < opts.length; i++) {
+    opts[i].onclick = function () {
+      for (var j = 0; j < opts.length; j++) { opts[j].className = 'opt' + (opts[j].className.indexOf('good') > -1 ? ' good' : ''); }
+      this.className += ' sel';
+      S.sel = this.getAttribute('data-s');
+      el('interrogate').disabled = !!S.done[S.sel];
+    };
+  }
+  el('interrogate').onclick = function () {
+    if (!S.sel || S.done[S.sel]) { return; }
+    var call = el('dir').value;
+    setStatus('st1', 'interrogating ' + S.sel + '...');
+    callPy('interrogate("' + S.sel + '")').then(function (res) {
+      var d = res.data;
+      S.done[d.suspect] = true; S.asked++;
+      var right = (call === d.expect);
+      if (right) { S.correct++; }
+      el('hud1').textContent = S.correct + '/4';
+      var lines = [
+        'educ coefficient: ' + d.b_short + '  ->  ' + d.b_long + '   (moved ' + d.moved.toUpperCase() + ', delta ' + d.delta + ')',
+        'your call: ' + call.toUpperCase() + '  ->  ' + (right ? 'CORRECT' : 'WRONG (expected ' + d.expect.toUpperCase() + ')'),
+        'sign rule: effect of ' + d.suspect + ' on logwage = ' + d.effect + '; association with educ = ' + d.delta_hat,
+        '           bias of the SHORT model = ' + d.effect + ' x ' + d.delta_hat + '  ->  adding the suspect moves the estimate the opposite way'
+      ];
+      renderOut('out1', lines, res.figs, ['Dashed line: the true return built into the data.']);
+      var card = null;
+      var os = el('suspects').getElementsByClassName('opt');
+      for (var k = 0; k < os.length; k++) { if (os[k].getAttribute('data-s') === d.suspect) { card = os[k]; } }
+      if (card) { card.className = 'opt good'; }
+      el('interrogate').disabled = true;
+      setStatus('st1', S.asked + ' of 4 interrogated');
+      maybeFinish();
+    }).then(null, function (e) { fail('out1', 'st1', e); });
+  };
+  var labels = el('mcq1').getElementsByTagName('label');
+  for (var m = 0; m < labels.length; m++) {
+    labels[m].onclick = function () {
+      if (S.mc !== null) { return; }
+      var pick = parseInt(this.getAttribute('data-i'), 10);
+      if (pick === 1) { this.className = 'correct'; S.mc = 100; }
+      else { this.className = 'wrong'; labels[1].className = 'correct'; S.mc = 40; }
+      el('hud2').textContent = 'closed';
+      maybeFinish();
+    };
+  }
+}
+function maybeFinish() {
+  if (S.asked < 4 || S.mc === null) { return; }
+  var pred = Math.round(100 * S.correct / 4);
+  var final = Math.round(0.7 * pred + 0.3 * S.mc);
+  showFinal(final, 'Sign calls ' + S.correct + '/4 | Culprit ' + (S.mc === 100 ? 'identified' : 'missed'), { pred: S.correct, mc: S.mc });
+}
+</script>
+<script type="text/x-python" id="lab-prelude">
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import io, base64
+plt.rcParams["figure.facecolor"] = "#1E1A3E"; plt.rcParams["axes.facecolor"] = "#1E1A3E"
+plt.rcParams["savefig.facecolor"] = "#1E1A3E"; plt.rcParams["text.color"] = "#E8E6F5"
+plt.rcParams["axes.labelcolor"] = "#A9A5C9"; plt.rcParams["xtick.color"] = "#A9A5C9"
+plt.rcParams["ytick.color"] = "#A9A5C9"; plt.rcParams["axes.edgecolor"] = "#2A2550"
+plt.rcParams["axes.prop_cycle"] = matplotlib.cycler(color=["#19C3B2","#FBBF24","#7C5CFF","#FF6B6B","#94A3B8"])
+plt.rcParams["legend.facecolor"] = "#161330"; plt.rcParams["grid.color"] = "#2A2550"
+def __figs():
+    out = []
+    for num in plt.get_fignums():
+        fig = plt.figure(num); buf = io.BytesIO()
+        fig.savefig(buf, format="png", dpi=110, bbox_inches="tight")
+        out.append(base64.b64encode(buf.getvalue()).decode("ascii"))
+    plt.close("all"); return out
+</script>
+<script>
+/* ===== shared Lab runtime (inlined eq-progress pattern) - Safari-safe ===== */
+var EQ_SUPABASE_URL = 'PASTE_NEW_PROJECT_URL';
+var EQ_SUPABASE_ANON_KEY = 'PASTE_NEW_ANON_KEY';
+var DEV_PREVIEW = true;
+var SUPER_ADMIN_EMAIL = 'sharmaaa9@yahoo.com';
+var STRIPE_LINK = 'https://buy.stripe.com/8x2cMYbjfcsk2ON7se5ZC01';
+var LAB_ID = 'bias-detective';
+var LAB_FREE = false;
+var PYODIDE_URL = 'https://cdn.jsdelivr.net/pyodide/v0.29.4/full/pyodide.js';
+var PY_PACKAGES = ['numpy', 'pandas', 'scipy', 'matplotlib', 'statsmodels'];
+
+var PY = { pyodide: null, promise: null };
+var SB = null, SESSION = null, BEST = -1;
+
+function el(id) { return document.getElementById(id); }
+function setStatus(id, txt, err) { var s = el(id); if (s) { s.textContent = txt; s.className = 'status' + (err ? ' err' : ''); } }
+function setPyState(t) { var s = el('pystate'); if (s) { s.textContent = 'Python: ' + t; } }
+function showLoad(p) { var lb = el('loadbar'); if (!lb) { return; } lb.className = p < 100 ? 'loadbar show' : 'loadbar'; el('loadfill').style.width = p + '%'; }
+function escapeHTML(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function loadScript(src) {
+  return new Promise(function (resolve, reject) {
+    var s = document.createElement('script'); s.src = src;
+    s.onload = function () { resolve(true); };
+    s.onerror = function () { reject(new Error('Could not load ' + src)); };
+    document.head.appendChild(s);
+  });
+}
+function ensurePy() {
+  if (PY.promise) { return PY.promise; }
+  setPyState('downloading'); showLoad(10);
+  PY.promise = loadScript(PYODIDE_URL).then(function () {
+    setPyState('starting'); showLoad(30);
+    return window.loadPyodide();
+  }).then(function (py) {
+    PY.pyodide = py;
+    setPyState('loading numpy + statsmodels'); showLoad(55);
+    return py.loadPackage(PY_PACKAGES).then(function () { return py; });
+  }).then(function (py) {
+    setPyState('preparing the lab'); showLoad(85);
+    var pre = document.getElementById('lab-prelude').textContent;
+    var mod = document.getElementById('lab-module').textContent;
+    return py.runPythonAsync(pre).then(function () { return py.runPythonAsync(mod); }).then(function () { setPyState('ready'); showLoad(100); return py; });
+  });
+  PY.promise = PY.promise.then(null, function (err) {
+    PY.promise = null; setPyState('failed - retry your last action'); showLoad(100); throw err;
+  });
+  return PY.promise;
+}
+function callPy(expr) {
+  return ensurePy().then(function (py) {
+    return py.runPythonAsync(expr).then(function (res) {
+      var data = res ? JSON.parse(res) : {};
+      var figs = py.runPython('__figs()');
+      var arr = figs ? figs.toJs() : [];
+      if (figs && figs.destroy) { figs.destroy(); }
+      return { data: data, figs: arr };
+    });
+  });
+}
+function renderOut(target, lines, figs, caps) {
+  var html = '';
+  if (lines && lines.length) { html += '<pre class="reg-table">' + escapeHTML(lines.join('\n')) + '</pre>'; }
+  for (var i = 0; i < (figs ? figs.length : 0); i++) {
+    html += '<div class="figure-card"><img alt="lab figure" src="data:image/png;base64,' + figs[i] + '">';
+    if (caps && caps[i]) { html += '<div class="cap">' + caps[i] + '</div>'; }
+    html += '</div>';
+  }
+  el(target).innerHTML = html;
+}
+function fail(target, statusId, err) {
+  setStatus(statusId, 'error', true);
+  el(target).innerHTML = '<pre class="reg-table" style="color:#FF9B9B">' + escapeHTML(err && err.message ? err.message : String(err)) + '</pre>';
+}
+/* live progress reporting: report DURING play whenever the score improves */
+function reportScore(score, detail) {
+  if (score <= BEST) { return; }
+  BEST = score;
+  try { window.localStorage.setItem('eq_lab_' + LAB_ID, JSON.stringify({ score: score, detail: detail, at: new Date().toISOString() })); } catch (e) {}
+  var sm = el('savemsg'); if (sm) { sm.textContent = ''; }
+  if (SB && SESSION) {
+    SB.from('eq_lab_results').insert({ student_id: SESSION.user.id, lab_id: LAB_ID, score: score, details: detail })
+      .then(function () { if (sm) { sm.textContent = ' and to your course record'; } });
+  }
+}
+function showFinal(score, detailText, detailObj) {
+  el('finalscore').textContent = score;
+  el('scoredetail').textContent = detailText;
+  el('scorecard').className = 'scorecard show';
+  var db = el('debrief'); if (db) { db.className = 'debrief show'; }
+  reportScore(score, detailObj);
+}
+function resolveGate() {
+  var buy = el('gate-buy'); if (buy) { buy.href = STRIPE_LINK; }
+  if (LAB_FREE || DEV_PREVIEW) { return; }
+  if (EQ_SUPABASE_URL.indexOf('http') !== 0 || !window.supabase) { el('gate').className = 'show'; return; }
+  SB = window.supabase.createClient(EQ_SUPABASE_URL, EQ_SUPABASE_ANON_KEY);
+  SB.auth.getSession().then(function (r) {
+    SESSION = (r && r.data && r.data.session) ? r.data.session : null;
+    if (!SESSION) { el('gate').className = 'show'; return; }
+    if (String(SESSION.user.email).toLowerCase() === SUPER_ADMIN_EMAIL) { return; }
+    SB.from('eq_profiles').select('role').eq('id', SESSION.user.id).maybeSingle().then(function (pr) {
+      var role = (pr && pr.data && pr.data.role) ? pr.data.role : 'student';
+      if (role === 'instructor' || role === 'admin') { return; }
+      SB.from('eq_subscriptions').select('id').eq('student_id', SESSION.user.id).eq('status', 'active').limit(1)
+        .then(function (s) { if (!(s && s.data && s.data.length)) { el('gate').className = 'show'; } });
+    });
+  });
+}
+function bootLab() {
+  resolveGate();
+  if (window.labInit) { window.labInit(); }
+}
+if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', bootLab); } else { bootLab(); }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</body>
+</html>

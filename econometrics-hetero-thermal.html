@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Heteroskedasticity Thermal Camera | Econometrics Lab | MacroNations</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0E0C20;--bg2:#161330;--bg3:#1E1A3E;--line:#2A2550;--ink:#E8E6F5;--ink-dim:#A9A5C9;--ink-faint:#6F6A95;
+--teal:#19C3B2;--teal-bright:#3FE0D0;--violet:#7C5CFF;--gold:#FBBF24;--coral:#FF6B6B;--green:#34D399;
+--serif:'Instrument Serif',Georgia,serif;--sans:'Inter',sans-serif;--mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:var(--teal-bright);text-decoration:none}
+.wrap{max-width:940px;margin:0 auto;padding:30px 22px 90px}
+.kicker{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);margin-bottom:6px}
+h1{font-family:var(--serif);font-weight:400;font-size:38px;line-height:1.1;margin-bottom:8px}
+h2{font-family:var(--serif);font-weight:400;font-size:23px;margin:0 0 8px}
+p{color:var(--ink-dim);margin-bottom:12px}
+p strong,li strong{color:var(--ink)}
+.lede{font-size:17px;color:var(--ink)}
+ul.body{margin:0 0 12px 20px;color:var(--ink-dim)}
+.hud{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:11px 15px;margin:16px 0}
+.pill{background:var(--bg3);border:1px solid var(--line);border-radius:999px;padding:5px 13px;font-family:var(--mono);font-size:12.5px;color:var(--ink-dim)}
+.pill b{color:var(--gold)}
+.stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:20px;margin:18px 0}
+.stage.done{border-color:var(--green)}
+.tag{display:inline-block;background:rgba(25,195,178,.14);color:var(--teal-bright);font-size:11px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;border-radius:6px;padding:3px 10px;margin-bottom:10px}
+.controls{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:12px 0}
+.controls label{font-size:13px;color:var(--ink-dim)}
+input[type=range]{width:230px;accent-color:var(--teal)}
+input[type=text]{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:8px 12px;font-family:var(--mono);font-size:14px;width:140px}
+select{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:8px 12px;font-family:var(--sans);font-size:14px}
+.btn{background:var(--teal);color:#062a26;border:none;border-radius:9px;padding:9px 17px;font-weight:600;font-size:14px;cursor:pointer;font-family:var(--sans)}
+.btn:hover{background:var(--teal-bright)} .btn:disabled{opacity:.45;cursor:default}
+.btn.gold{background:var(--gold);color:#3a2a00} .btn.ghost{background:transparent;color:var(--teal-bright);border:1px solid var(--teal)}
+.btn.coral{background:var(--coral);color:#3a0c0c}
+.val{font-family:var(--mono);font-size:13px;color:var(--teal-bright);min-width:60px;display:inline-block}
+.out{margin-top:12px}
+.reg-table{background:#070613;border:1px solid var(--line);border-radius:10px;color:#C9E7E2;font-family:var(--mono);font-size:12.4px;line-height:1.55;padding:13px;overflow-x:auto;white-space:pre;margin:10px 0 0}
+.figure-card{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:10px;margin:10px 0 0;text-align:center}
+.figure-card img{max-width:100%;border-radius:8px}
+.figure-card .cap{font-size:12.5px;color:var(--ink-faint);margin-top:7px;text-align:left}
+.status{font-size:12.5px;color:var(--ink-faint);margin-left:8px} .status.err{color:var(--coral)}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:12px 0}
+.opt{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:13px 15px;cursor:pointer}
+.opt:hover{border-color:var(--teal)} .opt.sel{border-color:var(--teal-bright);background:rgba(25,195,178,.08)}
+.opt.good{border-color:var(--green)} .opt.bad{border-color:var(--coral)}
+.opt h3{font-size:14.5px;color:var(--ink);margin-bottom:4px} .opt p{font-size:12.8px;margin:0;color:var(--ink-dim)}
+.mcq{margin:12px 0} .mcq .q{color:var(--ink);margin-bottom:8px}
+.mcq label{display:block;padding:7px 11px;border:1px solid var(--line);border-radius:9px;margin-bottom:6px;color:var(--ink-dim);cursor:pointer;font-size:14px}
+.mcq label:hover{border-color:var(--teal)} .mcq label.correct{border-color:var(--green);color:var(--green)} .mcq label.wrong{border-color:var(--coral);color:var(--coral)}
+.meter{height:10px;background:var(--bg3);border:1px solid var(--line);border-radius:6px;overflow:hidden;flex:1;min-width:140px}
+.meter .fill{height:100%;width:0%;background:var(--teal);transition:width .3s}
+.meter .fill.hot{background:var(--coral)}
+.scorecard{background:linear-gradient(135deg,rgba(251,191,36,.10),rgba(25,195,178,.07));border:1px solid var(--gold);border-radius:16px;padding:20px;margin:22px 0;text-align:center;display:none}
+.scorecard.show{display:block}
+.scorecard .big{font-family:var(--serif);font-size:48px;color:var(--gold)}
+.debrief{background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.4);border-radius:14px;padding:15px 18px;margin:18px 0;display:none}
+.debrief.show{display:block}
+.debrief .db-label{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--green);font-weight:700;margin-bottom:6px}
+.debrief p{color:var(--ink);margin:0}
+.sharma-take{background:linear-gradient(135deg,rgba(251,191,36,.08),rgba(251,191,36,.03));border:1px solid rgba(251,191,36,.4);border-radius:14px;padding:14px 18px;margin:18px 0}
+.sharma-take .st-label{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:6px}
+.sharma-take p{color:var(--ink);margin:0}
+.note{font-size:12.5px;color:var(--ink-faint)}
+.loadbar{height:6px;background:var(--bg3);border-radius:4px;overflow:hidden;margin:8px 0;display:none}
+.loadbar.show{display:block}.loadbar .fill{height:100%;width:0%;background:var(--teal);transition:width .4s}
+#gate{display:none;position:fixed;inset:0;background:rgba(14,12,32,.93);z-index:50;align-items:center;justify-content:center;padding:20px}
+#gate.show{display:flex}
+#gate .card{background:var(--bg2);border:1px solid var(--gold);border-radius:16px;padding:30px;max-width:480px;text-align:center}
+</style>
+</head>
+<body>
+<div id="gate"><div class="card"><h2>This Lab is part of the full course</h2>
+<p>The free preview includes Chapters 1&ndash;2 and the Least-Squares Archer lab. The full course &mdash; 17 chapters, 14 Labs, exams, certificate &mdash; is a one-time $25.</p>
+<p><a class="btn gold" id="gate-buy" href="#" target="_blank" rel="noopener">Unlock the full course &mdash; $25</a></p>
+<p class="note">Already purchased? Open this Lab from the course app while signed in.</p></div></div>
+<div class="wrap">
+<div class="kicker">Econometrics &middot; Lab &middot; companion to Chapter 7</div>
+<h1>The Heteroskedasticity Thermal Camera</h1>
+<p class="lede">A savings regression hides a fever: residual variance that grows with income. The thermal camera renders each residual's heat &mdash; the fan glows hotter as fitted values rise. Diagnose it with a real Breusch&ndash;Pagan test, then choose a treatment and watch what changes (the SEs) and what does not (the coefficients).</p>
+<div class="hud"><span class="pill">Diagnosis: <b id="hud1">&ndash;</b></span><span class="pill">Treatment: <b id="hud2">&ndash;</b></span><span class="pill" id="pystate">Python: idle</span></div>
+<div class="loadbar" id="loadbar"><div class="fill" id="loadfill"></div></div>
+
+<div class="stage" id="stage1">
+<span class="tag">Trial 1 &middot; The scan</span>
+<h2>Run the thermal camera + Breusch&ndash;Pagan</h2>
+<div class="controls"><button class="btn" id="scan">&#128247; Scan the residuals</button><span class="status" id="st1"></span></div>
+<div class="out" id="out1"></div>
+<div class="mcq" id="mcq1">
+<div class="q">The camera shows a fan glowing hotter at high fitted values, and BP rejects. What is compromised?</div>
+<label data-i="0">The coefficients are biased and must be re-estimated</label>
+<label data-i="1">The coefficients are fine (still unbiased); the classical standard errors, t statistics, and CIs are invalid</label>
+<label data-i="2">The data are corrupted</label>
+<label data-i="3">R-squared is overstated</label>
+</div>
+</div>
+
+<div class="stage" id="stage2">
+<span class="tag">Trial 2 &middot; The treatment</span>
+<h2>Cool the inference</h2>
+<div class="controls">
+  <label>Treatment <select id="fix">
+    <option value="robust">HC1 robust standard errors</option>
+    <option value="wls">WLS with weights 1/income&sup2;</option>
+    <option value="drop">Drop the hottest 10% of points</option>
+  </select></label>
+  <button class="btn gold" id="apply">Apply treatment</button>
+  <span class="status" id="st2"></span>
+</div>
+<div class="out" id="out2"></div>
+<div class="mcq" id="mcq2">
+<div class="q">Which treatment is the safe default for valid inference here, and why?</div>
+<label data-i="0">Dropping the hot points &mdash; removes the fever at its source</label>
+<label data-i="1">Robust (HC) standard errors &mdash; they fix the inference without imposing a variance model; WLS can beat them on efficiency only if the weight model is right, and deleting data invents a different sample</label>
+<label data-i="2">WLS always &mdash; it is more efficient regardless of the weight model</label>
+<label data-i="3">None; heteroskedasticity requires a new estimator for the coefficients</label>
+</div>
+</div>
+
+<div class="scorecard" id="scorecard"><div style="font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-dim)">Thermal Camera &mdash; final score</div>
+<div class="big" id="finalscore">0</div><div id="scoredetail" style="color:var(--ink-dim);font-size:14px"></div>
+<p class="note" style="margin-top:8px">Saved locally<span id="savemsg"></span>.</p></div>
+
+<div class="debrief" id="debrief"><div class="db-label">What you just learned</div>
+<p>Heteroskedasticity leaves the point estimates standing and burns the inference around them: you watched the coefficient barely move across treatments while the standard error roughly doubled under honest (robust) accounting. The thermal pattern &mdash; variance rising with the fitted values &mdash; is the most common fever in economic data, the Breusch&ndash;Pagan test formalizes the eyeball, robust SEs are the default cure, and amputating "hot" data is malpractice dressed as treatment.</p></div>
+
+<div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
+<p>Note what the "drop the hot points" button really did: it changed the question, not the cure. If a fix works by deleting the inconvenient part of reality, it is not a fix.</p></div>
+<p class="note">Part of <a href="https://econometrics.macronations.com">Econometrics</a> on MacroNations.</p>
+</div>
+
+<script type="text/x-python" id="lab-module">
+import numpy as np, pandas as pd, json
+import statsmodels.api as sm
+import statsmodels.stats.api as sms
+
+_r = np.random.default_rng(707)
+_n = 400
+_inc = np.exp(_r.normal(10.4, 0.5, _n))
+_sav = -120 + 0.085*_inc + _r.normal(0, 1, _n)*(0.05*_inc)
+_X = sm.add_constant(_inc)
+_OLS = sm.OLS(_sav, _X).fit()
+
+def scan():
+    resid = _OLS.resid; fitted = _OLS.fittedvalues
+    bp = sms.het_breuschpagan(resid, _OLS.model.exog)
+    heat = np.abs(resid)
+    plt.figure(figsize=(7.2, 4.0))
+    sc = plt.scatter(fitted/1000, resid, c=heat, cmap="inferno", s=16)
+    plt.colorbar(sc, label="|residual| (heat)")
+    plt.axhline(0, linewidth=1)
+    plt.xlabel("fitted savings ($000s)"); plt.ylabel("residual")
+    plt.title("thermal scan: the fan glows hotter as fitted values rise")
+    plt.tight_layout()
+    return json.dumps({"bp_lm": round(float(bp[0]), 2), "bp_p": float(bp[1]),
+                       "coef": round(float(_OLS.params[1]), 4),
+                       "se": round(float(_OLS.bse[1]), 4)})
+
+def apply_fix(kind):
+    b0, se0, t0 = float(_OLS.params[1]), float(_OLS.bse[1]), float(_OLS.tvalues[1])
+    if kind == "robust":
+        m = sm.OLS(_sav, _X).fit(cov_type="HC1")
+        b, se, t = float(m.params[1]), float(m.bse[1]), float(m.tvalues[1])
+        note = "Same coefficient to 4 decimals; the honest SE is %.1fx the classical one." % (se/se0)
+    elif kind == "wls":
+        m = sm.WLS(_sav, _X, weights=1.0/_inc**2).fit()
+        b, se, t = float(m.params[1]), float(m.bse[1]), float(m.tvalues[1])
+        note = "WLS reweights by the (correct, here) variance model: efficient AND valid - because we knew Var grows with income squared."
+    else:
+        heat = np.abs(_OLS.resid)
+        keep = heat < np.quantile(heat, 0.90)
+        m = sm.OLS(_sav[keep], _X[keep]).fit()
+        b, se, t = float(m.params[1]), float(m.bse[1]), float(m.tvalues[1])
+        note = "The fever 'drops' because you amputated the patient: this estimates a different population (the calm 90%)."
+    plt.figure(figsize=(6.8, 3.4))
+    plt.bar(["classical\nSE", kind + "\nSE"], [se0, se])
+    plt.ylabel("standard error of the income coefficient")
+    plt.title("coefficient: %.4f -> %.4f   (barely moves)" % (b0, b))
+    plt.tight_layout()
+    return json.dumps({"kind": kind, "b0": round(b0, 4), "b": round(b, 4),
+                       "se0": round(se0, 4), "se": round(se, 4),
+                       "t0": round(t0, 2), "t": round(t, 2), "note": note})
+</script>
+
+<script>
+var S = { scanned: false, mc1: null, applied: {}, mc2: null };
+function labInit() {
+  el('scan').onclick = function () {
+    setStatus('st1', PY.pyodide ? 'scanning...' : 'loading Python (~10s first time)...');
+    callPy('scan()').then(function (res) {
+      var d = res.data;
+      S.scanned = true;
+      el('hud1').textContent = 'fever (BP p<' + (d.bp_p < 0.001 ? '0.001' : d.bp_p.toFixed(3)) + ')';
+      renderOut('out1', [
+        'OLS: savings = ... + ' + d.coef + ' x income   (classical se ' + d.se + ')',
+        'Breusch-Pagan: LM = ' + d.bp_lm + ', p = ' + (d.bp_p < 1e-6 ? '< 1e-6' : d.bp_p.toFixed(4)) + '  -> reject homoskedasticity'
+      ], res.figs, ['Heat = |residual|. A homoskedastic model would show uniform temperature across fitted values.']);
+      setStatus('st1', 'fever confirmed');
+      maybeFinish();
+    }).then(null, function (e) { fail('out1', 'st1', e); });
+  };
+  el('apply').onclick = function () {
+    var kind = el('fix').value;
+    setStatus('st2', 'treating...');
+    callPy('apply_fix("' + kind + '")').then(function (res) {
+      var d = res.data;
+      S.applied[d.kind] = true;
+      el('hud2').textContent = Object.keys(S.applied).join(', ');
+      renderOut('out2', [
+        'treatment: ' + d.kind,
+        'coefficient ' + d.b0 + ' -> ' + d.b + '     SE ' + d.se0 + ' -> ' + d.se + '     t ' + d.t0 + ' -> ' + d.t,
+        d.note
+      ], res.figs);
+      setStatus('st2', 'applied');
+      maybeFinish();
+    }).then(null, function (e) { fail('out2', 'st2', e); });
+  };
+  bindMC('mcq1', 1, function (p) { S.mc1 = p; el('hud1').textContent += ''; maybeFinish(); });
+  bindMC('mcq2', 1, function (p) { S.mc2 = p; maybeFinish(); });
+}
+function bindMC(id, correctIdx, done) {
+  var labels = el(id).getElementsByTagName('label');
+  for (var i = 0; i < labels.length; i++) {
+    labels[i].onclick = (function (lab, all) {
+      return function () {
+        if (lab.className === 'correct' || lab.className === 'wrong') { return; }
+        var pick = parseInt(lab.getAttribute('data-i'), 10);
+        var pts;
+        if (pick === correctIdx) { lab.className = 'correct'; pts = 100; }
+        else { lab.className = 'wrong'; all[correctIdx].className = 'correct'; pts = 40; }
+        done(pts);
+      };
+    })(labels[i], labels);
+  }
+}
+function maybeFinish() {
+  if (!S.scanned || S.mc1 === null || S.mc2 === null || !S.applied['robust']) { return; }
+  var breadth = Math.min(20, Object.keys(S.applied).length * 7);
+  var final = Math.min(100, Math.round(0.4 * S.mc1 + 0.4 * S.mc2 + breadth));
+  showFinal(final, 'Diagnosis ' + S.mc1 + ' | Treatment choice ' + S.mc2 + ' | Treatments tried: ' + Object.keys(S.applied).length,
+            { mc1: S.mc1, mc2: S.mc2, tried: Object.keys(S.applied) });
+}
+</script>
+<script type="text/x-python" id="lab-prelude">
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import io, base64
+plt.rcParams["figure.facecolor"] = "#1E1A3E"; plt.rcParams["axes.facecolor"] = "#1E1A3E"
+plt.rcParams["savefig.facecolor"] = "#1E1A3E"; plt.rcParams["text.color"] = "#E8E6F5"
+plt.rcParams["axes.labelcolor"] = "#A9A5C9"; plt.rcParams["xtick.color"] = "#A9A5C9"
+plt.rcParams["ytick.color"] = "#A9A5C9"; plt.rcParams["axes.edgecolor"] = "#2A2550"
+plt.rcParams["axes.prop_cycle"] = matplotlib.cycler(color=["#19C3B2","#FBBF24","#7C5CFF","#FF6B6B","#94A3B8"])
+plt.rcParams["legend.facecolor"] = "#161330"; plt.rcParams["grid.color"] = "#2A2550"
+def __figs():
+    out = []
+    for num in plt.get_fignums():
+        fig = plt.figure(num); buf = io.BytesIO()
+        fig.savefig(buf, format="png", dpi=110, bbox_inches="tight")
+        out.append(base64.b64encode(buf.getvalue()).decode("ascii"))
+    plt.close("all"); return out
+</script>
+<script>
+/* ===== shared Lab runtime (inlined eq-progress pattern) - Safari-safe ===== */
+var EQ_SUPABASE_URL = 'PASTE_NEW_PROJECT_URL';
+var EQ_SUPABASE_ANON_KEY = 'PASTE_NEW_ANON_KEY';
+var DEV_PREVIEW = true;
+var SUPER_ADMIN_EMAIL = 'sharmaaa9@yahoo.com';
+var STRIPE_LINK = 'https://buy.stripe.com/8x2cMYbjfcsk2ON7se5ZC01';
+var LAB_ID = 'hetero-thermal';
+var LAB_FREE = false;
+var PYODIDE_URL = 'https://cdn.jsdelivr.net/pyodide/v0.29.4/full/pyodide.js';
+var PY_PACKAGES = ['numpy', 'pandas', 'scipy', 'matplotlib', 'statsmodels'];
+
+var PY = { pyodide: null, promise: null };
+var SB = null, SESSION = null, BEST = -1;
+
+function el(id) { return document.getElementById(id); }
+function setStatus(id, txt, err) { var s = el(id); if (s) { s.textContent = txt; s.className = 'status' + (err ? ' err' : ''); } }
+function setPyState(t) { var s = el('pystate'); if (s) { s.textContent = 'Python: ' + t; } }
+function showLoad(p) { var lb = el('loadbar'); if (!lb) { return; } lb.className = p < 100 ? 'loadbar show' : 'loadbar'; el('loadfill').style.width = p + '%'; }
+function escapeHTML(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function loadScript(src) {
+  return new Promise(function (resolve, reject) {
+    var s = document.createElement('script'); s.src = src;
+    s.onload = function () { resolve(true); };
+    s.onerror = function () { reject(new Error('Could not load ' + src)); };
+    document.head.appendChild(s);
+  });
+}
+function ensurePy() {
+  if (PY.promise) { return PY.promise; }
+  setPyState('downloading'); showLoad(10);
+  PY.promise = loadScript(PYODIDE_URL).then(function () {
+    setPyState('starting'); showLoad(30);
+    return window.loadPyodide();
+  }).then(function (py) {
+    PY.pyodide = py;
+    setPyState('loading numpy + statsmodels'); showLoad(55);
+    return py.loadPackage(PY_PACKAGES).then(function () { return py; });
+  }).then(function (py) {
+    setPyState('preparing the lab'); showLoad(85);
+    var pre = document.getElementById('lab-prelude').textContent;
+    var mod = document.getElementById('lab-module').textContent;
+    return py.runPythonAsync(pre).then(function () { return py.runPythonAsync(mod); }).then(function () { setPyState('ready'); showLoad(100); return py; });
+  });
+  PY.promise = PY.promise.then(null, function (err) {
+    PY.promise = null; setPyState('failed - retry your last action'); showLoad(100); throw err;
+  });
+  return PY.promise;
+}
+function callPy(expr) {
+  return ensurePy().then(function (py) {
+    return py.runPythonAsync(expr).then(function (res) {
+      var data = res ? JSON.parse(res) : {};
+      var figs = py.runPython('__figs()');
+      var arr = figs ? figs.toJs() : [];
+      if (figs && figs.destroy) { figs.destroy(); }
+      return { data: data, figs: arr };
+    });
+  });
+}
+function renderOut(target, lines, figs, caps) {
+  var html = '';
+  if (lines && lines.length) { html += '<pre class="reg-table">' + escapeHTML(lines.join('\n')) + '</pre>'; }
+  for (var i = 0; i < (figs ? figs.length : 0); i++) {
+    html += '<div class="figure-card"><img alt="lab figure" src="data:image/png;base64,' + figs[i] + '">';
+    if (caps && caps[i]) { html += '<div class="cap">' + caps[i] + '</div>'; }
+    html += '</div>';
+  }
+  el(target).innerHTML = html;
+}
+function fail(target, statusId, err) {
+  setStatus(statusId, 'error', true);
+  el(target).innerHTML = '<pre class="reg-table" style="color:#FF9B9B">' + escapeHTML(err && err.message ? err.message : String(err)) + '</pre>';
+}
+/* live progress reporting: report DURING play whenever the score improves */
+function reportScore(score, detail) {
+  if (score <= BEST) { return; }
+  BEST = score;
+  try { window.localStorage.setItem('eq_lab_' + LAB_ID, JSON.stringify({ score: score, detail: detail, at: new Date().toISOString() })); } catch (e) {}
+  var sm = el('savemsg'); if (sm) { sm.textContent = ''; }
+  if (SB && SESSION) {
+    SB.from('eq_lab_results').insert({ student_id: SESSION.user.id, lab_id: LAB_ID, score: score, details: detail })
+      .then(function () { if (sm) { sm.textContent = ' and to your course record'; } });
+  }
+}
+function showFinal(score, detailText, detailObj) {
+  el('finalscore').textContent = score;
+  el('scoredetail').textContent = detailText;
+  el('scorecard').className = 'scorecard show';
+  var db = el('debrief'); if (db) { db.className = 'debrief show'; }
+  reportScore(score, detailObj);
+}
+function resolveGate() {
+  var buy = el('gate-buy'); if (buy) { buy.href = STRIPE_LINK; }
+  if (LAB_FREE || DEV_PREVIEW) { return; }
+  if (EQ_SUPABASE_URL.indexOf('http') !== 0 || !window.supabase) { el('gate').className = 'show'; return; }
+  SB = window.supabase.createClient(EQ_SUPABASE_URL, EQ_SUPABASE_ANON_KEY);
+  SB.auth.getSession().then(function (r) {
+    SESSION = (r && r.data && r.data.session) ? r.data.session : null;
+    if (!SESSION) { el('gate').className = 'show'; return; }
+    if (String(SESSION.user.email).toLowerCase() === SUPER_ADMIN_EMAIL) { return; }
+    SB.from('eq_profiles').select('role').eq('id', SESSION.user.id).maybeSingle().then(function (pr) {
+      var role = (pr && pr.data && pr.data.role) ? pr.data.role : 'student';
+      if (role === 'instructor' || role === 'admin') { return; }
+      SB.from('eq_subscriptions').select('id').eq('student_id', SESSION.user.id).eq('status', 'active').limit(1)
+        .then(function (s) { if (!(s && s.data && s.data.length)) { el('gate').className = 'show'; } });
+    });
+  });
+}
+function bootLab() {
+  resolveGate();
+  if (window.labInit) { window.labInit(); }
+}
+if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', bootLab); } else { bootLab(); }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</body>
+</html>

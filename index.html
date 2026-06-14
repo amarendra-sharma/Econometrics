@@ -1,0 +1,1716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Econometrics | MacroNations</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0E0C20;--bg2:#161330;--bg3:#1E1A3E;--line:#2A2550;--ink:#E8E6F5;--ink-dim:#A9A5C9;--ink-faint:#6F6A95;
+--teal:#19C3B2;--teal-bright:#3FE0D0;--violet:#7C5CFF;--gold:#FBBF24;--coral:#FF6B6B;--green:#34D399;
+--serif:'Instrument Serif',Georgia,serif;--sans:'Inter',sans-serif;--mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--teal-bright);text-decoration:none}
+button{font-family:var(--sans);cursor:pointer}
+.hidden{display:none !important}
+/* ---- auth ---- */
+#auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(1200px 600px at 50% -10%,rgba(124,92,255,.10),transparent),var(--bg)}
+.auth-card{background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:30px;max-width:430px;width:100%}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.brand .crest{width:42px;height:42px}
+.brand h1{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1}
+.brand .sub{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--teal)}
+.tabs{display:flex;gap:8px;margin-bottom:18px}
+.tabs button{flex:1;background:var(--bg3);border:1px solid var(--line);color:var(--ink-dim);border-radius:10px;padding:9px;font-weight:600;font-size:13px}
+.tabs button.on{background:var(--teal);color:#062a26;border-color:var(--teal)}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12.5px;color:var(--ink-dim);margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:10px 12px;font-family:var(--sans);font-size:14px}
+.field textarea{font-family:var(--sans);min-height:70px;resize:vertical}
+.toggle2{display:flex;gap:8px}
+.toggle2 button{flex:1;background:var(--bg);border:1px solid var(--line);color:var(--ink-dim);border-radius:10px;padding:9px;font-size:13px}
+.toggle2 button.on{border-color:var(--teal);color:var(--teal-bright);background:rgba(25,195,178,.08)}
+.btn{background:var(--teal);color:#062a26;border:none;border-radius:10px;padding:11px 18px;font-weight:600;font-size:14px}
+.btn:hover{background:var(--teal-bright)} .btn:disabled{opacity:.5;cursor:default}
+.btn.block{width:100%} .btn.ghost{background:transparent;color:var(--teal-bright);border:1px solid var(--teal)}
+.btn.gold{background:var(--gold);color:#3a2a00} .btn.coral{background:var(--coral);color:#3a0c0c}
+.btn.sm{padding:6px 12px;font-size:12.5px;border-radius:8px}
+.msg{font-size:13px;margin-top:10px;min-height:18px}
+.msg.err{color:var(--coral)} .msg.ok{color:var(--green)}
+.note{font-size:12px;color:var(--ink-faint)}
+/* ---- app shell ---- */
+#app{display:none;min-height:100vh}
+#app.on{display:grid;grid-template-columns:240px 1fr}
+.side{background:var(--bg2);border-right:1px solid var(--line);padding:18px 14px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.side .brand{margin-bottom:18px}
+.side .brand h1{font-size:19px}
+.grp{margin-bottom:16px}
+.grp .lbl{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);margin:0 8px 6px}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav a{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:9px;color:var(--ink-dim);font-size:13.5px;font-weight:500}
+.nav a:hover{background:var(--bg3);color:var(--ink)}
+.nav a.on{background:rgba(25,195,178,.12);color:var(--teal-bright)}
+.nav a .ic{width:16px;text-align:center}
+.who{margin-top:10px;padding:10px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-faint)}
+.who b{color:var(--ink-dim);display:block;font-size:13px}
+.main{padding:26px 30px 80px;max-width:1080px}
+.page-h{font-family:var(--serif);font-weight:400;font-size:30px;margin-bottom:4px}
+.page-sub{color:var(--ink-dim);margin-bottom:20px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:16px}
+.card h3{font-size:15px;margin-bottom:4px}
+.card p{font-size:13px;color:var(--ink-dim);margin-bottom:10px}
+.card .meta{font-size:11.5px;color:var(--ink-faint);font-family:var(--mono)}
+.tag{display:inline-block;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;border-radius:6px;padding:2px 8px}
+.tag.free{background:rgba(52,211,153,.16);color:var(--green)} .tag.lock{background:rgba(251,191,36,.14);color:var(--gold)}
+.tag.done{background:rgba(63,224,208,.14);color:var(--teal-bright)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{color:var(--ink-faint);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+td.num,th.num{text-align:right;font-family:var(--mono)}
+.pill{display:inline-block;background:var(--bg3);border:1px solid var(--line);border-radius:999px;padding:3px 11px;font-family:var(--mono);font-size:12px;color:var(--ink-dim)}
+.bar{height:9px;background:var(--bg3);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.bar .fill{height:100%;background:var(--teal);width:0%}
+.panel{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+.panel h2{font-family:var(--serif);font-weight:400;font-size:20px;margin-bottom:10px}
+.kv{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+.kv .k{color:var(--ink-dim)} .kv .v{font-family:var(--mono);color:var(--ink)}
+.banner{background:rgba(124,92,255,.10);border:1px solid rgba(124,92,255,.4);border-radius:12px;padding:12px 15px;font-size:13.5px;margin-bottom:16px}
+.modal{position:fixed;inset:0;background:rgba(14,12,32,.86);display:none;align-items:center;justify-content:center;z-index:60;padding:20px}
+.modal.on{display:flex}
+.modal .box{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:24px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto}
+.modal .box h2{font-family:var(--serif);font-weight:400;font-size:21px;margin-bottom:12px}
+.q-card{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px}
+.q-card .opt{display:block;padding:8px 11px;border:1px solid var(--line);border-radius:9px;margin-top:6px;color:var(--ink-dim);font-size:13.5px}
+.q-card .opt.sel{border-color:var(--teal);background:rgba(25,195,178,.08);color:var(--ink)}
+.q-card .opt.correct{border-color:var(--green);color:var(--green)} .q-card .opt.wrong{border-color:var(--coral);color:var(--coral)}
+.countdown{font-family:var(--mono);font-size:15px;color:var(--gold)} .countdown.warn{color:var(--coral)}
+.examnav{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px}
+.dots{display:flex;gap:5px;flex-wrap:wrap}
+.dots span{width:11px;height:11px;border-radius:50%;background:var(--bg3);border:1px solid var(--line)}
+.dots span.ans{background:var(--teal)} .dots span.cur{outline:2px solid var(--teal-bright)}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--teal);border-radius:50%;animation:sp 0.7s linear infinite;vertical-align:-2px}
+@keyframes sp{to{transform:rotate(360deg)}}
+/* ---- certificate ---- */
+#cert-print{display:none}
+@media print{body *{visibility:hidden}#cert-print,#cert-print *{visibility:visible}#cert-print{display:block;position:absolute;inset:0}}
+.cert{width:1056px;height:744px;margin:0 auto;background:#fff;color:#0a2d78;position:relative;font-family:var(--serif)}
+.cert .frame{position:absolute;inset:24px;border:2px solid #c9920a}
+.cert .frame2{position:absolute;inset:32px;border:1px solid #0a2d78}
+.cert .bar{position:absolute;left:0;right:0;height:14px;background:#0a2d78}
+.cert .bar.top{top:0} .cert .bar.bot{bottom:0}
+.cert .brkt{position:absolute;width:26px;height:26px;border:3px solid #c9920a}
+.cert .inner{position:absolute;inset:60px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.cert h1{font-size:30px;letter-spacing:.12em;color:#0a2d78}
+.cert .subt{font-family:var(--sans);font-size:12px;letter-spacing:.32em;color:#c9920a;font-weight:700;margin-top:4px}
+.cert .coc{font-size:40px;margin:22px 0 6px}
+.cert .nm{font-size:36px;border-bottom:2px solid #c9920a;padding:0 30px 6px;margin:14px 0}
+.cert .body{font-family:var(--sans);font-size:14px;color:#33476b;max-width:620px;margin:6px auto}
+.cert .score{font-family:var(--sans);font-weight:700;font-size:16px;color:#0a2d78;margin-top:10px}
+.cert .sigs{display:flex;gap:120px;margin-top:42px}
+.cert .sig{font-family:var(--sans);text-align:center}
+.cert .sig .ln{width:200px;border-top:1.5px solid #0a2d78;padding-top:5px;font-size:12px}
+.cert .sig .nm2{font-family:var(--serif);font-size:17px}
+.cert .wm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.05;pointer-events:none}
+.cert .wm svg{width:360px;height:360px}
+</style>
+</head>
+<body>
+<!-- ============ AUTH ============ -->
+<div id="auth">
+  <div class="auth-card">
+    <div class="brand">
+      <svg class="crest" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M32 3 L58 13 V31 C58 47 46 57 32 61 C18 57 6 47 6 31 V13 Z" fill="#0a2d78" stroke="#c9920a" stroke-width="2"/>
+        <path d="M32 3 L58 13 V31 C58 47 46 57 32 61 C18 57 6 47 6 31 V13 Z" fill="none" stroke="#19C3B2" stroke-width="0.6" opacity="0.5"/>
+        <text x="32" y="40" text-anchor="middle" font-family="Georgia,serif" font-size="24" fill="#c9920a" font-weight="700">MN</text>
+        <circle cx="32" cy="13" r="1.6" fill="#c9920a"/>
+      </svg>
+      <div><h1>Econometrics</h1><div class="sub">MacroNations</div></div>
+    </div>
+    <div class="tabs">
+      <button id="tab-login" class="on" onclick="setAuthTab('login')">Sign in</button>
+      <button id="tab-signup" onclick="setAuthTab('signup')">Create account</button>
+    </div>
+    <div class="field"><label>Email</label><input id="au-email" type="email" autocomplete="email" placeholder="you@school.edu"></div>
+    <div class="field"><label>Password</label><input id="au-pass" type="password" autocomplete="current-password" placeholder="********"></div>
+    <div id="signup-extra" class="hidden">
+      <div class="field"><label>Full name</label><input id="au-name" type="text" placeholder="Jane Q. Student"></div>
+      <div class="field"><label>I am a&hellip;</label>
+        <div class="toggle2">
+          <button id="rl-student" class="on" type="button" onclick="setRole('student')">Student</button>
+          <button id="rl-prof" type="button" onclick="setRole('instructor')">Professor</button>
+        </div>
+        <div class="note" id="rl-note" style="margin-top:6px">Students can join a course now or explore independently.</div>
+      </div>
+      <div class="field" id="join-wrap"><label>Course join code <span class="note">(optional)</span></label><input id="au-join" type="text" placeholder="e.g. 4F9A2C" maxlength="8" style="text-transform:uppercase"></div>
+      <div class="field hidden" id="inst-wrap"><label>Institution</label><input id="au-inst" type="text" placeholder="State University"></div>
+    </div>
+    <button class="btn block" id="au-go" onclick="doAuth()">Sign in</button>
+    <div class="msg" id="au-msg"></div>
+    <div class="note" style="margin-top:14px">The full course is a one-time <b>$25</b>. Chapters 1&ndash;2 and the Least-Squares Archer lab are free to explore.</div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app">
+  <aside class="side">
+    <div class="brand">
+      <svg class="crest" width="34" height="34" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M32 3 L58 13 V31 C58 47 46 57 32 61 C18 57 6 47 6 31 V13 Z" fill="#0a2d78" stroke="#c9920a" stroke-width="2"/>
+        <text x="32" y="40" text-anchor="middle" font-family="Georgia,serif" font-size="24" fill="#c9920a" font-weight="700">MN</text>
+      </svg>
+      <div><h1>Econometrics</h1><div class="sub">MacroNations</div></div>
+    </div>
+    <nav id="nav"></nav>
+    <div class="who" id="who"></div>
+  </aside>
+  <main class="main" id="view"></main>
+</div>
+
+<!-- modal host -->
+<div class="modal" id="modal"><div class="box" id="modal-box"></div></div>
+
+<!-- certificate print host -->
+<div id="cert-print"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   Econometrics unified app - Safari-safe front-end dialect
+   (no optional chaining, no nullish coalescing, no template literals)
+   ============================================================ */
+var EQ_SUPABASE_URL = 'PASTE_NEW_PROJECT_URL';
+var EQ_SUPABASE_ANON_KEY = 'PASTE_NEW_ANON_KEY';
+var DEV_PREVIEW = true;
+var SUPER_ADMIN_EMAIL = 'sharmaaa9@yahoo.com';
+var STRIPE_LINK = 'https://buy.stripe.com/8x2cMYbjfcsk2ON7se5ZC01';
+var CURRICULUM_FILE = 'econometrics-curriculum.html';
+var TOTAL_CHAPTERS = 17;
+var PASS_THRESHOLD = 70;
+var FREE_CHAPTERS = [1, 2];
+var FREE_LABS = ['regression-archer'];
+var AUTHOR_NAME = 'Dr. Amarendra Sharma';
+
+/* 14 labs -> econometrics-{slug}.html */
+var LABS = [
+  {id:'bias-detective',    title:'The Omitted-Variable Detective', chapter:3},
+  {id:'regression-archer', title:'Least-Squares Archer',           chapter:2},
+  {id:'p-hacking-casino',  title:'The p-Hacking Casino',           chapter:4},
+  {id:'iv-plumber',        title:'The Instrument Plumber',         chapter:9},
+  {id:'did-time-machine',  title:'The DiD Time Machine',           chapter:12},
+  {id:'rd-cliff',          title:'The Regression-Discontinuity Cliff', chapter:13},
+  {id:'panel-xray',        title:'The Fixed-Effects X-Ray',        chapter:10},
+  {id:'hetero-thermal',    title:'The Heteroskedasticity Thermal Camera', chapter:7},
+  {id:'logit-frontier',    title:'The Probability Frontier',       chapter:14},
+  {id:'timeseries-oracle', title:'The Spurious-Regression Oracle', chapter:15},
+  {id:'bootstrap-forge',   title:'The Bootstrap Forge',            chapter:4},
+  {id:'causal-courtroom',  title:'The Causal Courtroom',           chapter:1},
+  {id:'model-zoo',         title:'The Model Zoo and Specification Safari', chapter:5},
+  {id:'ml-foundry',        title:'The ML Foundry',                 chapter:17}
+];
+function labFile(slug){ return 'econometrics-' + slug + '.html'; }
+
+/* fallback chapter list (also loaded live from eq_chapters) */
+var CHAPTERS = [
+  {id:1,title:'The Econometric Question'},{id:2,title:'Simple Linear Regression'},
+  {id:3,title:'Multiple Regression: Estimation'},{id:4,title:'Multiple Regression: Inference'},
+  {id:5,title:'Functional Form and Data Issues'},{id:6,title:'Dummy Variables and Discrete Covariates'},
+  {id:7,title:'Heteroskedasticity'},{id:8,title:'Specification and Measurement'},
+  {id:9,title:'Instrumental Variables and 2SLS'},{id:10,title:'Panel Data I: Pooled and Fixed Effects'},
+  {id:11,title:'Panel Data II: Random Effects and Clustering'},{id:12,title:'Difference-in-Differences and Policy Evaluation'},
+  {id:13,title:'Regression Discontinuity and Natural Experiments'},{id:14,title:'Binary and Limited Dependent Variables'},
+  {id:15,title:'Time Series I'},{id:16,title:'Time Series II and Forecasting'},
+  {id:17,title:'Machine Learning for Econometrics'}
+];
+
+/* ---- state ---- */
+var SB = null;
+var SESSION = null;
+var PROFILE = null;
+var COURSE = null;            /* the student's active enrolled course (or null) */
+var MY_COURSES = [];          /* instructor's owned courses */
+var SETTINGS = null;
+var authTab = 'login';
+var signupRole = 'student';
+
+/* ---- tiny helpers ---- */
+function el(id){ return document.getElementById(id); }
+function esc(s){ if(s==null){return '';} return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function show(id){ el(id).classList.remove('hidden'); }
+function hide(id){ el(id).classList.add('hidden'); }
+function setMsg(id, txt, kind){ var m = el(id); m.textContent = txt || ''; m.className = 'msg' + (kind ? ' ' + kind : ''); }
+function fmtPct(x){ if(x==null||isNaN(x)){return '\u2013';} return (Math.round(x*10)/10) + '%'; }
+function num(x){ var n = Number(x); return isFinite(n) ? n : 0; }
+function freeEmail(email){
+  var d = String(email).split('@')[1] || '';
+  d = d.toLowerCase();
+  var free = ['gmail.com','yahoo.com','hotmail.com','outlook.com','icloud.com','aol.com','proton.me','protonmail.com','live.com','mail.com'];
+  for(var i=0;i<free.length;i++){ if(d===free[i]){ return true; } }
+  return false;
+}
+function isSuperAdmin(){ return SESSION && SESSION.user && String(SESSION.user.email).toLowerCase() === SUPER_ADMIN_EMAIL; }
+function roleOf(){ if(isSuperAdmin()){ return 'admin'; } return (PROFILE && PROFILE.role) ? PROFILE.role : 'student'; }
+function isStaff(){ var r = roleOf(); return r === 'instructor' || r === 'admin'; }
+function isAdmin(){ return roleOf() === 'admin'; }
+
+/* ---- auth tab UI ---- */
+function setAuthTab(t){
+  authTab = t;
+  el('tab-login').classList.toggle('on', t==='login');
+  el('tab-signup').classList.toggle('on', t==='signup');
+  el('signup-extra').classList.toggle('hidden', t!=='signup');
+  el('au-go').textContent = t==='login' ? 'Sign in' : 'Create account';
+  el('au-pass').setAttribute('autocomplete', t==='login' ? 'current-password' : 'new-password');
+  setMsg('au-msg','');
+}
+function setRole(r){
+  signupRole = r;
+  el('rl-student').classList.toggle('on', r==='student');
+  el('rl-prof').classList.toggle('on', r==='instructor');
+  el('join-wrap').classList.toggle('hidden', r!=='student');
+  el('inst-wrap').classList.toggle('hidden', r!=='instructor');
+  el('rl-note').textContent = r==='student'
+    ? 'Students can join a course now or explore independently.'
+    : 'Professors need an academic (non-free) email and are reviewed before teaching tools unlock.';
+}
+
+function initClient(){
+  if(SB){ return true; }
+  if(EQ_SUPABASE_URL.indexOf('http') !== 0 || !window.supabase){ return false; }
+  SB = window.supabase.createClient(EQ_SUPABASE_URL, EQ_SUPABASE_ANON_KEY);
+  return true;
+}
+
+function doAuth(){
+  if(!initClient()){ setMsg('au-msg','Backend not configured yet (paste your Supabase URL and anon key).','err'); return; }
+  var email = el('au-email').value.trim();
+  var pass = el('au-pass').value;
+  if(!email || !pass){ setMsg('au-msg','Enter your email and password.','err'); return; }
+  el('au-go').disabled = true;
+  if(authTab === 'login'){
+    setMsg('au-msg','Signing in\u2026');
+    SB.auth.signInWithPassword({ email: email, password: pass }).then(function(r){
+      el('au-go').disabled = false;
+      if(r.error){ setMsg('au-msg', r.error.message, 'err'); return; }
+      boot();
+    });
+    return;
+  }
+  /* signup */
+  var name = el('au-name').value.trim();
+  if(signupRole === 'instructor' && freeEmail(email)){
+    el('au-go').disabled = false;
+    setMsg('au-msg','Professor accounts require an academic email address.','err'); return;
+  }
+  setMsg('au-msg','Creating your account\u2026');
+  SB.auth.signUp({ email: email, password: pass }).then(function(r){
+    if(r.error){ el('au-go').disabled = false; setMsg('au-msg', r.error.message, 'err'); return; }
+    var uid = r.data && r.data.user ? r.data.user.id : null;
+    if(!uid){ el('au-go').disabled = false; setMsg('au-msg','Check your email to confirm, then sign in.','ok'); return; }
+    /* profile row: role is 'student' unless instructor requested.
+       Instructors are created as 'student' and request access (granted later);
+       super-admin email is elevated by the SQL console grant. */
+    var prof = { id: uid, email: email, full_name: name, role: 'student' };
+    if(signupRole === 'instructor'){ prof.institution = el('au-inst').value.trim(); }
+    SB.from('eq_profiles').upsert(prof).then(function(){
+      var after = function(){
+        if(signupRole === 'instructor'){
+          var hasSession = !!(r.data && r.data.session);
+          var inst = el('au-inst').value.trim();
+          if(hasSession){
+            /* session present (auto-confirm): the edge fn records the request AND
+               emails the platform owner via Resend. */
+            callEdge('notify-prof-request', { email: email, full_name: name, institution: inst })
+              .then(function(res){
+                if(res && res.error){
+                  /* fall back to a durable direct insert so the request is never lost */
+                  SB.from('eq_access_requests').insert({ email: email, full_name: name, institution: inst, message: 'Self-service signup request' }).then(function(){ finishSignup(email, pass); });
+                } else { finishSignup(email, pass); }
+              });
+          } else {
+            /* email-confirmation pending: no JWT yet, so record directly.
+               (Admin sees it in the Instructors queue; wire a DB webhook on
+               eq_access_requests INSERT to notify-prof-request for email alerts.) */
+            SB.from('eq_access_requests').insert({
+              email: email, full_name: name, institution: inst,
+              message: 'Self-service signup request'
+            }).then(function(){ finishSignup(email, pass); });
+          }
+        } else {
+          var code = el('au-join').value.trim().toUpperCase();
+          if(code){ joinByCode(uid, code).then(function(){ finishSignup(email, pass); }); }
+          else { finishSignup(email, pass); }
+        }
+      };
+      after();
+    });
+  });
+}
+function finishSignup(email, pass){
+  /* auto-confirm flows: try immediate sign-in */
+  SB.auth.signInWithPassword({ email: email, password: pass }).then(function(r){
+    el('au-go').disabled = false;
+    if(r.error){ setMsg('au-msg','Account created. Please confirm your email, then sign in.','ok'); setAuthTab('login'); return; }
+    boot();
+  });
+}
+function joinByCode(uid, code){
+  return SB.from('eq_courses').select('id').eq('join_code', code).maybeSingle().then(function(c){
+    if(c && c.data && c.data.id){
+      return SB.from('eq_enrollments').upsert({ course_id: c.data.id, student_id: uid }, { onConflict: 'course_id,student_id' });
+    }
+    return null;
+  });
+}
+function doLogout(){ SB.auth.signOut().then(function(){ location.hash=''; location.reload(); }); }
+/* ============================================================
+   BOOT + profile + router + sidebar
+   ============================================================ */
+function boot(){
+  if(!initClient()){ return; }
+  SB.auth.getSession().then(function(r){
+    SESSION = (r && r.data && r.data.session) ? r.data.session : null;
+    if(!SESSION){ el('app').classList.remove('on'); show('auth'); return; }
+    loadProfile().then(function(){
+      hide('auth'); el('app').classList.add('on');
+      renderWho(); renderNav();
+      if(!location.hash){ location.hash = '#home'; }
+      route();
+    });
+  });
+}
+function loadProfile(){
+  var uid = SESSION.user.id;
+  return SB.from('eq_profiles').select('*').eq('id', uid).maybeSingle().then(function(p){
+    PROFILE = (p && p.data) ? p.data : { id: uid, email: SESSION.user.email, role:'student', full_name:'' };
+    /* settings (price/link/bio) */
+    return SB.from('eq_platform_settings').select('*').eq('id',1).maybeSingle();
+  }).then(function(s){
+    SETTINGS = (s && s.data) ? s.data : null;
+    if(SETTINGS && SETTINGS.stripe_link){ STRIPE_LINK = SETTINGS.stripe_link; }
+    /* enrolled course (first active) */
+    return SB.from('eq_enrollments').select('course_id, eq_courses(*)').eq('student_id', SESSION.user.id);
+  }).then(function(en){
+    COURSE = null;
+    if(en && en.data && en.data.length){
+      for(var i=0;i<en.data.length;i++){ if(en.data[i].eq_courses){ COURSE = en.data[i].eq_courses; break; } }
+    }
+    /* instructor's owned courses */
+    if(isStaff()){
+      return SB.from('eq_courses').select('*').eq('owner_id', SESSION.user.id).order('created_at',{ascending:false}).then(function(c){
+        MY_COURSES = (c && c.data) ? c.data : []; return true;
+      });
+    }
+    MY_COURSES = []; return true;
+  });
+}
+
+function renderWho(){
+  var r = roleOf();
+  var label = r==='admin' ? 'Super-admin' : (r==='instructor' ? 'Instructor' : 'Student');
+  el('who').innerHTML = '<b>' + esc(PROFILE.full_name || SESSION.user.email) + '</b>' +
+    esc(label) + (COURSE ? ' \u00b7 ' + esc(COURSE.title) : (r==='student' ? ' \u00b7 independent' : '')) +
+    '<div style="margin-top:8px"><button class="btn ghost sm" onclick="doLogout()">Sign out</button></div>';
+}
+
+var NAV_GROUPS = [
+  {lbl:'Learn', roles:['student','instructor','admin'], items:[
+    {h:'home', ic:'\u25C8', t:'Home'},
+    {h:'chapters', ic:'\u2630', t:'Chapters'},
+    {h:'labs', ic:'\u269B', t:'Labs'},
+    {h:'practice', ic:'\u270E', t:'Practice'}
+  ]},
+  {lbl:'Track', roles:['student','instructor','admin'], items:[
+    {h:'exams', ic:'\u23F1', t:'Exams'},
+    {h:'progress', ic:'\u2606', t:'My Progress'}
+  ]},
+  {lbl:'Teach', roles:['instructor','admin'], items:[
+    {h:'t-dashboard', ic:'\u25A4', t:'Dashboard'},
+    {h:'t-courses', ic:'\u25A6', t:'Courses'},
+    {h:'t-roster', ic:'\u26C2', t:'Roster'},
+    {h:'t-gradebook', ic:'\u2261', t:'Gradebook'},
+    {h:'t-analytics', ic:'\u2248', t:'Analytics'},
+    {h:'t-exams', ic:'\u270E', t:'Exams'},
+    {h:'t-grade-written', ic:'\u270D', t:'Grade Written'},
+    {h:'t-subscriptions', ic:'\u25CE', t:'Subscriptions'},
+    {h:'t-diagnostics', ic:'\u2699', t:'Diagnostics'}
+  ]},
+  {lbl:'Administer', roles:['admin'], items:[
+    {h:'a-platform', ic:'\u25A0', t:'Platform & Pricing'},
+    {h:'a-instructors', ic:'\u2691', t:'Instructors'}
+  ]}
+];
+function viewAllowed(hash){
+  for(var g=0;g<NAV_GROUPS.length;g++){
+    var grp = NAV_GROUPS[g];
+    if(grp.roles.indexOf(roleOf()) < 0){ continue; }
+    for(var i=0;i<grp.items.length;i++){ if(grp.items[i].h === hash){ return true; } }
+  }
+  if(hash === 'certificate'){ return true; }
+  return false;
+}
+function renderNav(){
+  var html = '';
+  for(var g=0;g<NAV_GROUPS.length;g++){
+    var grp = NAV_GROUPS[g];
+    if(grp.roles.indexOf(roleOf()) < 0){ continue; }
+    html += '<div class="grp"><div class="lbl">' + esc(grp.lbl) + '</div><div class="nav">';
+    for(var i=0;i<grp.items.length;i++){
+      var it = grp.items[i];
+      html += '<a href="#' + it.h + '"><span class="ic">' + it.ic + '</span>' + esc(it.t) + '</a>';
+    }
+    html += '</div></div>';
+  }
+  el('nav').innerHTML = html;
+}
+function markNav(hash){
+  var links = el('nav').getElementsByTagName('a');
+  for(var i=0;i<links.length;i++){ links[i].classList.toggle('on', links[i].getAttribute('href') === '#' + hash); }
+}
+
+var ROUTES = {
+  'home':vHome, 'chapters':vChapters, 'labs':vLabs, 'practice':vPractice,
+  'exams':vExams, 'progress':vProgress, 'certificate':vCertificate,
+  't-dashboard':vDashboard, 't-courses':vCourses, 't-roster':vRoster,
+  't-gradebook':vGradebook, 't-analytics':vAnalytics, 't-exams':vExamAssembler,
+  't-grade-written':vGradeWritten, 't-subscriptions':vSubscriptions, 't-diagnostics':vDiagnostics,
+  'a-platform':vPlatform, 'a-instructors':vInstructors
+};
+function route(){
+  var hash = (location.hash || '#home').slice(1);
+  var base = hash.split('?')[0];
+  if(base.indexOf('lab/') === 0){ launchLab(base.slice(4)); return; }
+  if(!ROUTES[base]){ base = 'home'; }
+  if(!viewAllowed(base) && base !== 'home'){ el('view').innerHTML = msgPanel('Not available','That section is not available for your role.'); markNav(''); return; }
+  markNav(base);
+  el('view').scrollTop = 0; window.scrollTo(0,0);
+  ROUTES[base](hash);
+}
+function msgPanel(title, body){ return '<div class="panel"><h2>' + esc(title) + '</h2><p>' + esc(body) + '</p></div>'; }
+function openModal(html){ el('modal-box').innerHTML = html; el('modal').classList.add('on'); }
+function closeModal(){ el('modal').classList.remove('on'); el('modal-box').innerHTML=''; }
+window.addEventListener('hashchange', route);
+
+/* deep-link launcher: book chapters route here so the app gates access, then launches */
+function launchLab(slug){
+  var known = false;
+  for(var i=0;i<LABS.length;i++){ if(LABS[i].id === slug){ known = true; break; } }
+  if(!known){ location.hash = '#labs'; return; }
+  markNav('labs');
+  el('view').innerHTML = msgPanel('Opening arena\u2026', 'Checking your access and launching the lab.');
+  window.scrollTo(0,0);
+  hasPaidAccess().then(function(paid){
+    if(labUnlocked(slug, paid)){
+      location.replace(labFile(slug));   /* same tab, same origin: Supabase session carries over */
+    } else {
+      el('view').innerHTML = '<div class="panel"><h2>This arena is locked</h2>' +
+        '<p>It is part of the full course. Unlock all chapters and Labs for $25.</p>' +
+        '<div class="row" style="gap:10px;margin-top:12px">' +
+        '<a class="btn gold" href="' + esc(subscribeUrl()) + '" target="_blank" rel="noopener">Unlock \u2014 $25</a>' +
+        '<a class="btn ghost" href="#labs">Back to Labs</a></div></div>';
+    }
+  });
+}
+
+/* ---- access checks for content ---- */
+function hasPaidAccess(){
+  /* resolved lazily where needed; returns a Promise<boolean> */
+  if(DEV_PREVIEW || isSuperAdmin() || isStaff()){ return Promise.resolve(true); }
+  return SB.from('eq_subscriptions').select('id').eq('student_id', SESSION.user.id).eq('status','active').limit(1).then(function(s){
+    return !!(s && s.data && s.data.length);
+  });
+}
+function chapterUnlocked(ch, paid){ return FREE_CHAPTERS.indexOf(ch) >= 0 || paid; }
+function labUnlocked(slug, paid){ return FREE_LABS.indexOf(slug) >= 0 || paid; }
+function subscribeUrl(){
+  var cid = COURSE ? COURSE.id : '';
+  return STRIPE_LINK + '?client_reference_id=' + encodeURIComponent(SESSION.user.id + '|' + cid);
+}
+/* ============================================================
+   LEARN: Home, Chapters, Labs, Practice
+   ============================================================ */
+function vHome(){
+  var name = (PROFILE.full_name || '').split(' ')[0] || 'there';
+  var html = '<div class="page-h">Welcome back, ' + esc(name) + '</div>';
+  html += '<div class="page-sub">Applied econometrics you learn by doing \u2014 17 chapters, 14 interactive Labs, real ' +
+          'Python under the hood.</div>';
+  if(roleOf()==='student' && !COURSE){
+    html += '<div class="banner">You are exploring independently. Have a class join code? ' +
+      '<button class="btn ghost sm" onclick="openJoin()">Join a course</button></div>';
+  }
+  html += '<div id="home-access"></div>';
+  html += '<div class="cards" style="margin-top:8px">' +
+    card('\u2630 Chapters', 'Work through the interactive textbook. Live regressions in every chapter.', '#chapters', 'Open') +
+    card('\u269B Labs', '14 original Labs. Start free with the Least-Squares Archer.', '#labs', 'Open') +
+    card('\u270E Practice', 'Auto-generated questions, any chapter, unlimited.', '#practice', 'Open') +
+    card('\u2606 My Progress', 'Track completion and earn your certificate at 70%.', '#progress', 'Open') +
+    '</div>';
+  el('view').innerHTML = html;
+  hasPaidAccess().then(function(paid){
+    if(paid || roleOf()!=='student'){ return; }
+    el('home-access').innerHTML = '<div class="banner">Free preview active \u2014 Chapters 1\u20132 and the Least-Squares Archer lab. ' +
+      '<a class="btn gold sm" href="' + esc(subscribeUrl()) + '" target="_blank" rel="noopener">Unlock everything \u2014 $25</a></div>';
+  });
+}
+function card(title, body, href, cta){
+  return '<div class="card"><h3>' + title + '</h3><p>' + esc(body) + '</p>' +
+    '<a class="btn sm" href="' + href + '">' + esc(cta) + '</a></div>';
+}
+function openJoin(){
+  openModal('<h2>Join a course</h2><div class="field"><label>Join code</label>' +
+    '<input id="jc" type="text" maxlength="8" style="text-transform:uppercase" placeholder="6-character code"></div>' +
+    '<div class="msg" id="jc-msg"></div>' +
+    '<div class="row"><button class="btn" onclick="submitJoin()">Join</button>' +
+    '<button class="btn ghost" onclick="closeModal()">Cancel</button></div>');
+}
+function submitJoin(){
+  var code = el('jc').value.trim().toUpperCase();
+  if(!code){ return; }
+  setMsg('jc-msg','Joining\u2026');
+  joinByCode(SESSION.user.id, code).then(function(res){
+    if(res && res.error){ setMsg('jc-msg', res.error.message,'err'); return; }
+    if(res === null){ setMsg('jc-msg','No course matches that code.','err'); return; }
+    loadProfile().then(function(){ closeModal(); renderWho(); route(); });
+  });
+}
+
+function vChapters(){
+  el('view').innerHTML = '<div class="page-h">Chapters</div><div class="page-sub">The interactive textbook \u2014 ' +
+    TOTAL_CHAPTERS + ' chapters. Click any chapter to open it in the reader.</div><div id="ch-list">Loading\u2026</div>';
+  Promise.all([
+    SB.from('eq_chapters').select('*').order('sort_order'),
+    SB.from('eq_chapter_progress').select('chapter, percent').eq('student_id', SESSION.user.id),
+    hasPaidAccess()
+  ]).then(function(res){
+    var chs = (res[0] && res[0].data && res[0].data.length) ? res[0].data : CHAPTERS;
+    var prog = {}; var pr = res[1] && res[1].data ? res[1].data : [];
+    for(var i=0;i<pr.length;i++){ prog[pr[i].chapter] = num(pr[i].percent); }
+    var paid = res[2];
+    var html = '<div class="cards">';
+    for(var c=0;c<chs.length;c++){
+      var ch = chs[c]; var unlocked = chapterUnlocked(ch.id, paid);
+      var p = prog[ch.id] || 0;
+      var badge = !unlocked ? '<span class="tag lock">Locked</span>'
+                : (p >= 99 ? '<span class="tag done">Done</span>' : (FREE_CHAPTERS.indexOf(ch.id)>=0 ? '<span class="tag free">Free</span>' : ''));
+      html += '<div class="card"><div class="row" style="justify-content:space-between"><span class="meta">Chapter ' + ch.id + '</span>' + badge + '</div>' +
+        '<h3 style="margin-top:6px">' + esc(ch.title) + '</h3>' +
+        '<p>' + esc(ch.subtitle || '') + '</p>' +
+        '<div class="bar" style="margin-bottom:10px"><div class="fill" style="width:' + Math.min(100,p) + '%"></div></div>';
+      if(unlocked){ html += '<a class="btn sm" href="' + CURRICULUM_FILE + '#chapter-' + ch.id + '" target="_blank" rel="noopener">Open chapter</a>'; }
+      else { html += '<a class="btn gold sm" href="' + esc(subscribeUrl()) + '" target="_blank" rel="noopener">Unlock \u2014 $25</a>'; }
+      html += '</div>';
+    }
+    html += '</div>';
+    el('ch-list').innerHTML = html;
+  });
+}
+
+function vLabs(){
+  el('view').innerHTML = '<div class="page-h">Labs</div><div class="page-sub">14 original interactive Labs. ' +
+    'Each runs real statsmodels in your browser and reports your score live.</div><div id="lab-list">Loading\u2026</div>';
+  Promise.all([
+    SB.from('eq_lab_results').select('lab_id, score').eq('student_id', SESSION.user.id),
+    hasPaidAccess()
+  ]).then(function(res){
+    var best = {}; var rows = res[0] && res[0].data ? res[0].data : [];
+    for(var i=0;i<rows.length;i++){ var s = num(rows[i].score); if(best[rows[i].lab_id]==null || s>best[rows[i].lab_id]){ best[rows[i].lab_id]=s; } }
+    var paid = res[1];
+    var ordered = LABS.slice();
+    var html = '<div class="cards">';
+    for(var l=0;l<ordered.length;l++){
+      var lab = ordered[l]; var unlocked = labUnlocked(lab.id, paid);
+      var badge = !unlocked ? '<span class="tag lock">Locked</span>'
+        : (best[lab.id]!=null ? '<span class="tag done">Best ' + Math.round(best[lab.id]) + '</span>'
+        : (FREE_LABS.indexOf(lab.id)>=0 ? '<span class="tag free">Free</span>' : ''));
+      html += '<div class="card"><div class="row" style="justify-content:space-between"><span class="meta">Ch ' + lab.chapter + '</span>' + badge + '</div>' +
+        '<h3 style="margin-top:6px">' + esc(lab.title) + '</h3>';
+      if(unlocked){ html += '<a class="btn sm" href="' + labFile(lab.id) + '" target="_blank" rel="noopener">Launch lab</a>'; }
+      else { html += '<a class="btn gold sm" href="' + esc(subscribeUrl()) + '" target="_blank" rel="noopener">Unlock \u2014 $25</a>'; }
+      html += '</div>';
+    }
+    html += '</div>';
+    el('lab-list').innerHTML = html;
+  });
+}
+
+/* ---------- Practice (formative, everyone) ---------- */
+var practiceState = { items: [], idx: 0, picks: {} };
+function vPractice(){
+  var opts = '';
+  for(var i=0;i<CHAPTERS.length;i++){ opts += '<option value="' + CHAPTERS[i].id + '">Ch ' + CHAPTERS[i].id + ' \u2014 ' + esc(CHAPTERS[i].title) + '</option>'; }
+  el('view').innerHTML = '<div class="page-h">Practice</div>' +
+    '<div class="page-sub">Unlimited auto-generated questions with fresh numbers every time. Formative \u2014 not graded.</div>' +
+    '<div class="panel"><div class="row">' +
+    '<div class="field" style="margin:0;min-width:280px"><label>Chapter</label><select id="pr-ch">' + opts + '</select></div>' +
+    '<button class="btn" id="pr-new" onclick="newPractice()">New question</button>' +
+    '</div></div><div id="pr-host"></div>';
+  newPractice();   /* auto-load one on entry (StrategyArena bug fix) */
+}
+function newPractice(){
+  var ch = el('pr-ch').value;
+  el('pr-host').innerHTML = '<div class="panel"><span class="spin"></span> Generating\u2026</div>';
+  /* pick a random active item in this chapter (public-safe fields only) */
+  SB.from('eq_assessment_items').select('id').eq('chapter', ch).eq('is_active', true).then(function(r){
+    var ids = (r && r.data) ? r.data.map(function(x){ return x.id; }) : [];
+    if(!ids.length){ el('pr-host').innerHTML = msgPanel('No items yet','No practice questions are seeded for this chapter.'); return; }
+    var pick = ids[Math.floor(Math.random()*ids.length)];
+    /* issue via the edge function so params are server-seeded and no key leaks */
+    callEdge('grade-attempt', { action:'issue', item_ids:[pick] }).then(function(res){
+      if(res.error || !res.items || !res.items.length){ el('pr-host').innerHTML = msgPanel('Error', res.error || 'Could not issue a question.'); return; }
+      practiceState = { items: res.items, idx: 0, picks: {} };
+      renderPractice();
+    });
+  });
+}
+function renderPractice(){
+  var it = practiceState.items[0];
+  var html = '<div class="panel"><div class="meta" style="color:var(--ink-faint);font-family:var(--mono);font-size:11.5px">' +
+    'Chapter ' + it.chapter + ' \u00b7 ' + it.item_type.replace(/_/g,' ') + ' \u00b7 ' + it.points + ' pt</div>' +
+    '<div style="font-size:15.5px;margin:8px 0 12px">' + esc(it.prompt) + '</div>';
+  if(it.item_type === 'multiple_choice' && it.options){
+    var keys = Object.keys(it.options);
+    for(var k=0;k<keys.length;k++){
+      html += '<label class="opt" data-k="' + esc(keys[k]) + '" onclick="prPick(this)"><b>' + esc(keys[k]) + '.</b> ' + esc(it.options[keys[k]]) + '</label>';
+    }
+    html += '<input type="hidden" id="pr-val">';
+  } else if(it.item_type === 'free_response'){
+    html += '<textarea id="pr-val" placeholder="Write your answer\u2026" style="width:100%;min-height:120px;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:11px;font-family:var(--sans)"></textarea>';
+  } else {
+    html += '<input id="pr-val" type="text" placeholder="Your numeric answer" style="width:220px;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:10px 12px;font-family:var(--mono)">';
+  }
+  html += '<div class="row" style="margin-top:12px"><button class="btn" onclick="prCheck()">Check answer</button></div>';
+  html += '<div id="pr-result" style="margin-top:12px"></div></div>';
+  el('pr-host').innerHTML = html;
+}
+function prPick(node){
+  var opts = el('pr-host').getElementsByClassName('opt');
+  for(var i=0;i<opts.length;i++){ opts[i].classList.remove('sel'); }
+  node.classList.add('sel');
+  el('pr-val').value = node.getAttribute('data-k');
+}
+function prCheck(){
+  var it = practiceState.items[0];
+  var val = el('pr-val') ? el('pr-val').value : '';
+  if(val === '' || val == null){ el('pr-result').innerHTML = '<span class="note">Enter an answer first.</span>'; return; }
+  el('pr-result').innerHTML = '<span class="spin"></span> Checking\u2026';
+  callEdge('grade-attempt', { action:'grade', answers:[{ item_id: it.item_id, attempt_no: it.attempt_no, value: String(val) }] }).then(function(res){
+    if(res.error){ el('pr-result').innerHTML = '<span class="msg err">' + esc(res.error) + '</span>'; return; }
+    var g = res.graded && res.graded[0] ? res.graded[0] : {};
+    if(g.status === 'pending_instructor_review'){
+      el('pr-result').innerHTML = '<div class="banner">Saved. Free-response answers are reviewed by your instructor; in practice mode there is no auto-grade.</div>';
+      return;
+    }
+    var okk = g.is_correct;
+    var line = okk ? '<span class="msg ok">Correct! +' + g.points_earned + ' pt</span>' : '<span class="msg err">Not quite.</span>';
+    if(typeof g.expected !== 'undefined'){ line += ' <span class="note">(expected \u2248 ' + g.expected + ')</span>'; }
+    /* reveal MC correctness visually */
+    if(it.item_type === 'multiple_choice'){
+      var opts = el('pr-host').getElementsByClassName('opt');
+      for(var i=0;i<opts.length;i++){ if(opts[i].classList.contains('sel')){ opts[i].classList.add(okk?'correct':'wrong'); } }
+    }
+    el('pr-result').innerHTML = line + ' <button class="btn ghost sm" onclick="newPractice()" style="margin-left:8px">Next question</button>';
+  });
+}
+/* ============================================================
+   edge function caller (sends the live session bearer token)
+   ============================================================ */
+function callEdge(fnName, payload){
+  return SB.auth.getSession().then(function(r){
+    var tok = (r && r.data && r.data.session) ? r.data.session.access_token : '';
+    return fetch(EQ_SUPABASE_URL + '/functions/v1/' + fnName, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + tok, 'apikey': EQ_SUPABASE_ANON_KEY },
+      body: JSON.stringify(payload)
+    }).then(function(resp){
+      return resp.json().then(function(j){
+        if(!resp.ok){ return { error: (j && j.error) ? j.error : ('HTTP ' + resp.status), _status: resp.status, _body: j }; }
+        return j;
+      }).then(null, function(){ return { error: 'HTTP ' + resp.status + ' (non-JSON response)', _status: resp.status }; });
+    }).then(null, function(e){ return { error: String(e) }; });
+  });
+}
+
+/* ============================================================
+   TRACK: Exams (student) + My Progress + Certificate
+   ============================================================ */
+var examState = null;
+function vExams(){
+  if(!COURSE){
+    el('view').innerHTML = '<div class="page-h">Exams</div>' +
+      msgPanel('No course yet','Exams are assigned within a course. Join a course from Home to take the midterm and final. Independent learners can use Practice and the Labs freely.');
+    return;
+  }
+  el('view').innerHTML = '<div class="page-h">Exams</div><div class="page-sub">' + esc(COURSE.title) + '</div><div id="ex-list">Loading\u2026</div>';
+  SB.from('eq_exams').select('*').eq('course_id', COURSE.id).eq('is_published', true).order('kind').then(function(r){
+    var exams = r && r.data ? r.data : [];
+    if(!exams.length){ el('ex-list').innerHTML = msgPanel('No published exams','Your instructor has not published an exam yet.'); return; }
+    var html = '<div class="cards">';
+    for(var i=0;i<exams.length;i++){
+      var x = exams[i];
+      var when = '';
+      if(x.opens_at){ when += 'Opens ' + new Date(x.opens_at).toLocaleString() + '. '; }
+      if(x.closes_at){ when += 'Closes ' + new Date(x.closes_at).toLocaleString() + '.'; }
+      html += '<div class="card"><span class="tag ' + (x.kind==='final'?'lock':'free') + '">' + esc(x.kind) + '</span>' +
+        '<h3 style="margin-top:6px">' + esc(x.title) + '</h3>' +
+        '<p>' + (x.item_ids?x.item_ids.length:0) + ' questions \u00b7 ' + x.time_limit_minutes + ' min \u00b7 ' +
+        (Number(x.max_attempts)===0?'unlimited attempts':(x.max_attempts + ' attempt(s)')) + '</p>' +
+        '<div class="meta" style="margin-bottom:10px">' + esc(when) + '</div>' +
+        '<button class="btn sm" onclick="startExam(\'' + x.id + '\')">Start</button></div>';
+    }
+    html += '</div>';
+    el('ex-list').innerHTML = html;
+  });
+}
+function startExam(examId){
+  el('view').innerHTML = '<div class="panel"><span class="spin"></span> Issuing your exam\u2026</div>';
+  callEdge('grade-attempt', { action:'issue', exam_id: examId }).then(function(res){
+    if(res.error || !res.exam){ el('view').innerHTML = msgPanel('Cannot start', res.error || 'Issue failed'); return; }
+    var items = res.items.slice();
+    if(res.exam.shuffle_questions){ items = shuffle(items); }
+    examState = {
+      examId: examId, meta: res.exam, items: items, idx: 0, answers: {},
+      remaining: res.exam.time_limit_minutes * 60, timer: null, submitted: false
+    };
+    runExam();
+  });
+}
+function shuffle(a){ a = a.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t; } return a; }
+function runExam(){
+  var s = examState; var it = s.items[s.idx];
+  var answered = 0; for(var key in s.answers){ if(s.answers.hasOwnProperty(key) && s.answers[key]!=='' && s.answers[key]!=null){ answered++; } }
+  var dots = '';
+  for(var d=0; d<s.items.length; d++){
+    var id = s.items[d].item_id;
+    var cls = 'span'; var c = '';
+    if(s.answers[id]!=null && s.answers[id]!==''){ c += ' ans'; }
+    if(d===s.idx){ c += ' cur'; }
+    dots += '<span class="' + c.trim() + '"></span>';
+  }
+  var html = '<div class="row" style="justify-content:space-between;align-items:flex-start">' +
+    '<div><div class="page-h" style="font-size:24px">' + esc(s.meta && s.meta.title ? s.meta.title : 'Exam') + '</div>' +
+    '<div class="page-sub">Question ' + (s.idx+1) + ' of ' + s.items.length + ' \u00b7 ' + answered + ' answered</div></div>' +
+    '<div class="countdown" id="cd"></div></div>';
+  html += '<div class="bar" style="margin-bottom:14px"><div class="fill" style="width:' + Math.round((answered/s.items.length)*100) + '%"></div></div>';
+  html += '<div class="q-card"><div class="meta">' + (it.points) + ' pt \u00b7 ' + it.item_type.replace(/_/g,' ') + '</div>' +
+    '<div style="font-size:16px;margin:8px 0 12px">' + esc(it.prompt) + '</div>';
+  var cur = s.answers[it.item_id];
+  if(it.item_type==='multiple_choice' && it.options){
+    var keys = Object.keys(it.options);
+    for(var k=0;k<keys.length;k++){
+      var sel = (cur===keys[k]) ? ' sel' : '';
+      html += '<label class="opt' + sel + '" data-k="' + esc(keys[k]) + '" onclick="exPick(this)"><b>' + esc(keys[k]) + '.</b> ' + esc(it.options[keys[k]]) + '</label>';
+    }
+  } else if(it.item_type==='free_response'){
+    html += '<textarea id="ex-val" oninput="exType(this.value)" placeholder="Write your answer\u2026" style="width:100%;min-height:150px;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:11px;font-family:var(--sans)">' + esc(cur||'') + '</textarea>';
+  } else {
+    html += '<input id="ex-val" type="text" oninput="exType(this.value)" value="' + esc(cur||'') + '" placeholder="Numeric answer (blank = skip)" style="width:240px;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:10px 12px;font-family:var(--mono)">';
+  }
+  html += '</div>';
+  html += '<div class="examnav"><button class="btn ghost sm" onclick="exNav(-1)"' + (s.idx===0?' disabled':'') + '>\u2190 Prev</button>' +
+    '<div class="dots">' + dots + '</div>';
+  if(s.idx === s.items.length-1){ html += '<button class="btn gold sm" onclick="exSubmit(false)">Submit exam</button>'; }
+  else { html += '<button class="btn sm" onclick="exNav(1)">Next \u2192</button>'; }
+  html += '</div>';
+  el('view').innerHTML = html;
+  tickStart();
+}
+function exPick(node){
+  var opts = el('view').getElementsByClassName('opt');
+  for(var i=0;i<opts.length;i++){ opts[i].classList.remove('sel'); }
+  node.classList.add('sel');
+  examState.answers[examState.items[examState.idx].item_id] = node.getAttribute('data-k');
+}
+function exType(v){ examState.answers[examState.items[examState.idx].item_id] = v; }
+function exNav(dir){
+  examState.idx = Math.max(0, Math.min(examState.items.length-1, examState.idx + dir));
+  runExam();
+}
+function tickStart(){
+  var s = examState;
+  if(s.timer){ clearInterval(s.timer); }
+  function paint(){
+    var m = Math.floor(s.remaining/60), sec = s.remaining%60;
+    var cd = el('cd'); if(!cd){ return; }
+    cd.textContent = '\u23F1 ' + m + ':' + (sec<10?'0':'') + sec;
+    cd.classList.toggle('warn', s.remaining <= 60);
+  }
+  paint();
+  s.timer = setInterval(function(){
+    s.remaining--; paint();
+    if(s.remaining <= 0){ clearInterval(s.timer); exSubmit(true); }
+  }, 1000);
+}
+function exSubmit(auto){
+  var s = examState; if(s.submitted){ return; }
+  s.submitted = true; if(s.timer){ clearInterval(s.timer); }
+  var answers = [];
+  for(var i=0;i<s.items.length;i++){
+    var it = s.items[i];
+    var v = s.answers[it.item_id];
+    answers.push({ item_id: it.item_id, attempt_no: it.attempt_no, value: (v==null?'':String(v)) });
+  }
+  el('view').innerHTML = '<div class="panel"><span class="spin"></span> ' + (auto?'Time up \u2014 ':'') + 'Grading\u2026</div>';
+  callEdge('grade-attempt', { action:'grade', course_id: COURSE.id, exam_id: s.examId, answers: answers }).then(function(res){
+    if(res.error){ el('view').innerHTML = msgPanel('Submission error', res.error); return; }
+    var autoPossible = 0, autoEarned = 0, pending = res.pending_review || 0;
+    var g = res.graded || [];
+    for(var k=0;k<g.length;k++){ if(typeof g[k].points_possible!=='undefined' && typeof g[k].status==='undefined'){ autoPossible += num(g[k].points_possible); autoEarned += num(g[k].points_earned); } }
+    var pct = autoPossible>0 ? (autoEarned/autoPossible*100) : null;
+    var html = '<div class="page-h">Submitted</div>';
+    html += '<div class="panel"><h2>Auto-graded result</h2>';
+    html += '<div class="kv"><span class="k">Auto-graded score</span><span class="v">' + (pct==null?'\u2013':fmtPct(pct)) + ' (' + autoEarned + '/' + autoPossible + ')</span></div>';
+    if(pending){ html += '<div class="kv"><span class="k">Written items pending instructor review</span><span class="v">' + pending + '</span></div>'; }
+    html += '<p class="note" style="margin-top:10px">Final exam score appears in My Progress once any written items are graded.</p>';
+    html += '<div class="row" style="margin-top:12px"><a class="btn" href="#progress">My Progress</a><a class="btn ghost" href="#exams">Back to exams</a></div></div>';
+    el('view').innerHTML = html;
+  });
+}
+/* ============================================================
+   Gradebook computation (single student, client-side)
+   Components: reading, quizzes (both from eq_chapter_progress),
+   labs (best per lab), midterm, final (per attempt_scoring).
+   Returns {components:[{key,label,weight,pct,present}], total, eligible}
+   ============================================================ */
+function computeCompletion(studentId, course){
+  var weights = course ? {
+    reading: num(course.weight_reading), quizzes: num(course.weight_quizzes),
+    labs: num(course.weight_labs), midterm: num(course.weight_midterm), final: num(course.weight_final)
+  } : { reading:10, quizzes:20, labs:20, midterm:0, final:0 };
+  return Promise.all([
+    SB.from('eq_chapter_progress').select('chapter, percent').eq('student_id', studentId),
+    SB.from('eq_lab_results').select('lab_id, score').eq('student_id', studentId),
+    course ? SB.from('eq_exams').select('*').eq('course_id', course.id).eq('is_published', true) : Promise.resolve({data:[]}),
+    course ? SB.from('eq_attempts').select('exam_id, attempt_no, points_earned, graded_at, item_id').eq('student_id', studentId).eq('course_id', course.id) : Promise.resolve({data:[]})
+  ]).then(function(r){
+    var cp = r[0].data || [], lr = r[1].data || [], exams = r[2].data || [], att = r[3].data || [];
+    /* reading + quizzes */
+    var sumPct = 0, engaged = 0, byCh = {};
+    for(var i=0;i<cp.length;i++){ byCh[cp[i].chapter] = num(cp[i].percent); }
+    for(var c=1;c<=TOTAL_CHAPTERS;c++){ var p = byCh[c]||0; sumPct += Math.min(100,p); if(p>=1){ engaged++; } }
+    var quizzesPct = sumPct / TOTAL_CHAPTERS;
+    var readingPct = (engaged / TOTAL_CHAPTERS) * 100;
+    /* labs: best per lab, averaged over attempted */
+    var bestLab = {}; for(var k=0;k<lr.length;k++){ var s=num(lr[k].score); if(bestLab[lr[k].lab_id]==null||s>bestLab[lr[k].lab_id]){ bestLab[lr[k].lab_id]=s; } }
+    var labKeys = Object.keys(bestLab), labsSum=0; for(var j=0;j<labKeys.length;j++){ labsSum += bestLab[labKeys[j]]; }
+    var labsPct = labKeys.length ? labsSum/labKeys.length : null;
+    /* exams: pick by kind, score per attempt_scoring */
+    function examPct(kind){
+      var ex = null; for(var e=0;e<exams.length;e++){ if(exams[e].kind===kind){ ex=exams[e]; break; } }
+      if(!ex){ return null; }
+      var total = num(ex.total_points) || (ex.item_ids?ex.item_ids.length:0);
+      if(total<=0){ total = 1; }
+      var byAttempt = {};
+      for(var a=0;a<att.length;a++){ if(att[a].exam_id===ex.id){ var an=att[a].attempt_no; byAttempt[an]=(byAttempt[an]||0)+num(att[a].points_earned); } }
+      var nums = Object.keys(byAttempt).map(function(x){ return parseInt(x,10); }).sort(function(a,b){ return a-b; });
+      if(!nums.length){ return 0; }   /* exam exists, not taken -> counts as 0 */
+      var chosen;
+      if(ex.attempt_scoring==='latest'){ chosen = byAttempt[nums[nums.length-1]]; }
+      else if(ex.attempt_scoring==='average'){ var t=0; for(var n=0;n<nums.length;n++){ t+=byAttempt[nums[n]]; } chosen=t/nums.length; }
+      else { chosen = 0; for(var m=0;m<nums.length;m++){ if(byAttempt[nums[m]]>chosen){ chosen=byAttempt[nums[m]]; } } }
+      return Math.min(100, chosen/total*100);
+    }
+    var midtermPct = course ? examPct('midterm') : null;
+    var finalPct = course ? examPct('final') : null;
+    var comps = [
+      {key:'reading', label:'Reading', weight:weights.reading, pct:readingPct, present:true},
+      {key:'quizzes', label:'Quizzes', weight:weights.quizzes, pct:quizzesPct, present:true},
+      {key:'labs', label:'Labs', weight:weights.labs, pct:labsPct, present:labsPct!=null},
+      {key:'midterm', label:'Midterm', weight:weights.midterm, pct:midtermPct, present:midtermPct!=null && weights.midterm>0},
+      {key:'final', label:'Final', weight:weights.final, pct:finalPct, present:finalPct!=null && weights.final>0}
+    ];
+    var wsum=0, acc=0;
+    for(var x=0;x<comps.length;x++){ if(comps[x].present && comps[x].weight>0){ wsum+=comps[x].weight; acc += comps[x].weight*(comps[x].pct||0); } }
+    var total = wsum>0 ? acc/wsum : 0;
+    return { components: comps, total: total, eligible: total >= PASS_THRESHOLD };
+  });
+}
+
+function vProgress(){
+  el('view').innerHTML = '<div class="page-h">My Progress</div><div class="page-sub">' +
+    (COURSE ? esc(COURSE.title) : 'Independent study') + '</div><div id="pg-host">Loading\u2026</div>';
+  Promise.all([
+    computeCompletion(SESSION.user.id, COURSE),
+    SB.from('eq_lab_results').select('lab_id, score').eq('student_id', SESSION.user.id),
+    SB.from('eq_chapter_progress').select('chapter').eq('student_id', SESSION.user.id)
+  ]).then(function(r){
+    var comp = r[0];
+    var labCount = {}; var lr = r[1].data||[]; for(var i=0;i<lr.length;i++){ labCount[lr[i].lab_id]=true; }
+    var chDone = (r[2].data||[]).length;
+    var badges = '';
+    badges += badge('Chapters touched', chDone + '/' + TOTAL_CHAPTERS);
+    badges += badge('Labs attempted', Object.keys(labCount).length + '/' + LABS.length);
+    badges += badge('Course completion', fmtPct(comp.total));
+    var html = '<div class="cards" style="margin-bottom:18px">' + badges + '</div>';
+    html += '<div class="panel"><h2>Course Completion</h2>';
+    html += '<table><thead><tr><th>Component</th><th class="num">Weight</th><th class="num">Your score</th></tr></thead><tbody>';
+    for(var c=0;c<comp.components.length;c++){
+      var cc = comp.components[c];
+      if(cc.weight<=0){ continue; }
+      var present = cc.present;
+      html += '<tr><td>' + esc(cc.label) + (present?'':' <span class="note">(not available)</span>') + '</td>' +
+        '<td class="num">' + cc.weight + '%</td>' +
+        '<td class="num">' + (present?fmtPct(cc.pct):'\u2013') + '</td></tr>';
+    }
+    html += '</tbody></table>';
+    html += '<div class="bar" style="margin:14px 0 6px"><div class="fill" style="width:' + Math.min(100,comp.total) + '%;background:' + (comp.eligible?'var(--green)':'var(--teal)') + '"></div></div>';
+    html += '<div class="kv"><span class="k">Weighted total (renormalized over available components)</span><span class="v">' + fmtPct(comp.total) + '</span></div>';
+    if(comp.eligible){
+      html += '<div class="row" style="margin-top:14px"><button class="btn gold" onclick="goCertificate()">View certificate</button>' +
+        '<span class="note">You have met the ' + PASS_THRESHOLD + '% threshold. Congratulations!</span></div>';
+    } else {
+      html += '<p class="note" style="margin-top:12px">Reach ' + PASS_THRESHOLD + '% to unlock your Certificate of Completion.</p>';
+    }
+    html += '</div>';
+    el('pg-host').innerHTML = html;
+  });
+}
+function badge(label, val){
+  return '<div class="card" style="text-align:center"><div class="meta">' + esc(label) + '</div>' +
+    '<div style="font-family:var(--serif);font-size:30px;color:var(--teal-bright);margin-top:4px">' + esc(val) + '</div></div>';
+}
+
+/* ---------- Certificate ---------- */
+function goCertificate(){
+  if(PROFILE.full_name && PROFILE.full_name.trim()){ location.hash = '#certificate'; return; }
+  openModal('<h2>Your name for the certificate</h2><div class="field"><label>Full name</label>' +
+    '<input id="cn" type="text" placeholder="Jane Q. Student"></div>' +
+    '<div class="row"><button class="btn" onclick="saveCertName()">Save &amp; continue</button>' +
+    '<button class="btn ghost" onclick="closeModal()">Cancel</button></div>');
+}
+function saveCertName(){
+  var nm = el('cn').value.trim(); if(!nm){ return; }
+  SB.from('eq_profiles').update({ full_name: nm }).eq('id', SESSION.user.id).then(function(){
+    PROFILE.full_name = nm; closeModal(); renderWho(); location.hash = '#certificate';
+  });
+}
+function vCertificate(){
+  computeCompletion(SESSION.user.id, COURSE).then(function(comp){
+    if(!comp.eligible){ el('view').innerHTML = msgPanel('Not yet eligible','Reach ' + PASS_THRESHOLD + '% completion to earn your certificate.'); return; }
+    var enrolled = !!COURSE;
+    var leftName = AUTHOR_NAME, leftTitle = 'Founder';
+    var rightName = AUTHOR_NAME, rightTitle = 'Director, MacroNations LLC';
+    if(enrolled){ leftName = (COURSE.owner_name || 'Course Instructor'); leftTitle = 'Course Instructor'; }
+    /* instructor name */
+    var finish = function(instrName){
+      if(enrolled && instrName){ leftName = instrName; }
+      var score = Math.round(comp.total);
+      el('view').innerHTML = '<div class="page-h">Certificate</div><div class="page-sub">Print or save as PDF (landscape).</div>' +
+        '<div class="row" style="margin-bottom:14px"><button class="btn" onclick="window.print()">Print / Save PDF</button>' +
+        '<a class="btn ghost" href="#progress">Back</a></div>' +
+        '<div style="overflow:auto;border:1px solid var(--line);border-radius:12px">' + certHTML(PROFILE.full_name, score, leftName, leftTitle, rightName, rightTitle) + '</div>';
+      el('cert-print').innerHTML = certHTML(PROFILE.full_name, score, leftName, leftTitle, rightName, rightTitle);
+    };
+    if(enrolled && COURSE.owner_id){
+      SB.from('eq_profiles').select('full_name').eq('id', COURSE.owner_id).maybeSingle().then(function(o){
+        finish(o && o.data && o.data.full_name ? o.data.full_name : 'Course Instructor');
+      });
+    } else { finish(null); }
+  });
+}
+function crestSVG(){
+  return '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><path d="M32 3 L58 13 V31 C58 47 46 57 32 61 C18 57 6 47 6 31 V13 Z" fill="#0a2d78"/><text x="32" y="40" text-anchor="middle" font-family="Georgia,serif" font-size="24" fill="#c9920a" font-weight="700">MN</text></svg>';
+}
+function certHTML(name, score, lN, lT, rN, rT){
+  return '<div class="cert"><div class="bar top"></div><div class="bar bot"></div>' +
+    '<div class="frame"></div><div class="frame2"></div>' +
+    '<div class="brkt" style="top:40px;left:40px;border-right:none;border-bottom:none"></div>' +
+    '<div class="brkt" style="top:40px;right:40px;border-left:none;border-bottom:none"></div>' +
+    '<div class="brkt" style="bottom:40px;left:40px;border-right:none;border-top:none"></div>' +
+    '<div class="brkt" style="bottom:40px;right:40px;border-left:none;border-top:none"></div>' +
+    '<div class="wm">' + crestSVG() + '</div>' +
+    '<div class="inner"><h1>MACRONATIONS</h1><div class="subt">ECONOMETRICS &middot; APPLIED ECONOMETRICS</div>' +
+    '<div class="coc">Certificate of Completion</div>' +
+    '<div class="body">This certifies that</div>' +
+    '<div class="nm">' + esc(name) + '</div>' +
+    '<div class="body">has successfully completed the Econometrics course \u2014 17 chapters and 14 interactive Labs of applied, regression-based econometrics with live statistical computation.</div>' +
+    '<div class="score">Final Score: ' + score + '%</div>' +
+    '<div class="sigs"><div class="sig"><div class="nm2">' + esc(lN) + '</div><div class="ln">' + esc(lT) + '</div></div>' +
+    '<div class="sig"><div class="nm2">' + esc(rN) + '</div><div class="ln">' + esc(rT) + '</div></div></div>' +
+    '</div></div>';
+}
+/* ============================================================
+   TEACH views
+   ============================================================ */
+function courseSelector(current, onchangeFn){
+  if(!MY_COURSES.length){ return '<div class="banner">You have no courses yet. Create one in <a href="#t-courses">Courses</a>.</div>'; }
+  var html = '<div class="field" style="max-width:380px"><label>Course</label><select onchange="' + onchangeFn + '(this.value)">';
+  for(var i=0;i<MY_COURSES.length;i++){ html += '<option value="' + MY_COURSES[i].id + '"' + (current===MY_COURSES[i].id?' selected':'') + '>' + esc(MY_COURSES[i].title) + '</option>'; }
+  html += '</select></div>';
+  return html;
+}
+function courseById(id){ for(var i=0;i<MY_COURSES.length;i++){ if(MY_COURSES[i].id===id){ return MY_COURSES[i]; } } return MY_COURSES[0]; }
+
+function vDashboard(){
+  var html = '<div class="page-h">Instructor Dashboard</div><div class="page-sub">' + esc(PROFILE.full_name||SESSION.user.email) + '</div>';
+  html += '<div id="dash-host">Loading\u2026</div>';
+  el('view').innerHTML = html;
+  if(!MY_COURSES.length){ el('dash-host').innerHTML = '<div class="banner">Create your first course in <a href="#t-courses">Courses</a> to get a join code, roster, exams, and a gradebook.</div>'; return; }
+  var ids = MY_COURSES.map(function(c){ return c.id; });
+  Promise.all([
+    SB.from('eq_enrollments').select('course_id').in('course_id', ids),
+    SB.from('eq_exams').select('id, course_id, is_published').in('course_id', ids),
+    SB.from('eq_gradebook_v').select('course_id, pending_review_count').in('course_id', ids)
+  ]).then(function(r){
+    var enr = r[0].data||[], exams = r[1].data||[], gb = r[2].data||[];
+    var pending = 0; for(var i=0;i<gb.length;i++){ pending += num(gb[i].pending_review_count); }
+    var pubExams = 0; for(var e=0;e<exams.length;e++){ if(exams[e].is_published){ pubExams++; } }
+    var html2 = '<div class="cards">' +
+      badge('Courses', MY_COURSES.length) +
+      badge('Students', enr.length) +
+      badge('Published exams', pubExams) +
+      badge('Written awaiting grading', pending) + '</div>';
+    html2 += '<div class="panel" style="margin-top:16px"><h2>Your courses</h2><table><thead><tr><th>Course</th><th>Join code</th><th class="num">Students</th></tr></thead><tbody>';
+    var countByCourse = {}; for(var k=0;k<enr.length;k++){ countByCourse[enr[k].course_id]=(countByCourse[enr[k].course_id]||0)+1; }
+    for(var c=0;c<MY_COURSES.length;c++){ var co=MY_COURSES[c]; html2 += '<tr><td>' + esc(co.title) + '</td><td><span class="pill">' + esc(co.join_code) + '</span></td><td class="num">' + (countByCourse[co.id]||0) + '</td></tr>'; }
+    html2 += '</tbody></table></div>';
+    if(pending){ html2 += '<div class="banner">' + pending + ' written answer(s) await grading. <a href="#t-grade-written">Grade them</a>.</div>'; }
+    el('dash-host').innerHTML = html2;
+  });
+}
+
+function vCourses(){
+  var html = '<div class="page-h">Courses</div><div class="page-sub">Create and manage your courses. Weights must sum to 100.</div>';
+  html += '<div class="row" style="margin-bottom:16px"><button class="btn" onclick="newCourseModal()">+ New course</button></div>';
+  html += '<div id="courses-host"></div>';
+  el('view').innerHTML = html;
+  renderCoursesList();
+}
+function renderCoursesList(){
+  if(!MY_COURSES.length){ el('courses-host').innerHTML = '<div class="banner">No courses yet.</div>'; return; }
+  var html = '';
+  for(var i=0;i<MY_COURSES.length;i++){
+    var c = MY_COURSES[i];
+    html += '<div class="panel"><div class="row" style="justify-content:space-between"><h2>' + esc(c.title) + '</h2>' +
+      '<span class="pill">code ' + esc(c.join_code) + '</span></div>' +
+      '<p class="note">' + esc(c.term||'') + (c.description?(' \u00b7 ' + esc(c.description)):'') + '</p>' +
+      '<div class="row" style="margin-top:8px">' +
+      '<span class="pill">Reading ' + c.weight_reading + '</span><span class="pill">Quizzes ' + c.weight_quizzes + '</span>' +
+      '<span class="pill">Labs ' + c.weight_labs + '</span><span class="pill">Midterm ' + c.weight_midterm + '</span>' +
+      '<span class="pill">Final ' + c.weight_final + '</span></div>' +
+      '<div class="row" style="margin-top:10px"><button class="btn ghost sm" onclick="editCourseModal(\'' + c.id + '\')">Edit weights</button></div></div>';
+  }
+  el('courses-host').innerHTML = html;
+}
+function newCourseModal(){
+  openModal('<h2>New course</h2>' +
+    '<div class="field"><label>Title</label><input id="c-title" type="text" placeholder="Econ 162 \u2014 Summer 2026"></div>' +
+    '<div class="field"><label>Term</label><input id="c-term" type="text" placeholder="Summer 2026"></div>' +
+    '<div class="field"><label>Description</label><textarea id="c-desc"></textarea></div>' +
+    weightFields(10,20,20,20,30) +
+    '<div class="msg" id="c-msg"></div>' +
+    '<div class="row"><button class="btn" onclick="createCourse()">Create</button><button class="btn ghost" onclick="closeModal()">Cancel</button></div>');
+}
+function weightFields(r,q,l,m,f){
+  return '<div class="row"><div class="field" style="flex:1"><label>Reading</label><input id="w-r" type="number" value="' + r + '"></div>' +
+    '<div class="field" style="flex:1"><label>Quizzes</label><input id="w-q" type="number" value="' + q + '"></div>' +
+    '<div class="field" style="flex:1"><label>Labs</label><input id="w-l" type="number" value="' + l + '"></div>' +
+    '<div class="field" style="flex:1"><label>Midterm</label><input id="w-m" type="number" value="' + m + '"></div>' +
+    '<div class="field" style="flex:1"><label>Final</label><input id="w-f" type="number" value="' + f + '"></div></div>' +
+    '<div class="note" id="w-sum">Sum: 100</div>';
+}
+function readWeights(){
+  return { weight_reading:num(el('w-r').value), weight_quizzes:num(el('w-q').value), weight_labs:num(el('w-l').value),
+           weight_midterm:num(el('w-m').value), weight_final:num(el('w-f').value) };
+}
+function createCourse(){
+  var w = readWeights();
+  var sum = w.weight_reading+w.weight_quizzes+w.weight_labs+w.weight_midterm+w.weight_final;
+  if(sum!==100){ setMsg('c-msg','Weights must sum to 100 (currently ' + sum + ').','err'); return; }
+  var title = el('c-title').value.trim(); if(!title){ setMsg('c-msg','Title required.','err'); return; }
+  var rec = { owner_id: SESSION.user.id, title:title, term:el('c-term').value.trim(), description:el('c-desc').value.trim() };
+  for(var key in w){ if(w.hasOwnProperty(key)){ rec[key]=w[key]; } }
+  setMsg('c-msg','Creating\u2026');
+  SB.from('eq_courses').insert(rec).select().then(function(r){
+    if(r.error){ setMsg('c-msg', r.error.message,'err'); return; }
+    loadProfile().then(function(){ closeModal(); renderCoursesList(); });
+  });
+}
+function editCourseModal(id){
+  var c = courseById(id);
+  openModal('<h2>Edit weights \u2014 ' + esc(c.title) + '</h2>' + weightFields(c.weight_reading,c.weight_quizzes,c.weight_labs,c.weight_midterm,c.weight_final) +
+    '<div class="msg" id="c-msg"></div><div class="row"><button class="btn" onclick="saveCourse(\'' + id + '\')">Save</button><button class="btn ghost" onclick="closeModal()">Cancel</button></div>');
+}
+function saveCourse(id){
+  var w = readWeights();
+  var sum = w.weight_reading+w.weight_quizzes+w.weight_labs+w.weight_midterm+w.weight_final;
+  if(sum!==100){ setMsg('c-msg','Weights must sum to 100 (currently ' + sum + ').','err'); return; }
+  SB.from('eq_courses').update(w).eq('id', id).then(function(r){
+    if(r.error){ setMsg('c-msg', r.error.message,'err'); return; }
+    loadProfile().then(function(){ closeModal(); renderCoursesList(); });
+  });
+}
+
+/* ---------- Roster + accommodations ---------- */
+var rosterCourse = null;
+function vRoster(){
+  rosterCourse = MY_COURSES.length ? MY_COURSES[0].id : null;
+  el('view').innerHTML = '<div class="page-h">Roster</div><div class="page-sub">Enrolled students and accommodations.</div>' +
+    courseSelector(rosterCourse, 'rosterSwitch') + '<div id="roster-host"></div>';
+  if(rosterCourse){ loadRoster(); }
+}
+function rosterSwitch(id){ rosterCourse = id; loadRoster(); }
+function loadRoster(){
+  el('roster-host').innerHTML = '<span class="spin"></span> Loading\u2026';
+  Promise.all([
+    SB.from('eq_enrollments').select('student_id, enrolled_at, eq_profiles(full_name, email)').eq('course_id', rosterCourse),
+    SB.from('eq_accommodations').select('*').eq('course_id', rosterCourse)
+  ]).then(function(r){
+    var roster = r[0].data||[], accom = {}; var ac = r[1].data||[];
+    for(var i=0;i<ac.length;i++){ accom[ac[i].student_id]=ac[i]; }
+    if(!roster.length){ el('roster-host').innerHTML = '<div class="banner">No students yet. Share the join code from <a href="#t-courses">Courses</a>.</div>'; return; }
+    var html = '<div class="panel"><table><thead><tr><th>Student</th><th>Email</th><th>Accommodation</th><th></th></tr></thead><tbody>';
+    for(var s=0;s<roster.length;s++){
+      var st = roster[s]; var pf = st.eq_profiles||{}; var a = accom[st.student_id];
+      var atxt = a ? (a.time_multiplier + '\u00d7 time, +' + a.extra_attempts + ' attempts') : '\u2013';
+      html += '<tr><td>' + esc(pf.full_name||'\u2014') + '</td><td>' + esc(pf.email||'') + '</td><td>' + esc(atxt) + '</td>' +
+        '<td><button class="btn ghost sm" onclick="accomModal(\'' + st.student_id + '\',\'' + esc(pf.full_name||pf.email||'student').replace(/'/g,"") + '\')">Accommodate</button></td></tr>';
+    }
+    html += '</tbody></table></div>';
+    el('roster-host').innerHTML = html;
+  });
+}
+function accomModal(sid, nm){
+  SB.from('eq_accommodations').select('*').eq('course_id', rosterCourse).eq('student_id', sid).maybeSingle().then(function(r){
+    var a = r && r.data ? r.data : { time_multiplier:1.0, extra_attempts:0, note:'' };
+    openModal('<h2>Accommodate ' + esc(nm) + '</h2>' +
+      '<div class="field"><label>Time multiplier (e.g. 1.5 = 50% more time)</label><input id="ac-tm" type="number" step="0.25" value="' + a.time_multiplier + '"></div>' +
+      '<div class="field"><label>Extra attempts</label><input id="ac-ea" type="number" value="' + a.extra_attempts + '"></div>' +
+      '<div class="field"><label>Note</label><input id="ac-note" type="text" value="' + esc(a.note||'') + '"></div>' +
+      '<div class="msg" id="ac-msg"></div><div class="row"><button class="btn" onclick="saveAccom(\'' + sid + '\')">Save</button><button class="btn ghost" onclick="closeModal()">Cancel</button></div>');
+  });
+}
+function saveAccom(sid){
+  var rec = { course_id: rosterCourse, student_id: sid, time_multiplier:num(el('ac-tm').value)||1.0, extra_attempts:num(el('ac-ea').value)||0, note:el('ac-note').value.trim() };
+  SB.from('eq_accommodations').upsert(rec, { onConflict:'course_id,student_id' }).then(function(r){
+    if(r.error){ setMsg('ac-msg', r.error.message,'err'); return; }
+    closeModal(); loadRoster();
+  });
+}
+/* ---------- Gradebook (bulk, via view) ---------- */
+var gbCourse = null;
+function vGradebook(){
+  gbCourse = MY_COURSES.length ? MY_COURSES[0].id : null;
+  el('view').innerHTML = '<div class="page-h">Gradebook</div><div class="page-sub">Weighted, renormalized over available components. ' +
+    'Exam scores reflect each exam\u2019s attempt-scoring rule.</div>' +
+    courseSelector(gbCourse, 'gbSwitch') +
+    '<div class="row" style="margin-bottom:12px"><button class="btn ghost sm" onclick="exportGradebook()">Export CSV</button></div>' +
+    '<div id="gb-host"></div>';
+  if(gbCourse){ loadGradebook(); }
+}
+function gbSwitch(id){ gbCourse = id; loadGradebook(); }
+var gbCache = [];
+function loadGradebook(){
+  el('gb-host').innerHTML = '<span class="spin"></span> Loading\u2026';
+  var course = courseById(gbCourse);
+  Promise.all([
+    SB.from('eq_gradebook_v').select('*').eq('course_id', gbCourse),
+    SB.from('eq_exams').select('id, kind, total_points').eq('course_id', gbCourse)
+  ]).then(function(r){
+    var rows = r[0].data||[]; var exams = r[1].data||[];
+    var totalByKind = { midterm:0, final:0 };
+    for(var e=0;e<exams.length;e++){ totalByKind[exams[e].kind] = (totalByKind[exams[e].kind]||0) + num(exams[e].total_points); }
+    var w = { reading:course.weight_reading, quizzes:course.weight_quizzes, labs:course.weight_labs, midterm:course.weight_midterm, final:course.weight_final };
+    gbCache = [];
+    var html = '<div class="panel"><table><thead><tr><th>Student</th><th class="num">Reading</th><th class="num">Quizzes</th>' +
+      '<th class="num">Labs</th><th class="num">Midterm</th><th class="num">Final</th><th class="num">Total</th><th class="num">Pending</th></tr></thead><tbody>';
+    for(var i=0;i<rows.length;i++){
+      var g = rows[i];
+      /* view gives reading_pct (avg percent), labs_avg, practice_points, midterm_points, final_points */
+      var reading = num(g.reading_pct);              /* completion-ish percent */
+      var quizzes = num(g.reading_pct);              /* same source in this build */
+      var labs = g.labs_avg!=null ? num(g.labs_avg) : null;
+      var midPct = totalByKind.midterm>0 ? Math.min(100, num(g.midterm_points)/totalByKind.midterm*100) : null;
+      var finPct = totalByKind.final>0 ? Math.min(100, num(g.final_points)/totalByKind.final*100) : null;
+      var comps = [
+        {w:w.reading, p:reading, present:true},{w:w.quizzes, p:quizzes, present:true},
+        {w:w.labs, p:labs, present:labs!=null},
+        {w:w.midterm, p:midPct, present:midPct!=null && w.midterm>0},
+        {w:w.final, p:finPct, present:finPct!=null && w.final>0}
+      ];
+      var wsum=0, acc=0; for(var c=0;c<comps.length;c++){ if(comps[c].present && comps[c].w>0){ wsum+=comps[c].w; acc+=comps[c].w*(comps[c].p||0); } }
+      var total = wsum>0?acc/wsum:0;
+      gbCache.push({ name:g.full_name||g.email, email:g.email, reading:reading, quizzes:quizzes, labs:labs, mid:midPct, fin:finPct, total:total });
+      html += '<tr><td>' + esc(g.full_name||g.email) + '</td>' +
+        '<td class="num">' + fmtPct(reading) + '</td><td class="num">' + fmtPct(quizzes) + '</td>' +
+        '<td class="num">' + (labs!=null?fmtPct(labs):'\u2013') + '</td>' +
+        '<td class="num">' + (midPct!=null?fmtPct(midPct):'\u2013') + '</td>' +
+        '<td class="num">' + (finPct!=null?fmtPct(finPct):'\u2013') + '</td>' +
+        '<td class="num"><b>' + fmtPct(total) + '</b></td>' +
+        '<td class="num">' + (num(g.pending_review_count)||'') + '</td></tr>';
+    }
+    if(!rows.length){ html += '<tr><td colspan="8" class="note">No enrolled students.</td></tr>'; }
+    html += '</tbody></table></div>';
+    el('gb-host').innerHTML = html;
+  });
+}
+function exportGradebook(){
+  if(!gbCache.length){ return; }
+  var rows = [['Name','Email','Reading','Quizzes','Labs','Midterm','Final','Total']];
+  for(var i=0;i<gbCache.length;i++){ var g=gbCache[i];
+    rows.push([g.name, g.email, r1(g.reading), r1(g.quizzes), g.labs!=null?r1(g.labs):'', g.mid!=null?r1(g.mid):'', g.fin!=null?r1(g.fin):'', r1(g.total)]); }
+  var csv = rows.map(function(r){ return r.map(csvCell).join(','); }).join('\n');
+  var blob = new Blob([csv], { type:'text/csv' });
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'gradebook.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+function r1(x){ return x==null?'':(Math.round(num(x)*10)/10); }
+function csvCell(v){ v = (v==null?'':String(v)); if(v.indexOf(',')>=0||v.indexOf('"')>=0){ return '"' + v.replace(/"/g,'""') + '"'; } return v; }
+
+/* ---------- Analytics ---------- */
+var anCourse = null;
+function vAnalytics(){
+  anCourse = MY_COURSES.length ? MY_COURSES[0].id : null;
+  el('view').innerHTML = '<div class="page-h">Analytics</div><div class="page-sub">Class-level signals.</div>' +
+    courseSelector(anCourse, 'anSwitch') + '<div id="an-host"></div>';
+  if(anCourse){ loadAnalytics(); }
+}
+function anSwitch(id){ anCourse = id; loadAnalytics(); }
+function loadAnalytics(){
+  el('an-host').innerHTML = '<span class="spin"></span> Loading\u2026';
+  Promise.all([
+    SB.from('eq_gradebook_v').select('*').eq('course_id', anCourse),
+    SB.from('eq_attempts').select('item_id, is_correct, exam_id').eq('course_id', anCourse)
+  ]).then(function(r){
+    var gb = r[0].data||[], att = r[1].data||[];
+    var n = gb.length; var avgRead=0, avgLab=0;
+    for(var i=0;i<gb.length;i++){ avgRead+=num(gb[i].reading_pct); avgLab+=num(gb[i].labs_avg); }
+    avgRead = n?avgRead/n:0; avgLab = n?avgLab/n:0;
+    /* per-item difficulty (practice + exams): share correct */
+    var byItem = {};
+    for(var a=0;a<att.length;a++){ var it=att[a].item_id; if(att[a].is_correct==null){ continue; } if(!byItem[it]){ byItem[it]={c:0,t:0}; } byItem[it].t++; if(att[a].is_correct){ byItem[it].c++; } }
+    var hard = [];
+    for(var k in byItem){ if(byItem.hasOwnProperty(k) && byItem[k].t>=3){ hard.push({ id:k, rate:byItem[k].c/byItem[k].t, t:byItem[k].t }); } }
+    hard.sort(function(x,y){ return x.rate-y.rate; });
+    var html = '<div class="cards">' + badge('Students', n) + badge('Avg reading', fmtPct(avgRead)) + badge('Avg lab score', fmtPct(avgLab)) + '</div>';
+    html += '<div class="panel" style="margin-top:16px"><h2>Hardest items (lowest correct rate, \u22653 attempts)</h2><table><thead><tr><th>Item</th><th class="num">Correct rate</th><th class="num">Attempts</th></tr></thead><tbody>';
+    for(var h=0;h<Math.min(10,hard.length);h++){ html += '<tr><td>' + esc(hard[h].id) + '</td><td class="num">' + fmtPct(hard[h].rate*100) + '</td><td class="num">' + hard[h].t + '</td></tr>'; }
+    if(!hard.length){ html += '<tr><td colspan="3" class="note">Not enough graded attempts yet.</td></tr>'; }
+    html += '</tbody></table></div>';
+    el('an-host').innerHTML = html;
+  });
+}
+/* ---------- Exam Assembler ---------- */
+var asmCourse = null, asmSelected = [], asmItems = [];
+function vExamAssembler(){
+  asmCourse = MY_COURSES.length ? MY_COURSES[0].id : null;
+  asmSelected = [];
+  el('view').innerHTML = '<div class="page-h">Exams</div><div class="page-sub">Assemble and publish midterms and finals.</div>' +
+    courseSelector(asmCourse, 'asmSwitch') + '<div id="asm-existing"></div>' +
+    '<div class="panel"><h2>Build a new exam</h2><div id="asm-build"></div></div>';
+  if(asmCourse){ loadExistingExams(); renderAssembler(); }
+}
+function asmSwitch(id){ asmCourse = id; asmSelected = []; loadExistingExams(); renderAssembler(); }
+function loadExistingExams(){
+  SB.from('eq_exams').select('*').eq('course_id', asmCourse).order('kind').then(function(r){
+    var exams = r.data||[];
+    var html = '<div class="panel"><h2>Existing exams</h2>';
+    if(!exams.length){ html += '<p class="note">None yet.</p>'; }
+    else { html += '<table><thead><tr><th>Title</th><th>Kind</th><th class="num">Items</th><th class="num">Points</th><th>Status</th><th></th></tr></thead><tbody>';
+      for(var i=0;i<exams.length;i++){ var x=exams[i];
+        html += '<tr><td>' + esc(x.title) + '</td><td>' + esc(x.kind) + '</td><td class="num">' + (x.item_ids?x.item_ids.length:0) + '</td>' +
+          '<td class="num">' + num(x.total_points) + '</td><td>' + (x.is_published?'<span class="tag done">published</span>':'<span class="tag lock">draft</span>') + '</td>' +
+          '<td><button class="btn ghost sm" onclick="togglePub(\'' + x.id + '\',' + (x.is_published?'false':'true') + ')">' + (x.is_published?'Unpublish':'Publish') + '</button></td></tr>';
+      }
+      html += '</tbody></table>';
+    }
+    html += '</div>';
+    el('asm-existing').innerHTML = html;
+  });
+}
+function togglePub(id, pub){
+  SB.from('eq_exams').update({ is_published: pub }).eq('id', id).then(function(){ loadExistingExams(); });
+}
+function renderAssembler(){
+  var typeOpts = '<option value="">All types</option>' +
+    '<option value="parameterized_numeric">Numeric</option>' +
+    '<option value="multiple_choice">Multiple choice</option>' +
+    '<option value="parameterized_decision">Decision</option>' +
+    '<option value="free_response">Short answer (written)</option>';
+  var chOpts = '<option value="">All chapters</option>';
+  for(var i=0;i<CHAPTERS.length;i++){ chOpts += '<option value="' + CHAPTERS[i].id + '">Ch ' + CHAPTERS[i].id + '</option>'; }
+  var html = '<div class="field"><label>Title</label><input id="asm-title" type="text" placeholder="Midterm Examination"></div>' +
+    '<div class="row"><div class="field" style="flex:1"><label>Kind</label><select id="asm-kind"><option value="midterm">Midterm</option><option value="final">Final</option></select></div>' +
+    '<div class="field" style="flex:1"><label>Time limit (min)</label><input id="asm-time" type="number" value="75"></div>' +
+    '<div class="field" style="flex:1"><label>Max attempts (0 = unlimited)</label><input id="asm-att" type="number" value="1"></div></div>' +
+    '<div class="row"><div class="field" style="flex:1"><label>Attempt scoring</label><select id="asm-score"><option value="highest">Highest</option><option value="latest">Latest</option><option value="average">Average</option></select></div>' +
+    '<div class="field" style="flex:1"><label>Opens</label><input id="asm-open" type="datetime-local"></div>' +
+    '<div class="field" style="flex:1"><label>Closes</label><input id="asm-close" type="datetime-local"></div></div>' +
+    '<div class="field"><label><input type="checkbox" id="asm-shuffle" checked> Shuffle question order</label></div>' +
+    '<div class="panel" style="background:var(--bg3)"><h2 style="font-size:16px">Question bank</h2>' +
+    '<div class="row"><div class="field" style="flex:1"><label>Chapter</label><select id="asm-fch" onchange="loadBank()">' + chOpts + '</select></div>' +
+    '<div class="field" style="flex:1"><label>Type</label><select id="asm-ftype" onchange="loadBank()">' + typeOpts + '</select></div>' +
+    '<div class="field" style="flex:1"><label>Random topic pick</label><input id="asm-rand" type="number" placeholder="count" min="0"></div>' +
+    '<button class="btn ghost sm" style="align-self:flex-end;margin-bottom:13px" onclick="addRandom()">Add random</button></div>' +
+    '<div id="asm-bank">Loading bank\u2026</div></div>' +
+    '<div class="kv"><span class="k">Selected</span><span class="v" id="asm-count">0 items \u00b7 0 pts</span></div>' +
+    '<div class="msg" id="asm-msg"></div>' +
+    '<div class="row" style="margin-top:8px"><button class="btn gold" onclick="saveExam()">Create exam (draft)</button></div>';
+  el('asm-build').innerHTML = html;
+  loadBank();
+}
+function loadBank(){
+  var ch = el('asm-fch').value, ty = el('asm-ftype').value;
+  var q = SB.from('eq_assessment_items').select('id, chapter, item_type, prompt, points, concept_tag').eq('is_active', true);
+  if(ch){ q = q.eq('chapter', ch); }
+  if(ty){ q = q.eq('item_type', ty); }
+  q.order('id').then(function(r){
+    asmItems = r.data||[];
+    renderBank();
+  });
+}
+function renderBank(){
+  var html = '';
+  for(var i=0;i<asmItems.length;i++){
+    var it = asmItems[i]; var on = asmSelected.indexOf(it.id)>=0;
+    html += '<div class="q-card" style="cursor:pointer" onclick="toggleItem(\'' + it.id + '\')">' +
+      '<div class="row" style="justify-content:space-between"><span class="meta">' + esc(it.id) + ' \u00b7 Ch ' + it.chapter + ' \u00b7 ' + it.item_type.replace(/_/g,' ') + ' \u00b7 ' + it.points + 'pt</span>' +
+      '<span class="tag ' + (on?'done':'free') + '">' + (on?'selected':'add') + '</span></div>' +
+      '<div style="margin-top:6px;font-size:13.5px;color:' + (on?'var(--ink)':'var(--ink-dim)') + '">' + esc(clip(it.prompt,150)) + '</div></div>';
+  }
+  if(!asmItems.length){ html = '<p class="note">No items match.</p>'; }
+  el('asm-bank').innerHTML = html;
+  updateAsmCount();
+}
+function clip(s,n){ s=String(s); return s.length>n ? s.slice(0,n)+'\u2026' : s; }
+function toggleItem(id){ var i=asmSelected.indexOf(id); if(i>=0){ asmSelected.splice(i,1); } else { asmSelected.push(id); } renderBank(); }
+function addRandom(){
+  var count = parseInt(el('asm-rand').value,10); if(!count||count<1){ return; }
+  var pool = asmItems.filter(function(it){ return asmSelected.indexOf(it.id)<0; });
+  pool = shuffle(pool);
+  for(var i=0;i<Math.min(count,pool.length);i++){ asmSelected.push(pool[i].id); }
+  renderBank();
+}
+function updateAsmCount(){
+  var pts = 0, byId = {};
+  for(var i=0;i<asmItems.length;i++){ byId[asmItems[i].id]=asmItems[i]; }
+  /* selected items may be from other filters; fetch points lazily is overkill - sum known */
+  for(var s=0;s<asmSelected.length;s++){ if(byId[asmSelected[s]]){ pts += num(byId[asmSelected[s]].points); } }
+  el('asm-count').textContent = asmSelected.length + ' items \u00b7 ' + pts + '+ pts (visible)';
+}
+function saveExam(){
+  if(!asmSelected.length){ setMsg('asm-msg','Add at least one question.','err'); return; }
+  var title = el('asm-title').value.trim(); if(!title){ setMsg('asm-msg','Title required.','err'); return; }
+  setMsg('asm-msg','Computing points\u2026');
+  /* fetch true total points for all selected items (across filters) */
+  SB.from('eq_assessment_items').select('points').in('id', asmSelected).then(function(r){
+    var total = 0; var pts = r.data||[]; for(var i=0;i<pts.length;i++){ total += num(pts[i].points); }
+    var rec = {
+      course_id: asmCourse, kind: el('asm-kind').value, title: title,
+      item_ids: asmSelected.slice(), total_points: total,
+      time_limit_minutes: num(el('asm-time').value)||75,
+      max_attempts: num(el('asm-att').value),
+      attempt_scoring: el('asm-score').value,
+      shuffle_questions: el('asm-shuffle').checked,
+      is_published: false
+    };
+    var op = el('asm-open').value, cl = el('asm-close').value;
+    if(op){ rec.opens_at = new Date(op).toISOString(); }
+    if(cl){ rec.closes_at = new Date(cl).toISOString(); }
+    SB.from('eq_exams').insert(rec).then(function(res){
+      if(res.error){ setMsg('asm-msg', res.error.message,'err'); return; }
+      setMsg('asm-msg','Exam created as a draft. Publish it from the table above.','ok');
+      asmSelected = []; loadExistingExams(); renderAssembler();
+    });
+  });
+}
+/* ---------- Grade Written (AI-assisted) ---------- */
+var gwCourse = null;
+function vGradeWritten(){
+  gwCourse = MY_COURSES.length ? MY_COURSES[0].id : null;
+  el('view').innerHTML = '<div class="page-h">Grade Written</div>' +
+    '<div class="page-sub">Review free-response answers with optional AI assistance, then finalize the grade.</div>' +
+    '<div id="gw-key"></div>' + courseSelector(gwCourse, 'gwSwitch') +
+    '<div class="row" style="margin-bottom:10px"><button class="btn ghost sm" onclick="gwRunAll()">Propose all with AI</button></div>' +
+    '<div id="gw-host"></div>';
+  renderKeyStatus(); if(gwCourse){ loadPending(); }
+}
+function gwSwitch(id){ gwCourse = id; loadPending(); }
+function renderKeyStatus(){
+  SB.rpc('eq_has_grader_key').then(function(r){
+    var has = r && r.data === true;
+    el('gw-key').innerHTML = '<div class="panel"><h2>AI grader key</h2>' +
+      '<p class="note">' + (has?'A key is on file. AI proposals are enabled.':'No key on file. Add your Anthropic API key to enable AI proposals (your key is write-only and never returned to the browser).') + '</p>' +
+      '<div class="row"><button class="btn ghost sm" onclick="keyModal()">' + (has?'Replace key':'Add key') + '</button>' +
+      (has?'<button class="btn ghost sm" onclick="clearKey()">Remove key</button>':'') + '</div></div>';
+  });
+}
+function keyModal(){
+  openModal('<h2>Anthropic API key</h2>' +
+    '<div class="field"><label>API key</label><input id="gk-key" type="password" placeholder="sk-ant-\u2026"></div>' +
+    '<div class="field"><label>Model (optional)</label><input id="gk-model" type="text" placeholder="claude-haiku-4-5"></div>' +
+    '<div class="msg" id="gk-msg"></div>' +
+    '<div class="row"><button class="btn" onclick="saveKey()">Save</button><button class="btn ghost" onclick="closeModal()">Cancel</button></div>' +
+    '<p class="note" style="margin-top:10px">Stored write-only against your account; used server-side only when you press Propose.</p>');
+}
+function saveKey(){
+  var k = el('gk-key').value.trim(); if(!k){ setMsg('gk-msg','Enter a key.','err'); return; }
+  /* IMPORTANT: owner_id must be the LIVE session user id (avoids the RLS owner-mismatch bug) */
+  SB.auth.getSession().then(function(r){
+    var uid = (r && r.data && r.data.session) ? r.data.session.user.id : null;
+    if(!uid){ setMsg('gk-msg','Session expired \u2014 sign in again.','err'); return; }
+    var rec = { owner_id: uid, provider:'anthropic', api_key:k, model: el('gk-model').value.trim() || null };
+    SB.from('eq_grader_keys').upsert(rec, { onConflict:'owner_id' }).then(function(res){
+      if(res.error){ setMsg('gk-msg', res.error.message,'err'); return; }
+      closeModal(); renderKeyStatus();
+    });
+  });
+}
+function clearKey(){
+  SB.auth.getSession().then(function(r){
+    var uid = (r && r.data && r.data.session) ? r.data.session.user.id : null;
+    SB.from('eq_grader_keys').delete().eq('owner_id', uid).then(function(){ renderKeyStatus(); });
+  });
+}
+var gwPending = [];
+function loadPending(){
+  el('gw-host').innerHTML = '<span class="spin"></span> Loading\u2026';
+  /* ATTEMPT-FIRST query: ungraded attempts in this course, then keep free_response
+     (robust to metadata mismatch). */
+  SB.from('eq_attempts').select('id, student_id, item_id, submitted_value, ai_score, ai_feedback, ai_model, exam_id')
+    .eq('course_id', gwCourse).is('graded_at', null).then(function(r){
+    var atts = r.data||[];
+    if(!atts.length){ gwPending = []; el('gw-host').innerHTML = '<div class="banner">Nothing awaiting grading in this course.</div>'; return; }
+    var itemIds = []; for(var i=0;i<atts.length;i++){ if(itemIds.indexOf(atts[i].item_id)<0){ itemIds.push(atts[i].item_id); } }
+    SB.from('eq_assessment_items').select('id, item_type, prompt, points').in('id', itemIds).then(function(ir){
+      var byItem = {}; var items = ir.data||[]; for(var j=0;j<items.length;j++){ byItem[items[j].id]=items[j]; }
+      gwPending = [];
+      for(var k=0;k<atts.length;k++){ var it = byItem[atts[k].item_id]; if(it && it.item_type==='free_response'){ atts[k]._item = it; gwPending.push(atts[k]); } }
+      renderPending();
+    });
+  });
+}
+function renderPending(){
+  if(!gwPending.length){ el('gw-host').innerHTML = '<div class="banner">No written answers to grade.</div>'; return; }
+  /* student names */
+  var sids = []; for(var i=0;i<gwPending.length;i++){ if(sids.indexOf(gwPending[i].student_id)<0){ sids.push(gwPending[i].student_id); } }
+  SB.from('eq_profiles').select('id, full_name, email').in('id', sids).then(function(r){
+    var nm = {}; var ps = r.data||[]; for(var j=0;j<ps.length;j++){ nm[ps[j].id] = ps[j].full_name||ps[j].email; }
+    var html = '';
+    for(var k=0;k<gwPending.length;k++){
+      var a = gwPending[k]; var it = a._item;
+      html += '<div class="panel" id="gw-' + a.id + '">' +
+        '<div class="row" style="justify-content:space-between"><h2 style="font-size:17px">' + esc(nm[a.student_id]||'Student') + '</h2>' +
+        '<span class="pill">' + it.points + ' pts max</span></div>' +
+        '<div class="note" style="margin:4px 0 8px">' + esc(it.prompt) + '</div>' +
+        '<div class="q-card"><b class="note">Student answer</b><div style="margin-top:5px;white-space:pre-wrap">' + esc(a.submitted_value||'(blank)') + '</div></div>';
+      if(a.ai_score!=null){
+        html += '<div class="banner">AI proposal (' + esc(a.ai_model||'') + '): <b>' + a.ai_score + '</b> / ' + it.points + '. ' + esc(a.ai_feedback||'') + '</div>';
+      }
+      html += '<div class="row"><div class="field" style="width:120px"><label>Score</label><input id="sc-' + a.id + '" type="number" step="0.5" value="' + (a.ai_score!=null?a.ai_score:'') + '" max="' + it.points + '"></div>' +
+        '<div class="field" style="flex:1"><label>Feedback</label><input id="fb-' + a.id + '" type="text" value="' + esc(a.ai_feedback||'') + '"></div></div>' +
+        '<div class="row"><button class="btn ghost sm" onclick="gwPropose(\'' + a.id + '\')">Propose with AI</button>' +
+        '<button class="btn sm" onclick="gwFinalize(\'' + a.id + '\',' + it.points + ')">Finalize grade</button>' +
+        '<span class="msg" id="gw-msg-' + a.id + '"></span></div></div>';
+    }
+    el('gw-host').innerHTML = html;
+  });
+}
+function gwPropose(attemptId){
+  setMsg('gw-msg-' + attemptId, 'Asking the model\u2026');
+  callEdge('ai-grade', { action:'propose', attempt_id: attemptId }).then(function(res){
+    if(res.error){ setMsg('gw-msg-' + attemptId, res.error + (res._status?(' [' + res._status + ']'):''), 'err'); return; }
+    if(el('sc-' + attemptId)){ el('sc-' + attemptId).value = res.ai_score; }
+    if(el('fb-' + attemptId)){ el('fb-' + attemptId).value = res.ai_feedback||''; }
+    setMsg('gw-msg-' + attemptId, 'AI proposed ' + res.ai_score + '/' + res.max_points + '. Review and finalize.', 'ok');
+  });
+}
+function gwRunAll(){
+  if(!gwPending.length){ return; }
+  var chain = Promise.resolve();
+  gwPending.forEach(function(a){
+    chain = chain.then(function(){ return new Promise(function(resolve){ gwPropose(a.id); setTimeout(resolve, 400); }); });
+  });
+}
+function gwFinalize(attemptId, maxPts){
+  var sc = el('sc-' + attemptId) ? el('sc-' + attemptId).value : '';
+  if(sc===''||sc==null){ setMsg('gw-msg-' + attemptId, 'Enter a score first.', 'err'); return; }
+  var fb = el('fb-' + attemptId) ? el('fb-' + attemptId).value : '';
+  setMsg('gw-msg-' + attemptId, 'Finalizing\u2026');
+  callEdge('ai-grade', { action:'finalize', attempt_id: attemptId, points: num(sc), feedback: fb }).then(function(res){
+    if(res.error){ setMsg('gw-msg-' + attemptId, res.error + (res._status?(' [' + res._status + ']'):''), 'err'); return; }
+    var node = el('gw-' + attemptId); if(node){ node.style.opacity = '0.5'; }
+    setMsg('gw-msg-' + attemptId, 'Graded: ' + num(sc) + '/' + maxPts + '. Recorded.', 'ok');
+  });
+}
+/* ---------- Subscriptions ---------- */
+var subCourse = null;
+function vSubscriptions(){
+  subCourse = MY_COURSES.length ? MY_COURSES[0].id : null;
+  el('view').innerHTML = '<div class="page-h">Subscriptions</div>' +
+    '<div class="page-sub">Paid access is normally granted automatically by the Stripe webhook. ' +
+    'Use this to comp or revoke access manually.</div>' +
+    courseSelector(subCourse, 'subSwitch') +
+    '<div class="row" style="margin-bottom:12px"><button class="btn ghost sm" onclick="compModal()">Comp a student</button></div>' +
+    '<div id="sub-host"></div>';
+  if(subCourse){ loadSubs(); }
+}
+function subSwitch(id){ subCourse = id; loadSubs(); }
+function loadSubs(){
+  el('sub-host').innerHTML = '<span class="spin"></span> Loading\u2026';
+  SB.from('eq_subscriptions').select('*').eq('course_id', subCourse).order('created_at',{ascending:false}).then(function(r){
+    var subs = r.data||[];
+    var html = '<div class="panel"><table><thead><tr><th>Student / email</th><th>Status</th><th>Source</th><th></th></tr></thead><tbody>';
+    if(!subs.length){ html += '<tr><td colspan="4" class="note">No subscriptions recorded for this course.</td></tr>'; }
+    for(var i=0;i<subs.length;i++){ var s=subs[i];
+      html += '<tr><td>' + esc(s.email||s.student_id||'\u2014') + '</td>' +
+        '<td>' + (s.status==='active'?'<span class="tag done">active</span>':'<span class="tag lock">' + esc(s.status) + '</span>') + '</td>' +
+        '<td class="note">' + (s.stripe_session_id?'Stripe':'manual') + '</td>' +
+        '<td>' + (s.status==='active'
+          ? '<button class="btn ghost sm" onclick="setSub(\'' + s.id + '\',\'revoked\')">Revoke</button>'
+          : '<button class="btn ghost sm" onclick="setSub(\'' + s.id + '\',\'active\')">Reactivate</button>') + '</td></tr>';
+    }
+    html += '</tbody></table><p class="note" style="margin-top:8px">Note: manual comp/revoke requires an admin RLS policy on eq_subscriptions; otherwise these writes are blocked by design (the table is webhook-owned).</p></div>';
+    el('sub-host').innerHTML = html;
+  });
+}
+function compModal(){
+  openModal('<h2>Comp access</h2><div class="field"><label>Student email</label><input id="cm-email" type="email" placeholder="student@school.edu"></div>' +
+    '<div class="msg" id="cm-msg"></div><div class="row"><button class="btn" onclick="doComp()">Grant access</button><button class="btn ghost" onclick="closeModal()">Cancel</button></div>' +
+    '<p class="note" style="margin-top:8px">Looks up the student by email and inserts an active subscription for this course.</p>');
+}
+function doComp(){
+  var email = el('cm-email').value.trim(); if(!email){ return; }
+  setMsg('cm-msg','Looking up\u2026');
+  SB.from('eq_profiles').select('id').eq('email', email).maybeSingle().then(function(p){
+    var sid = (p && p.data) ? p.data.id : null;
+    SB.from('eq_subscriptions').insert({ student_id: sid, course_id: subCourse, email: email, status:'active' }).then(function(res){
+      if(res.error){ setMsg('cm-msg', res.error.message + ' (an admin RLS policy may be required).','err'); return; }
+      closeModal(); loadSubs();
+    });
+  });
+}
+function setSub(id, status){
+  SB.from('eq_subscriptions').update({ status: status }).eq('id', id).then(function(res){
+    if(res.error){ alert('Update blocked: ' + res.error.message + '\nThe subscriptions table is webhook-owned; add an admin policy to allow manual changes.'); return; }
+    loadSubs();
+  });
+}
+
+/* ---------- Platform & Pricing (admin) ---------- */
+function vPlatform(){
+  el('view').innerHTML = '<div class="page-h">Platform &amp; Pricing</div><div class="page-sub">Global settings for the Econometrics module.</div><div id="pf-host">Loading\u2026</div>';
+  SB.from('eq_platform_settings').select('*').eq('id',1).maybeSingle().then(function(r){
+    var s = (r && r.data) ? r.data : { price_cents:2500, currency:'usd', stripe_link:STRIPE_LINK, notify_email:'', author_bio:'', author_photo_url:'' };
+    var html = '<div class="panel">' +
+      '<div class="row"><div class="field" style="flex:1"><label>Price (cents)</label><input id="pf-price" type="number" value="' + num(s.price_cents) + '"></div>' +
+      '<div class="field" style="flex:1"><label>Currency</label><input id="pf-cur" type="text" value="' + esc(s.currency||'usd') + '"></div></div>' +
+      '<div class="field"><label>Stripe payment link</label><input id="pf-link" type="text" value="' + esc(s.stripe_link||'') + '"></div>' +
+      '<div class="field"><label>Notification email</label><input id="pf-notify" type="email" value="' + esc(s.notify_email||'') + '"></div>' +
+      '<div class="field"><label>Author photo URL</label><input id="pf-photo" type="text" value="' + esc(s.author_photo_url||'') + '"></div>' +
+      '<div class="field"><label>Author bio</label><textarea id="pf-bio">' + esc(s.author_bio||'') + '</textarea></div>' +
+      '<div class="msg" id="pf-msg"></div><div class="row"><button class="btn" onclick="savePlatform()">Save settings</button></div></div>';
+    el('pf-host').innerHTML = html;
+  });
+}
+function savePlatform(){
+  var rec = { id:1, price_cents:num(el('pf-price').value), currency:el('pf-cur').value.trim()||'usd',
+    stripe_link:el('pf-link').value.trim(), notify_email:el('pf-notify').value.trim(),
+    author_photo_url:el('pf-photo').value.trim(), author_bio:el('pf-bio').value.trim() };
+  setMsg('pf-msg','Saving\u2026');
+  SB.from('eq_platform_settings').upsert(rec, { onConflict:'id' }).then(function(res){
+    if(res.error){ setMsg('pf-msg', res.error.message,'err'); return; }
+    SETTINGS = rec; if(rec.stripe_link){ STRIPE_LINK = rec.stripe_link; }
+    setMsg('pf-msg','Saved.','ok');
+  });
+}
+
+/* ---------- Instructors (admin) ---------- */
+function vInstructors(){
+  el('view').innerHTML = '<div class="page-h">Instructors</div><div class="page-sub">Review access requests and grant the instructor role.</div>' +
+    '<div id="ins-req">Loading\u2026</div>' +
+    '<div class="panel"><h2>Grant instructor by email</h2><div class="row">' +
+    '<div class="field" style="flex:1"><label>Email</label><input id="ins-email" type="email" placeholder="prof@school.edu"></div>' +
+    '<button class="btn" style="align-self:flex-end;margin-bottom:13px" onclick="grantInstructor()">Grant</button></div>' +
+    '<div class="msg" id="ins-msg"></div></div>';
+  loadRequests();
+}
+function loadRequests(){
+  SB.from('eq_access_requests').select('*').eq('status','pending').order('created_at',{ascending:false}).then(function(r){
+    var reqs = r.data||[];
+    var html = '<div class="panel"><h2>Pending requests</h2>';
+    if(!reqs.length){ html += '<p class="note">No pending requests.</p>'; }
+    else { html += '<table><thead><tr><th>Name</th><th>Email</th><th>Institution</th><th></th></tr></thead><tbody>';
+      for(var i=0;i<reqs.length;i++){ var q=reqs[i];
+        html += '<tr><td>' + esc(q.full_name||'\u2014') + '</td><td>' + esc(q.email) + '</td><td>' + esc(q.institution||'') + '</td>' +
+          '<td><button class="btn sm" onclick="approveReq(\'' + q.id + '\',\'' + esc(q.email).replace(/'/g,'') + '\')">Approve</button> ' +
+          '<button class="btn ghost sm" onclick="denyReq(\'' + q.id + '\')">Deny</button></td></tr>';
+      }
+      html += '</tbody></table>';
+    }
+    html += '</div>';
+    el('ins-req').innerHTML = html;
+  });
+}
+function approveReq(id, email){
+  SB.from('eq_profiles').update({ role:'instructor' }).eq('email', email).then(function(res){
+    SB.from('eq_access_requests').update({ status:'approved' }).eq('id', id).then(function(){ loadRequests(); });
+  });
+}
+function denyReq(id){ SB.from('eq_access_requests').update({ status:'denied' }).eq('id', id).then(function(){ loadRequests(); }); }
+function grantInstructor(){
+  var email = el('ins-email').value.trim(); if(!email){ return; }
+  setMsg('ins-msg','Granting\u2026');
+  SB.from('eq_profiles').update({ role:'instructor' }).eq('email', email).select().then(function(res){
+    if(res.error){ setMsg('ins-msg', res.error.message,'err'); return; }
+    if(!res.data || !res.data.length){ setMsg('ins-msg','No account with that email yet. Ask them to sign up first.','err'); return; }
+    setMsg('ins-msg','Granted instructor role to ' + email + '.','ok');
+  });
+}
+
+/* ---------- Diagnostics ---------- */
+function vDiagnostics(){
+  el('view').innerHTML = '<div class="page-h">Diagnostics</div><div class="page-sub">Connectivity and security self-checks.</div><div id="dg-host"><span class="spin"></span> Running checks\u2026</div>';
+  var results = [];
+  function add(name, ok, detail){ results.push({ name:name, ok:ok, detail:detail||'' }); }
+  /* 1: supabase reachable */
+  SB.from('eq_chapters').select('id').limit(1).then(function(r){
+    add('Supabase reachable', !r.error, r.error?r.error.message:'eq_chapters readable');
+    /* 2: vault has NO client read path */
+    return SB.from('eq_assessment_item_keys').select('item_id').limit(1);
+  }).then(function(r){
+    var blocked = (r.error || !r.data || !r.data.length);
+    add('Answer vault sealed (no client read)', blocked, (r.data&&r.data.length)?'WARNING: keys were readable!':'No rows returned to client \u2713');
+    /* 3: grader_keys no client read */
+    return SB.from('eq_grader_keys').select('owner_id').limit(1);
+  }).then(function(r){
+    var blocked = (r.error || !r.data || !r.data.length);
+    add('Grader keys sealed (no client read)', blocked, (r.data&&r.data.length)?'WARNING: keys readable!':'No rows returned \u2713');
+    /* 4: grader key existence RPC */
+    return SB.rpc('eq_has_grader_key');
+  }).then(function(r){
+    add('Grader-key status RPC', !r.error, r.error?r.error.message:('Key on file: ' + (r.data===true)));
+    /* 5: edge function reachable (issue with empty -> expect structured error, not network fail) */
+    return callEdge('grade-attempt', { action:'issue', item_ids:[] });
+  }).then(function(r){
+    var reachable = !!(r && (r.ok || r.error));
+    add('Edge function grade-attempt reachable', reachable, r.error?('Responded: ' + r.error):'Responded ok');
+    /* 6: counts */
+    return Promise.all([
+      SB.from('eq_assessment_items').select('id', { count:'exact', head:true }),
+      SB.from('eq_labs').select('id', { count:'exact', head:true }),
+      SB.from('eq_chapters').select('id', { count:'exact', head:true })
+    ]);
+  }).then(function(c){
+    add('Seeded content', true, 'items: ' + (c[0].count!=null?c[0].count:'?') + ' \u00b7 labs: ' + (c[1].count!=null?c[1].count:'?') + ' \u00b7 chapters: ' + (c[2].count!=null?c[2].count:'?'));
+    renderDiag(results);
+  }).then(null, function(e){ add('Diagnostics error', false, String(e)); renderDiag(results); });
+}
+function renderDiag(results){
+  var html = '<div class="panel"><table><thead><tr><th>Check</th><th>Status</th><th>Detail</th></tr></thead><tbody>';
+  for(var i=0;i<results.length;i++){ var r=results[i];
+    html += '<tr><td>' + esc(r.name) + '</td><td>' + (r.ok?'<span class="tag done">pass</span>':'<span class="tag lock">check</span>') + '</td><td class="note">' + esc(r.detail) + '</td></tr>';
+  }
+  html += '</tbody></table></div>';
+  el('dg-host').innerHTML = html;
+}
+
+/* ============================================================
+   start
+   ============================================================ */
+boot();
+</script>
+</body>
+</html>

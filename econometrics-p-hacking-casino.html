@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The p-Hacking Casino | Econometrics Lab | MacroNations</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0E0C20;--bg2:#161330;--bg3:#1E1A3E;--line:#2A2550;--ink:#E8E6F5;--ink-dim:#A9A5C9;--ink-faint:#6F6A95;
+--teal:#19C3B2;--teal-bright:#3FE0D0;--violet:#7C5CFF;--gold:#FBBF24;--coral:#FF6B6B;--green:#34D399;
+--serif:'Instrument Serif',Georgia,serif;--sans:'Inter',sans-serif;--mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:var(--teal-bright);text-decoration:none}
+.wrap{max-width:940px;margin:0 auto;padding:30px 22px 90px}
+.kicker{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);margin-bottom:6px}
+h1{font-family:var(--serif);font-weight:400;font-size:38px;line-height:1.1;margin-bottom:8px}
+h2{font-family:var(--serif);font-weight:400;font-size:23px;margin:0 0 8px}
+p{color:var(--ink-dim);margin-bottom:12px}
+p strong,li strong{color:var(--ink)}
+.lede{font-size:17px;color:var(--ink)}
+ul.body{margin:0 0 12px 20px;color:var(--ink-dim)}
+.hud{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:11px 15px;margin:16px 0}
+.pill{background:var(--bg3);border:1px solid var(--line);border-radius:999px;padding:5px 13px;font-family:var(--mono);font-size:12.5px;color:var(--ink-dim)}
+.pill b{color:var(--gold)}
+.stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:20px;margin:18px 0}
+.stage.done{border-color:var(--green)}
+.tag{display:inline-block;background:rgba(25,195,178,.14);color:var(--teal-bright);font-size:11px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;border-radius:6px;padding:3px 10px;margin-bottom:10px}
+.controls{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:12px 0}
+.controls label{font-size:13px;color:var(--ink-dim)}
+input[type=range]{width:230px;accent-color:var(--teal)}
+input[type=text]{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:8px 12px;font-family:var(--mono);font-size:14px;width:140px}
+select{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:8px 12px;font-family:var(--sans);font-size:14px}
+.btn{background:var(--teal);color:#062a26;border:none;border-radius:9px;padding:9px 17px;font-weight:600;font-size:14px;cursor:pointer;font-family:var(--sans)}
+.btn:hover{background:var(--teal-bright)} .btn:disabled{opacity:.45;cursor:default}
+.btn.gold{background:var(--gold);color:#3a2a00} .btn.ghost{background:transparent;color:var(--teal-bright);border:1px solid var(--teal)}
+.btn.coral{background:var(--coral);color:#3a0c0c}
+.val{font-family:var(--mono);font-size:13px;color:var(--teal-bright);min-width:60px;display:inline-block}
+.out{margin-top:12px}
+.reg-table{background:#070613;border:1px solid var(--line);border-radius:10px;color:#C9E7E2;font-family:var(--mono);font-size:12.4px;line-height:1.55;padding:13px;overflow-x:auto;white-space:pre;margin:10px 0 0}
+.figure-card{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:10px;margin:10px 0 0;text-align:center}
+.figure-card img{max-width:100%;border-radius:8px}
+.figure-card .cap{font-size:12.5px;color:var(--ink-faint);margin-top:7px;text-align:left}
+.status{font-size:12.5px;color:var(--ink-faint);margin-left:8px} .status.err{color:var(--coral)}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:12px 0}
+.opt{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:13px 15px;cursor:pointer}
+.opt:hover{border-color:var(--teal)} .opt.sel{border-color:var(--teal-bright);background:rgba(25,195,178,.08)}
+.opt.good{border-color:var(--green)} .opt.bad{border-color:var(--coral)}
+.opt h3{font-size:14.5px;color:var(--ink);margin-bottom:4px} .opt p{font-size:12.8px;margin:0;color:var(--ink-dim)}
+.mcq{margin:12px 0} .mcq .q{color:var(--ink);margin-bottom:8px}
+.mcq label{display:block;padding:7px 11px;border:1px solid var(--line);border-radius:9px;margin-bottom:6px;color:var(--ink-dim);cursor:pointer;font-size:14px}
+.mcq label:hover{border-color:var(--teal)} .mcq label.correct{border-color:var(--green);color:var(--green)} .mcq label.wrong{border-color:var(--coral);color:var(--coral)}
+.meter{height:10px;background:var(--bg3);border:1px solid var(--line);border-radius:6px;overflow:hidden;flex:1;min-width:140px}
+.meter .fill{height:100%;width:0%;background:var(--teal);transition:width .3s}
+.meter .fill.hot{background:var(--coral)}
+.scorecard{background:linear-gradient(135deg,rgba(251,191,36,.10),rgba(25,195,178,.07));border:1px solid var(--gold);border-radius:16px;padding:20px;margin:22px 0;text-align:center;display:none}
+.scorecard.show{display:block}
+.scorecard .big{font-family:var(--serif);font-size:48px;color:var(--gold)}
+.debrief{background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.4);border-radius:14px;padding:15px 18px;margin:18px 0;display:none}
+.debrief.show{display:block}
+.debrief .db-label{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--green);font-weight:700;margin-bottom:6px}
+.debrief p{color:var(--ink);margin:0}
+.sharma-take{background:linear-gradient(135deg,rgba(251,191,36,.08),rgba(251,191,36,.03));border:1px solid rgba(251,191,36,.4);border-radius:14px;padding:14px 18px;margin:18px 0}
+.sharma-take .st-label{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:6px}
+.sharma-take p{color:var(--ink);margin:0}
+.note{font-size:12.5px;color:var(--ink-faint)}
+.loadbar{height:6px;background:var(--bg3);border-radius:4px;overflow:hidden;margin:8px 0;display:none}
+.loadbar.show{display:block}.loadbar .fill{height:100%;width:0%;background:var(--teal);transition:width .4s}
+#gate{display:none;position:fixed;inset:0;background:rgba(14,12,32,.93);z-index:50;align-items:center;justify-content:center;padding:20px}
+#gate.show{display:flex}
+#gate .card{background:var(--bg2);border:1px solid var(--gold);border-radius:16px;padding:30px;max-width:480px;text-align:center}
+</style>
+</head>
+<body>
+<div id="gate"><div class="card"><h2>This Lab is part of the full course</h2>
+<p>The free preview includes Chapters 1&ndash;2 and the Least-Squares Archer lab. The full course &mdash; 17 chapters, 14 Labs, exams, certificate &mdash; is a one-time $25.</p>
+<p><a class="btn gold" id="gate-buy" href="#" target="_blank" rel="noopener">Unlock the full course &mdash; $25</a></p>
+<p class="note">Already purchased? Open this Lab from the course app while signed in.</p></div></div>
+<div class="wrap">
+<div class="kicker">Econometrics &middot; Lab &middot; companion to Chapter 4 &middot; teaches by inoculation</div>
+<h1>The p-Hacking Casino</h1>
+<p class="lede">Welcome to the casino, researcher. The house has a secret: <strong>every dataset in this room is pure noise by construction</strong> &mdash; the true effect of the treatment on every outcome is exactly zero. Pull the lever of researcher degrees of freedom until you strike "significance." You will. That is the lesson.</p>
+<div class="hud"><span class="pill">Pulls: <b id="hud1">0</b></span><span class="pill">min p: <b id="hud2">&ndash;</b></span><span class="pill">"Discoveries": <b id="hud3">0</b></span><span class="pill" id="pystate">Python: idle</span></div>
+<div class="loadbar" id="loadbar"><div class="fill" id="loadfill"></div></div>
+
+<div class="stage" id="stage1">
+<span class="tag">The floor</span>
+<h2>Pull the lever</h2>
+<p>Each pull is a fresh "specification": a different outcome among 20, a different set of controls, maybe a subsample. The regression is real; the data are noise.</p>
+<div class="controls">
+  <button class="btn gold" id="pull">&#127920; PULL</button>
+  <button class="btn ghost" id="pull10">Pull x10</button>
+  <span class="status" id="st1"></span>
+</div>
+<div class="out" id="out1"></div>
+</div>
+
+<div class="stage" id="stage2">
+<span class="tag">The back room</span>
+<h2>The house reveals its books</h2>
+<p>Once you have at least one "discovery," open the books: the full p-value distribution of every pull you made, the false-discovery arithmetic, and the corrected thresholds.</p>
+<div class="controls"><button class="btn coral" id="reveal" disabled>Open the books</button><span class="status" id="st2"></span></div>
+<div class="out" id="out2"></div>
+<div class="mcq" id="mcq1">
+<div class="q">You ran 20 independent tests on pure noise at the 5% level. About how many "significant" results should you expect, and what does Bonferroni do?</div>
+<label data-i="0">Zero; significance proves a real effect. Bonferroni increases power.</label>
+<label data-i="1">About one (20 &times; 0.05); Bonferroni divides the threshold by the number of tests (0.05/20 = 0.0025) so the family-wise error stays at 5%</label>
+<label data-i="2">About five; Bonferroni doubles the sample.</label>
+<label data-i="3">Twenty; Bonferroni removes the controls.</label>
+</div>
+<div class="mcq" id="mcq2">
+<div class="q">What practice prevents this manufacturing of findings in real research?</div>
+<label data-i="0">Running more specifications until results stabilize</label>
+<label data-i="1">Only reporting the best p-value</label>
+<label data-i="2">Pre-registration: committing to the outcome, specification, and test before seeing the data (plus multiple-testing corrections when many tests are genuinely needed)</label>
+<label data-i="3">Using a 10% significance level</label>
+</div>
+</div>
+
+<div class="scorecard" id="scorecard"><div style="font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-dim)">p-Hacking Casino &mdash; final score</div>
+<div class="big" id="finalscore">0</div><div id="scoredetail" style="color:var(--ink-dim);font-size:14px"></div>
+<p class="note" style="margin-top:8px">Saved locally<span id="savemsg"></span>.</p></div>
+
+<div class="debrief" id="debrief"><div class="db-label">What you just learned</div>
+<p>Under a true null, p-values are uniformly distributed &mdash; your histogram shows it &mdash; so 1 in 20 tests "wins" at the 5% level by design. The 5% error rate is a promise about a single pre-specified test, not a license to shop. You manufactured a discovery from nothing, watched the books expose it, and met the two honest defenses: pre-registration and multiple-testing corrections. You are now harder to fool, including by yourself.</p></div>
+
+<div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
+<p>Nobody p-hacks on purpose at first. It starts as "let me just check one more specification." The casino is in your own head; pre-registration is how you bar the door.</p></div>
+<p class="note">Part of <a href="https://econometrics.macronations.com">Econometrics</a> on MacroNations.</p>
+</div>
+
+<script type="text/x-python" id="lab-module">
+import numpy as np, pandas as pd, json
+import statsmodels.api as sm
+
+_r = np.random.default_rng(405)   # tuned: exactly 1 of 20 noise outcomes is significant
+_n = 240
+_treat = _r.integers(0, 2, _n).astype(float)
+_Y = _r.normal(0, 1, (_n, 20))                    # 20 outcomes, ALL pure noise
+_C = _r.normal(0, 1, (_n, 6))                     # 6 candidate controls, also noise
+_OUTNAMES = ["job satisfaction","weekly hours","savings rate","BMI","test score","optimism index",
+ "commute time","caffeine intake","sleep quality","risk tolerance","social trust","screen time",
+ "charitable giving","exercise minutes","grocery spend","reading hours","stress index","patience",
+ "punctuality","creativity score"]
+PULLS = []
+# fixed exploration order so the lone significant outcome (index 1) surfaces at pull #4,
+# making the "20 tests, ~1 hits" lesson reliably reachable instead of luck-of-the-draw
+_ORDER = [7, 3, 12, 1, 9, 15, 0, 5, 2, 18, 4, 6, 8, 10, 11, 13, 14, 16, 17, 19]
+
+def pull(k):
+    rs = np.random.default_rng(1000 + int(k))
+    oi = _ORDER[(int(k) - 1) % 20]
+    ctrl = sorted(rs.choice(6, size=int(rs.integers(0, 4)), replace=False).tolist())
+    sub = rs.integers(0, 3)                        # 0 full, 1 first half, 2 second half
+    idx = np.arange(_n)
+    if sub == 1: idx = idx[:_n//2]
+    if sub == 2: idx = idx[_n//2:]
+    X = sm.add_constant(np.column_stack([_treat[idx]] + [ _C[idx, c] for c in ctrl ]))
+    fit = sm.OLS(_Y[idx, oi], X).fit()
+    p = float(fit.pvalues[1]); b = float(fit.params[1])
+    PULLS.append(p)
+    desc = "outcome: " + _OUTNAMES[oi]
+    desc += " | controls: " + (",".join(["C"+str(c+1) for c in ctrl]) if ctrl else "none")
+    desc += " | sample: " + ["full","first half","second half"][int(sub)]
+    return json.dumps({"p": round(p, 4), "beta": round(b, 3), "sig": p < 0.05,
+                       "desc": desc, "k": int(k), "minp": round(min(PULLS), 4),
+                       "pulls": len(PULLS), "wins": int(sum(1 for q in PULLS if q < 0.05))})
+
+def books():
+    arr = np.array(PULLS); K = len(arr)
+    expected = 1 - 0.95**K
+    bonf = 0.05 / K
+    fig, ax = plt.subplots(1, 2, figsize=(8.8, 3.5))
+    ax[0].hist(arr, bins=np.arange(0, 1.05, 0.05), edgecolor="#0E0C20")
+    ax[0].axvline(0.05, linestyle="--", linewidth=1.4, color="#FF6B6B")
+    ax[0].set_title("your %d p-values: uniform, as the null promises" % K, fontsize=10)
+    ax[0].set_xlabel("p-value")
+    ks = np.arange(1, max(K, 20) + 1)
+    ax[1].plot(ks, 1 - 0.95**ks, linewidth=2.0)
+    ax[1].axhline(0.5, linestyle=":", linewidth=1.0)
+    ax[1].set_title("P(at least one false 'discovery') vs tests run", fontsize=10)
+    ax[1].set_xlabel("number of tests")
+    plt.tight_layout()
+    return json.dumps({"pulls": K, "wins": int((arr < 0.05).sum()), "minp": round(float(arr.min()), 4),
+                       "expected_rate": round(0.05 * K, 2), "p_any": round(float(expected), 3),
+                       "bonf": round(bonf, 5),
+                       "survive": int((arr < bonf).sum())})
+</script>
+
+<script>
+var S = { k: 0, wins: 0, revealed: false, mc1: null, mc2: null };
+function labInit() {
+  function doPull(times) {
+    setStatus('st1', PY.pyodide ? 'spinning...' : 'loading Python (~10s first time)...');
+    var chain = Promise.resolve(null);
+    var last = null;
+    for (var t = 0; t < times; t++) {
+      chain = chain.then(function () { S.k++; return callPy('pull(' + S.k + ')'); })
+                   .then(function (res) { last = res; return res; });
+    }
+    chain.then(function () {
+      var d = last.data;
+      S.wins = d.wins;
+      el('hud1').textContent = d.pulls; el('hud2').textContent = d.minp; el('hud3').textContent = d.wins;
+      var lines = [
+        'PULL #' + d.pulls + '   ' + d.desc,
+        'treatment coefficient ' + d.beta + '   p = ' + d.p + (d.sig ? '   *** SIGNIFICANT - JACKPOT ***' : '   (no win)'),
+        d.sig ? 'Congratulations, "researcher." Now open the books.' : 'The house pays 1 win per ~20 pulls. Keep going.'
+      ];
+      renderOut('out1', lines, []);
+      if (d.wins > 0) { el('reveal').disabled = false; }
+      setStatus('st1', '');
+    }).then(null, function (e) { fail('out1', 'st1', e); });
+  }
+  el('pull').onclick = function () { doPull(1); };
+  el('pull10').onclick = function () { doPull(10); };
+  el('reveal').onclick = function () {
+    setStatus('st2', 'auditing...');
+    callPy('books()').then(function (res) {
+      var d = res.data;
+      S.revealed = true;
+      renderOut('out2', [
+        'THE BOOKS   pulls: ' + d.pulls + '   "discoveries" at p<.05: ' + d.wins + '   expected from pure noise: ' + d.expected_rate,
+        'P(at least one false discovery in ' + d.pulls + ' tests) = ' + d.p_any,
+        'Bonferroni threshold 0.05/' + d.pulls + ' = ' + d.bonf + '   discoveries surviving it: ' + d.survive,
+        'Every outcome in this casino was noise. Your jackpot was the 5% error rate, working as designed.'
+      ], res.figs, ['Left: your own p-values, uniform under the null. Right: why "just one more test" guarantees a jackpot eventually.']);
+      setStatus('st2', 'books open');
+      maybeFinish();
+    }).then(null, function (e) { fail('out2', 'st2', e); });
+  };
+  bindMC('mcq1', 1, function (pts) { S.mc1 = pts; maybeFinish(); });
+  bindMC('mcq2', 2, function (pts) { S.mc2 = pts; maybeFinish(); });
+}
+function bindMC(id, correctIdx, done) {
+  var labels = el(id).getElementsByTagName('label');
+  for (var i = 0; i < labels.length; i++) {
+    labels[i].onclick = (function (lab, all) {
+      return function () {
+        if (lab.className === 'correct' || lab.className === 'wrong') { return; }
+        var pick = parseInt(lab.getAttribute('data-i'), 10);
+        var pts;
+        if (pick === correctIdx) { lab.className = 'correct'; pts = 100; }
+        else { lab.className = 'wrong'; all[correctIdx].className = 'correct'; pts = 40; }
+        done(pts);
+      };
+    })(labels[i], labels);
+  }
+}
+function maybeFinish() {
+  if (!S.revealed || S.mc1 === null || S.mc2 === null) { return; }
+  var play = S.wins > 0 ? 100 : 60;
+  var final = Math.round(0.4 * play + 0.3 * S.mc1 + 0.3 * S.mc2);
+  showFinal(final, 'Discovery manufactured: ' + (S.wins > 0 ? 'yes' : 'no') + ' | Inoculation ' + S.mc1 + '/' + S.mc2, { wins: S.wins, mc1: S.mc1, mc2: S.mc2 });
+}
+</script>
+<script type="text/x-python" id="lab-prelude">
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import io, base64
+plt.rcParams["figure.facecolor"] = "#1E1A3E"; plt.rcParams["axes.facecolor"] = "#1E1A3E"
+plt.rcParams["savefig.facecolor"] = "#1E1A3E"; plt.rcParams["text.color"] = "#E8E6F5"
+plt.rcParams["axes.labelcolor"] = "#A9A5C9"; plt.rcParams["xtick.color"] = "#A9A5C9"
+plt.rcParams["ytick.color"] = "#A9A5C9"; plt.rcParams["axes.edgecolor"] = "#2A2550"
+plt.rcParams["axes.prop_cycle"] = matplotlib.cycler(color=["#19C3B2","#FBBF24","#7C5CFF","#FF6B6B","#94A3B8"])
+plt.rcParams["legend.facecolor"] = "#161330"; plt.rcParams["grid.color"] = "#2A2550"
+def __figs():
+    out = []
+    for num in plt.get_fignums():
+        fig = plt.figure(num); buf = io.BytesIO()
+        fig.savefig(buf, format="png", dpi=110, bbox_inches="tight")
+        out.append(base64.b64encode(buf.getvalue()).decode("ascii"))
+    plt.close("all"); return out
+</script>
+<script>
+/* ===== shared Lab runtime (inlined eq-progress pattern) - Safari-safe ===== */
+var EQ_SUPABASE_URL = 'PASTE_NEW_PROJECT_URL';
+var EQ_SUPABASE_ANON_KEY = 'PASTE_NEW_ANON_KEY';
+var DEV_PREVIEW = true;
+var SUPER_ADMIN_EMAIL = 'sharmaaa9@yahoo.com';
+var STRIPE_LINK = 'https://buy.stripe.com/8x2cMYbjfcsk2ON7se5ZC01';
+var LAB_ID = 'p-hacking-casino';
+var LAB_FREE = false;
+var PYODIDE_URL = 'https://cdn.jsdelivr.net/pyodide/v0.29.4/full/pyodide.js';
+var PY_PACKAGES = ['numpy', 'pandas', 'scipy', 'matplotlib', 'statsmodels'];
+
+var PY = { pyodide: null, promise: null };
+var SB = null, SESSION = null, BEST = -1;
+
+function el(id) { return document.getElementById(id); }
+function setStatus(id, txt, err) { var s = el(id); if (s) { s.textContent = txt; s.className = 'status' + (err ? ' err' : ''); } }
+function setPyState(t) { var s = el('pystate'); if (s) { s.textContent = 'Python: ' + t; } }
+function showLoad(p) { var lb = el('loadbar'); if (!lb) { return; } lb.className = p < 100 ? 'loadbar show' : 'loadbar'; el('loadfill').style.width = p + '%'; }
+function escapeHTML(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function loadScript(src) {
+  return new Promise(function (resolve, reject) {
+    var s = document.createElement('script'); s.src = src;
+    s.onload = function () { resolve(true); };
+    s.onerror = function () { reject(new Error('Could not load ' + src)); };
+    document.head.appendChild(s);
+  });
+}
+function ensurePy() {
+  if (PY.promise) { return PY.promise; }
+  setPyState('downloading'); showLoad(10);
+  PY.promise = loadScript(PYODIDE_URL).then(function () {
+    setPyState('starting'); showLoad(30);
+    return window.loadPyodide();
+  }).then(function (py) {
+    PY.pyodide = py;
+    setPyState('loading numpy + statsmodels'); showLoad(55);
+    return py.loadPackage(PY_PACKAGES).then(function () { return py; });
+  }).then(function (py) {
+    setPyState('preparing the lab'); showLoad(85);
+    var pre = document.getElementById('lab-prelude').textContent;
+    var mod = document.getElementById('lab-module').textContent;
+    return py.runPythonAsync(pre).then(function () { return py.runPythonAsync(mod); }).then(function () { setPyState('ready'); showLoad(100); return py; });
+  });
+  PY.promise = PY.promise.then(null, function (err) {
+    PY.promise = null; setPyState('failed - retry your last action'); showLoad(100); throw err;
+  });
+  return PY.promise;
+}
+function callPy(expr) {
+  return ensurePy().then(function (py) {
+    return py.runPythonAsync(expr).then(function (res) {
+      var data = res ? JSON.parse(res) : {};
+      var figs = py.runPython('__figs()');
+      var arr = figs ? figs.toJs() : [];
+      if (figs && figs.destroy) { figs.destroy(); }
+      return { data: data, figs: arr };
+    });
+  });
+}
+function renderOut(target, lines, figs, caps) {
+  var html = '';
+  if (lines && lines.length) { html += '<pre class="reg-table">' + escapeHTML(lines.join('\n')) + '</pre>'; }
+  for (var i = 0; i < (figs ? figs.length : 0); i++) {
+    html += '<div class="figure-card"><img alt="lab figure" src="data:image/png;base64,' + figs[i] + '">';
+    if (caps && caps[i]) { html += '<div class="cap">' + caps[i] + '</div>'; }
+    html += '</div>';
+  }
+  el(target).innerHTML = html;
+}
+function fail(target, statusId, err) {
+  setStatus(statusId, 'error', true);
+  el(target).innerHTML = '<pre class="reg-table" style="color:#FF9B9B">' + escapeHTML(err && err.message ? err.message : String(err)) + '</pre>';
+}
+/* live progress reporting: report DURING play whenever the score improves */
+function reportScore(score, detail) {
+  if (score <= BEST) { return; }
+  BEST = score;
+  try { window.localStorage.setItem('eq_lab_' + LAB_ID, JSON.stringify({ score: score, detail: detail, at: new Date().toISOString() })); } catch (e) {}
+  var sm = el('savemsg'); if (sm) { sm.textContent = ''; }
+  if (SB && SESSION) {
+    SB.from('eq_lab_results').insert({ student_id: SESSION.user.id, lab_id: LAB_ID, score: score, details: detail })
+      .then(function () { if (sm) { sm.textContent = ' and to your course record'; } });
+  }
+}
+function showFinal(score, detailText, detailObj) {
+  el('finalscore').textContent = score;
+  el('scoredetail').textContent = detailText;
+  el('scorecard').className = 'scorecard show';
+  var db = el('debrief'); if (db) { db.className = 'debrief show'; }
+  reportScore(score, detailObj);
+}
+function resolveGate() {
+  var buy = el('gate-buy'); if (buy) { buy.href = STRIPE_LINK; }
+  if (LAB_FREE || DEV_PREVIEW) { return; }
+  if (EQ_SUPABASE_URL.indexOf('http') !== 0 || !window.supabase) { el('gate').className = 'show'; return; }
+  SB = window.supabase.createClient(EQ_SUPABASE_URL, EQ_SUPABASE_ANON_KEY);
+  SB.auth.getSession().then(function (r) {
+    SESSION = (r && r.data && r.data.session) ? r.data.session : null;
+    if (!SESSION) { el('gate').className = 'show'; return; }
+    if (String(SESSION.user.email).toLowerCase() === SUPER_ADMIN_EMAIL) { return; }
+    SB.from('eq_profiles').select('role').eq('id', SESSION.user.id).maybeSingle().then(function (pr) {
+      var role = (pr && pr.data && pr.data.role) ? pr.data.role : 'student';
+      if (role === 'instructor' || role === 'admin') { return; }
+      SB.from('eq_subscriptions').select('id').eq('student_id', SESSION.user.id).eq('status', 'active').limit(1)
+        .then(function (s) { if (!(s && s.data && s.data.length)) { el('gate').className = 'show'; } });
+    });
+  });
+}
+function bootLab() {
+  resolveGate();
+  if (window.labInit) { window.labInit(); }
+}
+if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', bootLab); } else { bootLab(); }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</body>
+</html>

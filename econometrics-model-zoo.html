@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Model Zoo | Econometrics Lab | MacroNations</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0E0C20;--bg2:#161330;--bg3:#1E1A3E;--line:#2A2550;--ink:#E8E6F5;--ink-dim:#A9A5C9;--ink-faint:#6F6A95;
+--teal:#19C3B2;--teal-bright:#3FE0D0;--violet:#7C5CFF;--gold:#FBBF24;--coral:#FF6B6B;--green:#34D399;
+--serif:'Instrument Serif',Georgia,serif;--sans:'Inter',sans-serif;--mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:var(--teal-bright);text-decoration:none}
+.wrap{max-width:940px;margin:0 auto;padding:30px 22px 90px}
+.kicker{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);margin-bottom:6px}
+h1{font-family:var(--serif);font-weight:400;font-size:38px;line-height:1.1;margin-bottom:8px}
+h2{font-family:var(--serif);font-weight:400;font-size:23px;margin:0 0 8px}
+p{color:var(--ink-dim);margin-bottom:12px}
+p strong,li strong{color:var(--ink)}
+.lede{font-size:17px;color:var(--ink)}
+ul.body{margin:0 0 12px 20px;color:var(--ink-dim)}
+.hud{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:11px 15px;margin:16px 0}
+.pill{background:var(--bg3);border:1px solid var(--line);border-radius:999px;padding:5px 13px;font-family:var(--mono);font-size:12.5px;color:var(--ink-dim)}
+.pill b{color:var(--gold)}
+.stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:20px;margin:18px 0}
+.stage.done{border-color:var(--green)}
+.tag{display:inline-block;background:rgba(25,195,178,.14);color:var(--teal-bright);font-size:11px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;border-radius:6px;padding:3px 10px;margin-bottom:10px}
+.controls{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:12px 0}
+.controls label{font-size:13px;color:var(--ink-dim)}
+input[type=range]{width:230px;accent-color:var(--teal)}
+input[type=text]{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:8px 12px;font-family:var(--mono);font-size:14px;width:140px}
+select{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:8px 12px;font-family:var(--sans);font-size:14px}
+.btn{background:var(--teal);color:#062a26;border:none;border-radius:9px;padding:9px 17px;font-weight:600;font-size:14px;cursor:pointer;font-family:var(--sans)}
+.btn:hover{background:var(--teal-bright)} .btn:disabled{opacity:.45;cursor:default}
+.btn.gold{background:var(--gold);color:#3a2a00} .btn.ghost{background:transparent;color:var(--teal-bright);border:1px solid var(--teal)}
+.btn.coral{background:var(--coral);color:#3a0c0c}
+.val{font-family:var(--mono);font-size:13px;color:var(--teal-bright);min-width:60px;display:inline-block}
+.out{margin-top:12px}
+.reg-table{background:#070613;border:1px solid var(--line);border-radius:10px;color:#C9E7E2;font-family:var(--mono);font-size:12.4px;line-height:1.55;padding:13px;overflow-x:auto;white-space:pre;margin:10px 0 0}
+.figure-card{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:10px;margin:10px 0 0;text-align:center}
+.figure-card img{max-width:100%;border-radius:8px}
+.figure-card .cap{font-size:12.5px;color:var(--ink-faint);margin-top:7px;text-align:left}
+.status{font-size:12.5px;color:var(--ink-faint);margin-left:8px} .status.err{color:var(--coral)}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:12px 0}
+.opt{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:13px 15px;cursor:pointer}
+.opt:hover{border-color:var(--teal)} .opt.sel{border-color:var(--teal-bright);background:rgba(25,195,178,.08)}
+.opt.good{border-color:var(--green)} .opt.bad{border-color:var(--coral)}
+.opt h3{font-size:14.5px;color:var(--ink);margin-bottom:4px} .opt p{font-size:12.8px;margin:0;color:var(--ink-dim)}
+.mcq{margin:12px 0} .mcq .q{color:var(--ink);margin-bottom:8px}
+.mcq label{display:block;padding:7px 11px;border:1px solid var(--line);border-radius:9px;margin-bottom:6px;color:var(--ink-dim);cursor:pointer;font-size:14px}
+.mcq label:hover{border-color:var(--teal)} .mcq label.correct{border-color:var(--green);color:var(--green)} .mcq label.wrong{border-color:var(--coral);color:var(--coral)}
+.meter{height:10px;background:var(--bg3);border:1px solid var(--line);border-radius:6px;overflow:hidden;flex:1;min-width:140px}
+.meter .fill{height:100%;width:0%;background:var(--teal);transition:width .3s}
+.meter .fill.hot{background:var(--coral)}
+.scorecard{background:linear-gradient(135deg,rgba(251,191,36,.10),rgba(25,195,178,.07));border:1px solid var(--gold);border-radius:16px;padding:20px;margin:22px 0;text-align:center;display:none}
+.scorecard.show{display:block}
+.scorecard .big{font-family:var(--serif);font-size:48px;color:var(--gold)}
+.debrief{background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.4);border-radius:14px;padding:15px 18px;margin:18px 0;display:none}
+.debrief.show{display:block}
+.debrief .db-label{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--green);font-weight:700;margin-bottom:6px}
+.debrief p{color:var(--ink);margin:0}
+.sharma-take{background:linear-gradient(135deg,rgba(251,191,36,.08),rgba(251,191,36,.03));border:1px solid rgba(251,191,36,.4);border-radius:14px;padding:14px 18px;margin:18px 0}
+.sharma-take .st-label{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:6px}
+.sharma-take p{color:var(--ink);margin:0}
+.note{font-size:12.5px;color:var(--ink-faint)}
+.loadbar{height:6px;background:var(--bg3);border-radius:4px;overflow:hidden;margin:8px 0;display:none}
+.loadbar.show{display:block}.loadbar .fill{height:100%;width:0%;background:var(--teal);transition:width .4s}
+#gate{display:none;position:fixed;inset:0;background:rgba(14,12,32,.93);z-index:50;align-items:center;justify-content:center;padding:20px}
+#gate.show{display:flex}
+#gate .card{background:var(--bg2);border:1px solid var(--gold);border-radius:16px;padding:30px;max-width:480px;text-align:center}
+</style>
+</head>
+<body>
+<div id="gate"><div class="card"><h2>This Lab is part of the full course</h2>
+<p>The free preview includes Chapters 1&ndash;2 and the Least-Squares Archer lab. The full course &mdash; 17 chapters, 14 Labs, exams, certificate &mdash; is a one-time $25.</p>
+<p><a class="btn gold" id="gate-buy" href="#" target="_blank" rel="noopener">Unlock the full course &mdash; $25</a></p>
+<p class="note">Already purchased? Open this Lab from the course app while signed in.</p></div></div>
+<div class="wrap">
+<div class="kicker">Econometrics &middot; Lab &middot; companion to Chapters 5 &amp; 8</div>
+<h1>The Model Zoo &amp; Specification Safari</h1>
+<p class="lede">A wage&ndash;experience relationship hides in the bush, and your camera is the specification. Add features &mdash; squares, cubics, interactions, wilder polynomials &mdash; and watch two meters: in-sample R&sup2; <strong>only ever rises</strong>, while held-out test fit improves, peaks, and then collapses as the model starts photographing noise. The ranger's cross-validation will tell you where to stop. Will you listen?</p>
+<div class="hud"><span class="pill">Expeditions: <b id="hud1">0</b></span><span class="pill">Best test RMSE: <b id="hud2">&ndash;</b></span><span class="pill" id="pystate">Python: idle</span></div>
+<div class="loadbar" id="loadbar"><div class="fill" id="loadfill"></div></div>
+
+<div class="stage" id="stage1">
+<span class="tag">The safari</span>
+<h2>Assemble a specification and shoot</h2>
+<div class="controls" style="gap:18px">
+  <label><input type="checkbox" id="f-exp" checked disabled> experience</label>
+  <label><input type="checkbox" id="f-exp2"> experience&sup2;</label>
+  <label><input type="checkbox" id="f-educ"> education</label>
+  <label><input type="checkbox" id="f-int"> educ &times; exper</label>
+  <label><input type="checkbox" id="f-p5"> polynomials to x&#8309;</label>
+  <label><input type="checkbox" id="f-p9"> polynomials to x&#8313;</label>
+</div>
+<div class="controls">
+  <button class="btn" id="shoot">&#128247; Shoot this spec</button>
+  <button class="btn ghost" id="ranger">Ask the CV ranger</button>
+  <button class="btn gold" id="lock" disabled>Mount the best trophy</button>
+  <span class="status" id="st1"></span>
+</div>
+<div class="controls"><span class="note">train R&sup2;</span><div class="meter"><div class="fill" id="mtrain"></div></div><span class="val" id="mtrainv"></span>
+<span class="note">test fit</span><div class="meter"><div class="fill" id="mtest"></div></div><span class="val" id="mtestv"></span></div>
+<div class="out" id="out1"></div>
+<div class="mcq" id="mcq1">
+<div class="q">Your x&#8313; expedition posted the highest train R&sup2; of the day and one of the worst test RMSEs. The lesson:</div>
+<label data-i="0">The test set must be corrupted</label>
+<label data-i="1">In-sample fit always improves with complexity, so it cannot choose a model; honest model choice needs held-out (or cross-validated) performance, which prices in the noise-chasing</label>
+<label data-i="2">Ninth-degree polynomials need more data, then they win</label>
+<label data-i="3">R-squared should be replaced by t statistics for model choice</label>
+</div>
+</div>
+
+<div class="scorecard" id="scorecard"><div style="font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-dim)">Specification Safari &mdash; final score</div>
+<div class="big" id="finalscore">0</div><div id="scoredetail" style="color:var(--ink-dim);font-size:14px"></div>
+<p class="note" style="margin-top:8px">Saved locally<span id="savemsg"></span>.</p></div>
+
+<div class="debrief" id="debrief"><div class="db-label">What you just learned</div>
+<p>Adding regressors can never lower in-sample R&sup2; &mdash; you proved it by watching the train meter rise on every expedition while the test meter told the real story: gains from genuine structure (the quadratic in experience, the interaction), then losses as high-order polynomials memorized the training noise. The held-out set and the ranger's cross-validation agreed, and that agreement is the discipline: specification choice is a prediction question answered with data the model has never seen.</p></div>
+
+<div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
+<p>Every overfit model in history was built by someone watching the wrong meter with complete sincerity. Wire the test meter into your reflexes now, while the stakes are a safari trophy.</p></div>
+<p class="note">Part of <a href="https://econometrics.macronations.com">Econometrics</a> on MacroNations.</p>
+</div>
+
+<script type="text/x-python" id="lab-module">
+import numpy as np, pandas as pd, json
+import statsmodels.api as sm
+
+_r = np.random.default_rng(1616)
+_n = 220
+_exper = _r.uniform(0, 30, _n)
+_educ = np.clip(np.round(_r.normal(14, 2.2, _n)), 8, 21)
+_logw = (1.2 + 0.045*_educ + 0.052*_exper - 0.0010*_exper**2
+         + 0.0021*_educ*_exper + _r.normal(0, 0.28, _n))
+_idx = _r.permutation(_n); _tr = _idx[:150]; _te = _idx[150:]
+HISTORY = []
+
+def _design(features):
+    cols = [_exper]
+    names = ["exper"]
+    if "exp2" in features: cols.append(_exper**2); names.append("exper2")
+    if "educ" in features: cols.append(_educ); names.append("educ")
+    if "int" in features: cols.append(_educ*_exper); names.append("educ_x_exper")
+    if "p5" in features:
+        for p in (3, 4, 5): cols.append((_exper/10.0)**p); names.append("exper^%d" % p)
+    if "p9" in features:
+        for p in (6, 7, 8, 9): cols.append((_exper/10.0)**p); names.append("exper^%d" % p)
+    X = np.column_stack(cols)
+    return sm.add_constant(X), names
+
+def safari(features):
+    X, names = _design(features)
+    ytr, yte = _logw[_tr], _logw[_te]
+    fit = sm.OLS(ytr, X[_tr]).fit()
+    r2 = float(fit.rsquared)
+    pred = X[_te].dot(fit.params)
+    rmse = float(np.sqrt(np.mean((yte - pred)**2)))
+    k = X.shape[1] - 1
+    HISTORY.append((k, r2, rmse, "+".join(sorted(features)) if features else "exper"))
+    hs = sorted(HISTORY, key=lambda h: h[0])
+    fig, ax = plt.subplots(1, 2, figsize=(8.8, 3.5))
+    ax[0].plot([h[0] for h in hs], [h[1] for h in hs], marker="o", linewidth=1.8)
+    ax[0].set_xlabel("number of regressors"); ax[0].set_title("train R2: the meter that only rises", fontsize=10)
+    ax[1].plot([h[0] for h in hs], [h[2] for h in hs], marker="o", linewidth=1.8, color="#FBBF24")
+    ax[1].set_xlabel("number of regressors"); ax[1].set_title("test RMSE: the meter that tells the truth", fontsize=10)
+    plt.tight_layout()
+    return json.dumps({"k": k, "train_r2": round(r2, 4), "test_rmse": round(rmse, 4),
+                       "names": names, "n_exped": len(HISTORY)})
+
+def ranger():
+    specs = [[], ["exp2"], ["exp2","educ"], ["exp2","educ","int"],
+             ["exp2","educ","int","p5"], ["exp2","educ","int","p5","p9"]]
+    labels = ["exper", "+exper2", "+educ", "+interaction", "+poly5", "+poly9"]
+    rs = np.random.default_rng(3)
+    folds = rs.permutation(150) % 5
+    out = []
+    for sp in specs:
+        X, _ = _design(sp)
+        Xtr = X[_tr]; ytr = _logw[_tr]
+        errs = []
+        for f in range(5):
+            m = folds != f
+            fit = sm.OLS(ytr[m], Xtr[m]).fit()
+            pr = Xtr[~m].dot(fit.params)
+            errs.append(np.mean((ytr[~m] - pr)**2))
+        out.append(float(np.sqrt(np.mean(errs))))
+    best = int(np.argmin(out))
+    plt.figure(figsize=(7.0, 3.4))
+    plt.plot(range(len(out)), out, marker="o", linewidth=1.8)
+    plt.xticks(range(len(out)), labels, rotation=20, fontsize=8)
+    plt.scatter([best], [out[best]], s=90, color="#FBBF24", zorder=5)
+    plt.ylabel("5-fold CV RMSE"); plt.title("the ranger's survey (gold = recommended)")
+    plt.tight_layout()
+    return json.dumps({"cv": [round(v, 4) for v in out], "best": best, "best_label": labels[best]})
+</script>
+
+<script>
+var S = { exped: 0, bestRMSE: null, bestSpec: null, lastRMSE: null, asked: false, locked: null, mc: null };
+var BENCH = { naive: 0.310, oracle: 0.226 };
+function features() {
+  var f = [];
+  if (el('f-exp2').checked) { f.push('"exp2"'); }
+  if (el('f-educ').checked) { f.push('"educ"'); }
+  if (el('f-int').checked) { f.push('"int"'); }
+  if (el('f-p5').checked) { f.push('"p5"'); }
+  if (el('f-p9').checked) { f.push('"p9"'); }
+  return '[' + f.join(',') + ']';
+}
+function labInit() {
+  el('shoot').onclick = function () {
+    setStatus('st1', PY.pyodide ? 'on safari...' : 'loading Python (~10s first time)...');
+    callPy('safari(' + features() + ')').then(function (res) {
+      var d = res.data;
+      S.exped = d.n_exped; S.lastRMSE = d.test_rmse;
+      if (S.bestRMSE === null || d.test_rmse < S.bestRMSE) { S.bestRMSE = d.test_rmse; S.bestSpec = d.names.join(', '); }
+      el('hud1').textContent = S.exped;
+      el('hud2').textContent = S.bestRMSE;
+      var tr = Math.round(100 * d.train_r2);
+      el('mtrain').style.width = tr + '%'; el('mtrainv').textContent = 'R2 ' + d.train_r2;
+      var tfit = Math.max(0, Math.min(100, Math.round(100 * (BENCH.naive - d.test_rmse) / (BENCH.naive - BENCH.oracle))));
+      el('mtest').style.width = tfit + '%';
+      el('mtest').className = 'fill' + (tfit < 35 ? ' hot' : '');
+      el('mtestv').textContent = 'RMSE ' + d.test_rmse;
+      renderOut('out1', [
+        'expedition #' + d.n_exped + '   regressors: ' + d.names.join(', '),
+        'train R2 ' + d.train_r2 + '   held-out test RMSE ' + d.test_rmse,
+        'best test RMSE so far: ' + S.bestRMSE
+      ], res.figs, ['Left meter only rises with complexity. Right meter is the one a forecaster gets paid on.']);
+      el('lock').disabled = false;
+      setStatus('st1', '');
+    }).then(null, function (e) { fail('out1', 'st1', e); });
+  };
+  el('ranger').onclick = function () {
+    setStatus('st1', 'the ranger surveys all specs by 5-fold CV...');
+    callPy('ranger()').then(function (res) {
+      var d = res.data;
+      S.asked = true;
+      renderOut('out1', [
+        'RANGER: cross-validated RMSE by specification:',
+        '  ' + d.cv.join('   '),
+        'recommendation: "' + d.best_label + '" - structure yes, noise no.'
+      ], res.figs, ['CV reproduces the held-out verdict without ever touching the test set.']);
+      setStatus('st1', '');
+    }).then(null, function (e) { fail('out1', 'st1', e); });
+  };
+  el('lock').onclick = function () {
+    if (S.lastRMSE === null) { return; }
+    var pts = Math.max(0, Math.min(100, Math.round(100 * (BENCH.naive - S.lastRMSE) / (BENCH.naive - BENCH.oracle))));
+    S.locked = pts;
+    setStatus('st1', 'trophy mounted at test RMSE ' + S.lastRMSE + ' -> ' + pts + ' pts');
+    maybeFinish();
+  };
+  var labels = el('mcq1').getElementsByTagName('label');
+  for (var m = 0; m < labels.length; m++) {
+    labels[m].onclick = function () {
+      if (S.mc !== null) { return; }
+      var pick = parseInt(this.getAttribute('data-i'), 10);
+      if (pick === 1) { this.className = 'correct'; S.mc = 100; }
+      else { this.className = 'wrong'; labels[1].className = 'correct'; S.mc = 40; }
+      maybeFinish();
+    };
+  }
+}
+function maybeFinish() {
+  if (S.locked === null || S.mc === null || S.exped < 3) { return; }
+  var final = Math.round(0.6 * S.locked + 0.4 * S.mc);
+  showFinal(final, 'Trophy ' + S.locked + ' | Overfitting lesson ' + (S.mc === 100 ? 'landed' : 'partial') + ' | ' + S.exped + ' expeditions',
+            { locked: S.locked, mc: S.mc, exped: S.exped });
+}
+</script>
+<script type="text/x-python" id="lab-prelude">
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import io, base64
+plt.rcParams["figure.facecolor"] = "#1E1A3E"; plt.rcParams["axes.facecolor"] = "#1E1A3E"
+plt.rcParams["savefig.facecolor"] = "#1E1A3E"; plt.rcParams["text.color"] = "#E8E6F5"
+plt.rcParams["axes.labelcolor"] = "#A9A5C9"; plt.rcParams["xtick.color"] = "#A9A5C9"
+plt.rcParams["ytick.color"] = "#A9A5C9"; plt.rcParams["axes.edgecolor"] = "#2A2550"
+plt.rcParams["axes.prop_cycle"] = matplotlib.cycler(color=["#19C3B2","#FBBF24","#7C5CFF","#FF6B6B","#94A3B8"])
+plt.rcParams["legend.facecolor"] = "#161330"; plt.rcParams["grid.color"] = "#2A2550"
+def __figs():
+    out = []
+    for num in plt.get_fignums():
+        fig = plt.figure(num); buf = io.BytesIO()
+        fig.savefig(buf, format="png", dpi=110, bbox_inches="tight")
+        out.append(base64.b64encode(buf.getvalue()).decode("ascii"))
+    plt.close("all"); return out
+</script>
+<script>
+/* ===== shared Lab runtime (inlined eq-progress pattern) - Safari-safe ===== */
+var EQ_SUPABASE_URL = 'PASTE_NEW_PROJECT_URL';
+var EQ_SUPABASE_ANON_KEY = 'PASTE_NEW_ANON_KEY';
+var DEV_PREVIEW = true;
+var SUPER_ADMIN_EMAIL = 'sharmaaa9@yahoo.com';
+var STRIPE_LINK = 'https://buy.stripe.com/8x2cMYbjfcsk2ON7se5ZC01';
+var LAB_ID = 'model-zoo';
+var LAB_FREE = false;
+var PYODIDE_URL = 'https://cdn.jsdelivr.net/pyodide/v0.29.4/full/pyodide.js';
+var PY_PACKAGES = ['numpy', 'pandas', 'scipy', 'matplotlib', 'statsmodels'];
+
+var PY = { pyodide: null, promise: null };
+var SB = null, SESSION = null, BEST = -1;
+
+function el(id) { return document.getElementById(id); }
+function setStatus(id, txt, err) { var s = el(id); if (s) { s.textContent = txt; s.className = 'status' + (err ? ' err' : ''); } }
+function setPyState(t) { var s = el('pystate'); if (s) { s.textContent = 'Python: ' + t; } }
+function showLoad(p) { var lb = el('loadbar'); if (!lb) { return; } lb.className = p < 100 ? 'loadbar show' : 'loadbar'; el('loadfill').style.width = p + '%'; }
+function escapeHTML(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function loadScript(src) {
+  return new Promise(function (resolve, reject) {
+    var s = document.createElement('script'); s.src = src;
+    s.onload = function () { resolve(true); };
+    s.onerror = function () { reject(new Error('Could not load ' + src)); };
+    document.head.appendChild(s);
+  });
+}
+function ensurePy() {
+  if (PY.promise) { return PY.promise; }
+  setPyState('downloading'); showLoad(10);
+  PY.promise = loadScript(PYODIDE_URL).then(function () {
+    setPyState('starting'); showLoad(30);
+    return window.loadPyodide();
+  }).then(function (py) {
+    PY.pyodide = py;
+    setPyState('loading numpy + statsmodels'); showLoad(55);
+    return py.loadPackage(PY_PACKAGES).then(function () { return py; });
+  }).then(function (py) {
+    setPyState('preparing the lab'); showLoad(85);
+    var pre = document.getElementById('lab-prelude').textContent;
+    var mod = document.getElementById('lab-module').textContent;
+    return py.runPythonAsync(pre).then(function () { return py.runPythonAsync(mod); }).then(function () { setPyState('ready'); showLoad(100); return py; });
+  });
+  PY.promise = PY.promise.then(null, function (err) {
+    PY.promise = null; setPyState('failed - retry your last action'); showLoad(100); throw err;
+  });
+  return PY.promise;
+}
+function callPy(expr) {
+  return ensurePy().then(function (py) {
+    return py.runPythonAsync(expr).then(function (res) {
+      var data = res ? JSON.parse(res) : {};
+      var figs = py.runPython('__figs()');
+      var arr = figs ? figs.toJs() : [];
+      if (figs && figs.destroy) { figs.destroy(); }
+      return { data: data, figs: arr };
+    });
+  });
+}
+function renderOut(target, lines, figs, caps) {
+  var html = '';
+  if (lines && lines.length) { html += '<pre class="reg-table">' + escapeHTML(lines.join('\n')) + '</pre>'; }
+  for (var i = 0; i < (figs ? figs.length : 0); i++) {
+    html += '<div class="figure-card"><img alt="lab figure" src="data:image/png;base64,' + figs[i] + '">';
+    if (caps && caps[i]) { html += '<div class="cap">' + caps[i] + '</div>'; }
+    html += '</div>';
+  }
+  el(target).innerHTML = html;
+}
+function fail(target, statusId, err) {
+  setStatus(statusId, 'error', true);
+  el(target).innerHTML = '<pre class="reg-table" style="color:#FF9B9B">' + escapeHTML(err && err.message ? err.message : String(err)) + '</pre>';
+}
+/* live progress reporting: report DURING play whenever the score improves */
+function reportScore(score, detail) {
+  if (score <= BEST) { return; }
+  BEST = score;
+  try { window.localStorage.setItem('eq_lab_' + LAB_ID, JSON.stringify({ score: score, detail: detail, at: new Date().toISOString() })); } catch (e) {}
+  var sm = el('savemsg'); if (sm) { sm.textContent = ''; }
+  if (SB && SESSION) {
+    SB.from('eq_lab_results').insert({ student_id: SESSION.user.id, lab_id: LAB_ID, score: score, details: detail })
+      .then(function () { if (sm) { sm.textContent = ' and to your course record'; } });
+  }
+}
+function showFinal(score, detailText, detailObj) {
+  el('finalscore').textContent = score;
+  el('scoredetail').textContent = detailText;
+  el('scorecard').className = 'scorecard show';
+  var db = el('debrief'); if (db) { db.className = 'debrief show'; }
+  reportScore(score, detailObj);
+}
+function resolveGate() {
+  var buy = el('gate-buy'); if (buy) { buy.href = STRIPE_LINK; }
+  if (LAB_FREE || DEV_PREVIEW) { return; }
+  if (EQ_SUPABASE_URL.indexOf('http') !== 0 || !window.supabase) { el('gate').className = 'show'; return; }
+  SB = window.supabase.createClient(EQ_SUPABASE_URL, EQ_SUPABASE_ANON_KEY);
+  SB.auth.getSession().then(function (r) {
+    SESSION = (r && r.data && r.data.session) ? r.data.session : null;
+    if (!SESSION) { el('gate').className = 'show'; return; }
+    if (String(SESSION.user.email).toLowerCase() === SUPER_ADMIN_EMAIL) { return; }
+    SB.from('eq_profiles').select('role').eq('id', SESSION.user.id).maybeSingle().then(function (pr) {
+      var role = (pr && pr.data && pr.data.role) ? pr.data.role : 'student';
+      if (role === 'instructor' || role === 'admin') { return; }
+      SB.from('eq_subscriptions').select('id').eq('student_id', SESSION.user.id).eq('status', 'active').limit(1)
+        .then(function (s) { if (!(s && s.data && s.data.length)) { el('gate').className = 'show'; } });
+    });
+  });
+}
+function bootLab() {
+  resolveGate();
+  if (window.labInit) { window.labInit(); }
+}
+if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', bootLab); } else { bootLab(); }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</body>
+</html>
