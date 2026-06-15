@@ -151,6 +151,7 @@ td.num,th.num{text-align:right;font-family:var(--mono)}
     <button class="btn block" id="au-go" onclick="doAuth()">Sign in</button>
     <div class="msg" id="au-msg"></div>
     <div class="note" style="margin-top:14px">The full course is a one-time <b>$25</b>. Chapters 1&ndash;2 and the Least-Squares Archer lab are free to explore.</div>
+    <div style="margin-top:12px;text-align:center"><a href="#" onclick="closeAuth();return false;" style="color:#8b93a7;font-size:13px;text-decoration:none">&larr; Keep browsing without an account</a></div>
   </div>
 </div>
 
@@ -255,6 +256,19 @@ function isSuperAdmin(){ return SESSION && SESSION.user && String(SESSION.user.e
 function roleOf(){ if(isSuperAdmin()){ return 'admin'; } return (PROFILE && PROFILE.role) ? PROFILE.role : 'student'; }
 function isStaff(){ var r = roleOf(); return r === 'instructor' || r === 'admin'; }
 function isAdmin(){ return roleOf() === 'admin'; }
+function isAnon(){ return !!(SESSION && SESSION.user && SESSION.user.is_anonymous === true); }
+
+/* ---- soft wall: dismissible auth overlay (Duolingo-style) ---- */
+function openAuth(mode){ if(!initClient()){ return; } if(mode){ setAuthTab(mode); } show('auth'); window.scrollTo(0,0); }
+function closeAuth(){ hide('auth'); if(el('app')){ el('app').classList.add('on'); } }
+function softWallHTML(title, body){
+  return '<div class="panel"><h2>' + esc(title) + '</h2><p>' + esc(body) + '</p>' +
+    '<div class="row" style="gap:10px;margin-top:14px;flex-wrap:wrap">' +
+    '<button class="btn gold" onclick="openAuth(\'signup\')">Create free account</button>' +
+    '<button class="btn ghost" onclick="openAuth(\'login\')">Sign in</button>' +
+    '<a class="btn ghost" href="#chapters">Keep browsing</a></div>' +
+    '<div class="note" style="margin-top:10px">Anything you have already explored stays saved to your new account.</div></div>';
+}
 
 /* ---- auth tab UI ---- */
 function setAuthTab(t){
@@ -305,48 +319,48 @@ function doAuth(){
     el('au-go').disabled = false;
     setMsg('au-msg','Professor accounts require an academic email address.','err'); return;
   }
+  if(isAnon()){
+    /* lossless upgrade: convert the anonymous user, preserving uid + all progress */
+    setMsg('au-msg','Saving your progress and creating your account\u2026');
+    SB.auth.updateUser({ email: email, password: pass }).then(function(r){
+      if(r.error){ el('au-go').disabled = false; setMsg('au-msg', r.error.message, 'err'); return; }
+      provisionAccount(SESSION.user.id, email, name).then(function(){
+        el('au-go').disabled = false;
+        closeAuth();
+        boot();   /* reload as the now-permanent user (email confirmation may be pending) */
+      });
+    });
+    return;
+  }
+  /* fresh signup (used only if anonymous sign-in is unavailable) */
   setMsg('au-msg','Creating your account\u2026');
   SB.auth.signUp({ email: email, password: pass }).then(function(r){
     if(r.error){ el('au-go').disabled = false; setMsg('au-msg', r.error.message, 'err'); return; }
     var uid = r.data && r.data.user ? r.data.user.id : null;
     if(!uid){ el('au-go').disabled = false; setMsg('au-msg','Check your email to confirm, then sign in.','ok'); return; }
-    /* profile row: role is 'student' unless instructor requested.
-       Instructors are created as 'student' and request access (granted later);
-       super-admin email is elevated by the SQL console grant. */
-    var prof = { id: uid, email: email, full_name: name, role: 'student' };
-    if(signupRole === 'instructor'){ prof.institution = el('au-inst').value.trim(); }
-    SB.from('eq_profiles').upsert(prof).then(function(){
-      var after = function(){
-        if(signupRole === 'instructor'){
-          var hasSession = !!(r.data && r.data.session);
-          var inst = el('au-inst').value.trim();
-          if(hasSession){
-            /* session present (auto-confirm): the edge fn records the request AND
-               emails the platform owner via Resend. */
-            callEdge('eq-notify-prof-request', { email: email, full_name: name, institution: inst })
-              .then(function(res){
-                if(res && res.error){
-                  /* fall back to a durable direct insert so the request is never lost */
-                  SB.from('eq_access_requests').insert({ email: email, full_name: name, institution: inst, message: 'Self-service signup request' }).then(function(){ finishSignup(email, pass); });
-                } else { finishSignup(email, pass); }
-              });
-          } else {
-            /* email-confirmation pending: no JWT yet, so record directly.
-               (Admin sees it in the Instructors queue; wire a DB webhook on
-               eq_access_requests INSERT to notify-prof-request for email alerts.) */
-            SB.from('eq_access_requests').insert({
-              email: email, full_name: name, institution: inst,
-              message: 'Self-service signup request'
-            }).then(function(){ finishSignup(email, pass); });
-          }
-        } else {
-          var code = el('au-join').value.trim().toUpperCase();
-          if(code){ joinByCode(uid, code).then(function(){ finishSignup(email, pass); }); }
-          else { finishSignup(email, pass); }
+    provisionAccount(uid, email, name).then(function(){ finishSignup(email, pass); });
+  });
+}
+function provisionAccount(uid, email, name){
+  /* profile row: role is 'student' unless instructor requested. Instructors are
+     created as 'student' and request access (granted later); the super-admin email
+     is elevated by the SQL console grant. Returns a Promise. */
+  var prof = { id: uid, email: email, full_name: name, role: 'student' };
+  if(signupRole === 'instructor'){ prof.institution = el('au-inst').value.trim(); }
+  return SB.from('eq_profiles').upsert(prof).then(function(){
+    if(signupRole === 'instructor'){
+      var inst = el('au-inst').value.trim();
+      return callEdge('eq-notify-prof-request', { email: email, full_name: name, institution: inst }).then(function(res){
+        if(res && res.error){
+          /* durable fallback so the request is never lost */
+          return SB.from('eq_access_requests').insert({ email: email, full_name: name, institution: inst, message: 'Self-service signup request' });
         }
-      };
-      after();
-    });
+        return null;
+      });
+    }
+    var code = el('au-join').value.trim().toUpperCase();
+    if(code){ return joinByCode(uid, code); }
+    return null;
   });
 }
 function finishSignup(email, pass){
@@ -362,7 +376,7 @@ function joinByCode(uid, code){
     if(c && c.data && c.data.id){
       return SB.from('eq_enrollments').upsert({ course_id: c.data.id, student_id: uid }, { onConflict: 'course_id,student_id' });
     }
-    return null;
+    return { error: { message: 'That join code was not found.' } };
   });
 }
 function doLogout(){ SB.auth.signOut().then(function(){ location.hash=''; location.reload(); }); }
@@ -373,13 +387,22 @@ function boot(){
   if(!initClient()){ return; }
   SB.auth.getSession().then(function(r){
     SESSION = (r && r.data && r.data.session) ? r.data.session : null;
-    if(!SESSION){ el('app').classList.remove('on'); show('auth'); return; }
-    loadProfile().then(function(){
-      hide('auth'); el('app').classList.add('on');
-      renderWho(); renderNav();
-      if(!location.hash){ location.hash = '#home'; }
-      route();
+    if(SESSION){ continueBoot(); return; }
+    /* browse-first: start an anonymous session so visitors can explore the menu
+       without signing up. Requires "Allow anonymous sign-ins" enabled in Supabase. */
+    SB.auth.signInAnonymously().then(function(a){
+      SESSION = (a && a.data && a.data.session) ? a.data.session : null;
+      if(!SESSION){ el('app').classList.remove('on'); show('auth'); return; }
+      continueBoot();
     });
+  });
+}
+function continueBoot(){
+  loadProfile().then(function(){
+    hide('auth'); el('app').classList.add('on');
+    renderWho(); renderNav();
+    if(!location.hash){ location.hash = '#home'; }
+    route();
   });
 }
 function loadProfile(){
@@ -409,11 +432,33 @@ function loadProfile(){
 }
 
 function renderWho(){
+  if(isAnon()){
+    el('who').innerHTML = '<b>Browsing as guest</b><span>Create an account to save your progress</span>' +
+      '<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">' +
+      '<button class="btn gold sm" onclick="openAuth(\'signup\')">Create account</button>' +
+      '<button class="btn ghost sm" onclick="openAuth(\'login\')">Sign in</button></div>';
+    return;
+  }
   var r = roleOf();
   var label = r==='admin' ? 'Super-admin' : (r==='instructor' ? 'Instructor' : 'Student');
+  var joinLink = (r==='student' && !COURSE) ? ' \u00b7 <a href="#" onclick="promptJoinCourse();return false;" style="color:var(--teal,#19C3B2);text-decoration:none">join a course</a>' : '';
   el('who').innerHTML = '<b>' + esc(PROFILE.full_name || SESSION.user.email) + '</b>' +
-    esc(label) + (COURSE ? ' \u00b7 ' + esc(COURSE.title) : (r==='student' ? ' \u00b7 independent' : '')) +
+    esc(label) + (COURSE ? ' \u00b7 ' + esc(COURSE.title) : (r==='student' ? ' \u00b7 independent' + joinLink : '')) +
     '<div style="margin-top:8px"><button class="btn ghost sm" onclick="doLogout()">Sign out</button></div>';
+}
+function promptJoinCourse(){
+  openModal('<h2>Join a course</h2><p class="note">Enter the join code from your professor to attach your account to their course. Your existing progress is kept.</p>' +
+    '<div class="field"><input id="jc-code" type="text" maxlength="8" placeholder="e.g. 4F9A2C" style="text-transform:uppercase"></div>' +
+    '<div class="row" style="gap:10px;margin-top:10px"><button class="btn gold" onclick="doJoinCourse()">Join</button>' +
+    '<button class="btn ghost" onclick="closeModal()">Cancel</button></div><div class="msg" id="jc-msg"></div>');
+}
+function doJoinCourse(){
+  var code = el('jc-code').value.trim().toUpperCase();
+  if(!code){ setMsg('jc-msg','Enter a join code.','err'); return; }
+  joinByCode(SESSION.user.id, code).then(function(res){
+    if(res && res.error){ setMsg('jc-msg', res.error.message, 'err'); return; }
+    closeModal(); boot();
+  });
 }
 
 var NAV_GROUPS = [
@@ -485,6 +530,11 @@ function route(){
   if(base.indexOf('lab/') === 0){ launchLab(base.slice(4)); return; }
   if(!ROUTES[base]){ base = 'home'; }
   if(!viewAllowed(base) && base !== 'home'){ el('view').innerHTML = msgPanel('Not available','That section is not available for your role.'); markNav(''); return; }
+  if(isAnon() && (base==='practice' || base==='exams' || base==='progress' || base==='certificate')){
+    markNav(base); window.scrollTo(0,0);
+    el('view').innerHTML = softWallHTML('Create a free account', 'Sign up to track your progress, practice with the question bank, and take exams \u2014 it is free, and anything you have already explored is saved to your new account.');
+    return;
+  }
   markNav(base);
   el('view').scrollTop = 0; window.scrollTo(0,0);
   ROUTES[base](hash);
@@ -505,6 +555,8 @@ function launchLab(slug){
   hasPaidAccess().then(function(paid){
     if(labUnlocked(slug, paid)){
       location.replace(labFile(slug));   /* same tab, same origin: Supabase session carries over */
+    } else if(isAnon()){
+      el('view').innerHTML = softWallHTML('Unlock the full course', 'This arena is part of the full course. Create a free account (your progress is saved), then unlock everything for a one-time $25.');
     } else {
       el('view').innerHTML = '<div class="panel"><h2>This arena is locked</h2>' +
         '<p>It is part of the full course. Unlock all chapters and Labs for $25.</p>' +
