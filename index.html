@@ -1694,7 +1694,7 @@ function savePlatform(){
     stripe_link:el('pf-link').value.trim(), notify_email:el('pf-notify').value.trim(),
     author_photo_url:el('pf-photo').value.trim(), author_bio:el('pf-bio').value.trim() };
   setMsg('pf-msg','Saving\u2026');
-  SB.from('eq_platform_settings').upsert(rec, { onConflict:'id' }).then(function(res){
+  SB.from('eq_platform_settings').update(rec).eq('id',1).then(function(res){
     if(res.error){ setMsg('pf-msg', res.error.message,'err'); return; }
     SETTINGS = rec; if(rec.stripe_link){ STRIPE_LINK = rec.stripe_link; }
     setMsg('pf-msg','Saved.','ok');
