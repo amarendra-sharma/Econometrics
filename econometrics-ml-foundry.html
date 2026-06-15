@@ -263,9 +263,9 @@ def stage3(model, aidx):
 </script>
 <script>
 /* ML Foundry app - Safari-safe (var, no optional chaining, no nullish coalescing, no template literals) */
-var EQ_SUPABASE_URL = 'PASTE_NEW_PROJECT_URL';
-var EQ_SUPABASE_ANON_KEY = 'PASTE_NEW_ANON_KEY';
-var DEV_PREVIEW = true;
+var EQ_SUPABASE_URL = 'https://rtaiivegcqqmdchpguzn.supabase.co';
+var EQ_SUPABASE_ANON_KEY = 'sb_publishable_KCPCMiKYQoEUgG45DVF5uA_ke-UxQKm';
+var DEV_PREVIEW = false;
 var PYODIDE_URL = 'https://cdn.jsdelivr.net/pyodide/v0.29.4/full/pyodide.js';
 
 var PY = { pyodide: null, promise: null };
@@ -468,6 +468,6 @@ el('run3').onclick = function () {
   }).then(null, function (e) { fail('out3', 'st3', e); });
 };
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </body>
 </html>

@@ -176,15 +176,15 @@ td.num,th.num{text-align:right;font-family:var(--mono)}
 <!-- certificate print host -->
 <div id="cert-print"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 /* ============================================================
    Econometrics unified app - Safari-safe front-end dialect
    (no optional chaining, no nullish coalescing, no template literals)
    ============================================================ */
-var EQ_SUPABASE_URL = 'PASTE_NEW_PROJECT_URL';
-var EQ_SUPABASE_ANON_KEY = 'PASTE_NEW_ANON_KEY';
-var DEV_PREVIEW = true;
+var EQ_SUPABASE_URL = 'https://rtaiivegcqqmdchpguzn.supabase.co';
+var EQ_SUPABASE_ANON_KEY = 'sb_publishable_KCPCMiKYQoEUgG45DVF5uA_ke-UxQKm';
+var DEV_PREVIEW = false;
 var SUPER_ADMIN_EMAIL = 'sharmaaa9@yahoo.com';
 var STRIPE_LINK = 'https://buy.stripe.com/8x2cMYbjfcsk2ON7se5ZC01';
 var CURRICULUM_FILE = 'econometrics-curriculum.html';
@@ -323,7 +323,7 @@ function doAuth(){
           if(hasSession){
             /* session present (auto-confirm): the edge fn records the request AND
                emails the platform owner via Resend. */
-            callEdge('notify-prof-request', { email: email, full_name: name, institution: inst })
+            callEdge('eq-notify-prof-request', { email: email, full_name: name, institution: inst })
               .then(function(res){
                 if(res && res.error){
                   /* fall back to a durable direct insert so the request is never lost */
@@ -527,7 +527,7 @@ function chapterUnlocked(ch, paid){ return FREE_CHAPTERS.indexOf(ch) >= 0 || pai
 function labUnlocked(slug, paid){ return FREE_LABS.indexOf(slug) >= 0 || paid; }
 function subscribeUrl(){
   var cid = COURSE ? COURSE.id : '';
-  return STRIPE_LINK + '?client_reference_id=' + encodeURIComponent(SESSION.user.id + '|' + cid);
+  return STRIPE_LINK + '?client_reference_id=' + encodeURIComponent('eq|' + SESSION.user.id + '|' + cid);
 }
 /* ============================================================
    LEARN: Home, Chapters, Labs, Practice
@@ -658,7 +658,7 @@ function newPractice(){
     if(!ids.length){ el('pr-host').innerHTML = msgPanel('No items yet','No practice questions are seeded for this chapter.'); return; }
     var pick = ids[Math.floor(Math.random()*ids.length)];
     /* issue via the edge function so params are server-seeded and no key leaks */
-    callEdge('grade-attempt', { action:'issue', item_ids:[pick] }).then(function(res){
+    callEdge('eq-grade-attempt', { action:'issue', item_ids:[pick] }).then(function(res){
       if(res.error || !res.items || !res.items.length){ el('pr-host').innerHTML = msgPanel('Error', res.error || 'Could not issue a question.'); return; }
       practiceState = { items: res.items, idx: 0, picks: {} };
       renderPractice();
@@ -696,7 +696,7 @@ function prCheck(){
   var val = el('pr-val') ? el('pr-val').value : '';
   if(val === '' || val == null){ el('pr-result').innerHTML = '<span class="note">Enter an answer first.</span>'; return; }
   el('pr-result').innerHTML = '<span class="spin"></span> Checking\u2026';
-  callEdge('grade-attempt', { action:'grade', answers:[{ item_id: it.item_id, attempt_no: it.attempt_no, value: String(val) }] }).then(function(res){
+  callEdge('eq-grade-attempt', { action:'grade', answers:[{ item_id: it.item_id, attempt_no: it.attempt_no, value: String(val) }] }).then(function(res){
     if(res.error){ el('pr-result').innerHTML = '<span class="msg err">' + esc(res.error) + '</span>'; return; }
     var g = res.graded && res.graded[0] ? res.graded[0] : {};
     if(g.status === 'pending_instructor_review'){
@@ -766,7 +766,7 @@ function vExams(){
 }
 function startExam(examId){
   el('view').innerHTML = '<div class="panel"><span class="spin"></span> Issuing your exam\u2026</div>';
-  callEdge('grade-attempt', { action:'issue', exam_id: examId }).then(function(res){
+  callEdge('eq-grade-attempt', { action:'issue', exam_id: examId }).then(function(res){
     if(res.error || !res.exam){ el('view').innerHTML = msgPanel('Cannot start', res.error || 'Issue failed'); return; }
     var items = res.items.slice();
     if(res.exam.shuffle_questions){ items = shuffle(items); }
@@ -853,7 +853,7 @@ function exSubmit(auto){
     answers.push({ item_id: it.item_id, attempt_no: it.attempt_no, value: (v==null?'':String(v)) });
   }
   el('view').innerHTML = '<div class="panel"><span class="spin"></span> ' + (auto?'Time up \u2014 ':'') + 'Grading\u2026</div>';
-  callEdge('grade-attempt', { action:'grade', course_id: COURSE.id, exam_id: s.examId, answers: answers }).then(function(res){
+  callEdge('eq-grade-attempt', { action:'grade', course_id: COURSE.id, exam_id: s.examId, answers: answers }).then(function(res){
     if(res.error){ el('view').innerHTML = msgPanel('Submission error', res.error); return; }
     var autoPossible = 0, autoEarned = 0, pending = res.pending_review || 0;
     var g = res.graded || [];
@@ -1510,7 +1510,7 @@ function renderPending(){
 }
 function gwPropose(attemptId){
   setMsg('gw-msg-' + attemptId, 'Asking the model\u2026');
-  callEdge('ai-grade', { action:'propose', attempt_id: attemptId }).then(function(res){
+  callEdge('eq-ai-grade', { action:'propose', attempt_id: attemptId }).then(function(res){
     if(res.error){ setMsg('gw-msg-' + attemptId, res.error + (res._status?(' [' + res._status + ']'):''), 'err'); return; }
     if(el('sc-' + attemptId)){ el('sc-' + attemptId).value = res.ai_score; }
     if(el('fb-' + attemptId)){ el('fb-' + attemptId).value = res.ai_feedback||''; }
@@ -1529,7 +1529,7 @@ function gwFinalize(attemptId, maxPts){
   if(sc===''||sc==null){ setMsg('gw-msg-' + attemptId, 'Enter a score first.', 'err'); return; }
   var fb = el('fb-' + attemptId) ? el('fb-' + attemptId).value : '';
   setMsg('gw-msg-' + attemptId, 'Finalizing\u2026');
-  callEdge('ai-grade', { action:'finalize', attempt_id: attemptId, points: num(sc), feedback: fb }).then(function(res){
+  callEdge('eq-ai-grade', { action:'finalize', attempt_id: attemptId, points: num(sc), feedback: fb }).then(function(res){
     if(res.error){ setMsg('gw-msg-' + attemptId, res.error + (res._status?(' [' + res._status + ']'):''), 'err'); return; }
     var node = el('gw-' + attemptId); if(node){ node.style.opacity = '0.5'; }
     setMsg('gw-msg-' + attemptId, 'Graded: ' + num(sc) + '/' + maxPts + '. Recorded.', 'ok');
@@ -1683,7 +1683,7 @@ function vDiagnostics(){
   }).then(function(r){
     add('Grader-key status RPC', !r.error, r.error?r.error.message:('Key on file: ' + (r.data===true)));
     /* 5: edge function reachable (issue with empty -> expect structured error, not network fail) */
-    return callEdge('grade-attempt', { action:'issue', item_ids:[] });
+    return callEdge('eq-grade-attempt', { action:'issue', item_ids:[] });
   }).then(function(r){
     var reachable = !!(r && (r.ok || r.error));
     add('Edge function grade-attempt reachable', reachable, r.error?('Responded: ' + r.error):'Responded ok');
