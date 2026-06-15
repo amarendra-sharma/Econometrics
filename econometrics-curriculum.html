@@ -180,6 +180,10 @@ table.data td{padding:6px 14px;border:1px solid var(--line);color:var(--ink-dim)
 <div class="layout">
 <aside class="sidebar">
   <div class="brand"><span class="name">Econometrics</span><span class="tag">MacroNations</span></div>
+  <div class="side-section" style="display:flex;flex-direction:column;gap:7px">
+    <a href="index.html#chapters" style="color:var(--teal-bright);font-size:13px;text-decoration:none">&larr; Back to menu</a>
+    <a href="https://macronations.com" target="_blank" rel="noopener" style="color:var(--gold);font-size:13px;text-decoration:none;font-weight:600">MacroNations &#8599; all products</a>
+  </div>
   <ul class="navlist" id="navlist"></ul>
   <div class="side-section">
     <div class="side-label">Account</div>
@@ -2581,9 +2585,28 @@ var QUIZ = {
 /* ----------------- supabase + access ----------------- */
 var sb = null;
 var SESSION = null;
+var PRICE_LABEL = '';
 var ACCESS = { unlocked: DEV_PREVIEW, why: DEV_PREVIEW ? 'DEV preview' : 'free preview' };
 if (EQ_SUPABASE_URL.indexOf('http') === 0 && window.supabase) {
   sb = window.supabase.createClient(EQ_SUPABASE_URL, EQ_SUPABASE_ANON_KEY);
+  /* configurable price for the paywall (super-admin sets it in the app's Platform page) */
+  sb.from('eq_platform_settings').select('price_cents,currency,stripe_link').eq('id', 1).maybeSingle().then(function (r) {
+    if (r && r.data) {
+      if (r.data.stripe_link) { STRIPE_LINK = r.data.stripe_link; }
+      var cents = (r.data.price_cents != null) ? r.data.price_cents : 2500;
+      var cur = r.data.currency || 'usd';
+      var sym = cur.toLowerCase() === 'usd' ? '$' : (cur.toUpperCase() + ' ');
+      var d = cents / 100;
+      PRICE_LABEL = sym + ((d % 1 === 0) ? String(d) : d.toFixed(2));
+      applyPriceToPaywalls();
+    }
+  });
+}
+function applyPriceToPaywalls() {
+  var amts = document.querySelectorAll('.paywall .price-amt');
+  for (var i = 0; i < amts.length; i++) { amts[i].textContent = PRICE_LABEL ? (' of ' + PRICE_LABEL) : ''; }
+  var links = document.querySelectorAll('.paywall a.btn');
+  for (var j = 0; j < links.length; j++) { links[j].href = STRIPE_LINK; }
 }
 function isUnlocked(ch) {
   if (FREE_CHAPTERS[ch]) { return true; }
@@ -2719,11 +2742,12 @@ function injectPaywalls() {
     pw.className = 'paywall';
     pw.innerHTML = '<h2>Chapter ' + i + ': ' + CH_TITLES[i] + '</h2>'
       + '<p>Chapters 1&ndash;2 are free. The full course &mdash; all 17 chapters, 14 interactive Labs, '
-      + 'practice, exams, and the completion certificate &mdash; is a one-time $25.</p>'
-      + '<p><a class="btn gold" href="' + STRIPE_LINK + '" target="_blank" rel="noopener">Unlock the full course &mdash; $25</a></p>'
+      + 'practice, exams, and the completion certificate &mdash; is a one-time payment<span class="price-amt"></span>.</p>'
+      + '<p><a class="btn gold" href="' + STRIPE_LINK + '" target="_blank" rel="noopener">Unlock the full course</a></p>'
       + '<p style="font-size:13px">Already purchased? Sign in with the email you used at checkout.</p>';
     art.appendChild(pw);
   }
+  applyPriceToPaywalls();
 }
 
 /* ----------------- KaTeX ----------------- */

@@ -150,7 +150,7 @@ td.num,th.num{text-align:right;font-family:var(--mono)}
     </div>
     <button class="btn block" id="au-go" onclick="doAuth()">Sign in</button>
     <div class="msg" id="au-msg"></div>
-    <div class="note" style="margin-top:14px">The full course is a one-time <b>$25</b>. Chapters 1&ndash;2 and the Least-Squares Archer lab are free to explore.</div>
+    <div class="note" style="margin-top:14px">The full course is a one-time payment of <b id="au-price">$25</b>. Chapters 1&ndash;2 and the Least-Squares Archer lab are free to explore.</div>
     <div style="margin-top:12px;text-align:center"><a href="#" onclick="closeAuth();return false;" style="color:#8b93a7;font-size:13px;text-decoration:none">&larr; Keep browsing without an account</a></div>
   </div>
 </div>
@@ -167,6 +167,10 @@ td.num,th.num{text-align:right;font-family:var(--mono)}
     </div>
     <nav id="nav"></nav>
     <div class="who" id="who"></div>
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;gap:6px">
+      <a href="#about" style="color:#8b93a7;font-size:13px;text-decoration:none">&#9998; About the author</a>
+      <a href="https://macronations.com" target="_blank" rel="noopener" style="color:#c9920a;font-size:13px;text-decoration:none;font-weight:600">&#8599; MacroNations &mdash; all products</a>
+    </div>
   </aside>
   <main class="main" id="view"></main>
 </div>
@@ -400,6 +404,7 @@ function boot(){
 function continueBoot(){
   loadProfile().then(function(){
     hide('auth'); el('app').classList.add('on');
+    if(el('au-price')){ el('au-price').textContent = priceStr(); }
     renderWho(); renderNav();
     if(!location.hash){ location.hash = '#home'; }
     route();
@@ -441,24 +446,10 @@ function renderWho(){
   }
   var r = roleOf();
   var label = r==='admin' ? 'Super-admin' : (r==='instructor' ? 'Instructor' : 'Student');
-  var joinLink = (r==='student' && !COURSE) ? ' \u00b7 <a href="#" onclick="promptJoinCourse();return false;" style="color:var(--teal,#19C3B2);text-decoration:none">join a course</a>' : '';
+  var joinLink = (r==='student' && !COURSE) ? ' \u00b7 <a href="#" onclick="openJoin();return false;" style="color:var(--teal,#19C3B2);text-decoration:none">join a course</a>' : '';
   el('who').innerHTML = '<b>' + esc(PROFILE.full_name || SESSION.user.email) + '</b>' +
     esc(label) + (COURSE ? ' \u00b7 ' + esc(COURSE.title) : (r==='student' ? ' \u00b7 independent' + joinLink : '')) +
     '<div style="margin-top:8px"><button class="btn ghost sm" onclick="doLogout()">Sign out</button></div>';
-}
-function promptJoinCourse(){
-  openModal('<h2>Join a course</h2><p class="note">Enter the join code from your professor to attach your account to their course. Your existing progress is kept.</p>' +
-    '<div class="field"><input id="jc-code" type="text" maxlength="8" placeholder="e.g. 4F9A2C" style="text-transform:uppercase"></div>' +
-    '<div class="row" style="gap:10px;margin-top:10px"><button class="btn gold" onclick="doJoinCourse()">Join</button>' +
-    '<button class="btn ghost" onclick="closeModal()">Cancel</button></div><div class="msg" id="jc-msg"></div>');
-}
-function doJoinCourse(){
-  var code = el('jc-code').value.trim().toUpperCase();
-  if(!code){ setMsg('jc-msg','Enter a join code.','err'); return; }
-  joinByCode(SESSION.user.id, code).then(function(res){
-    if(res && res.error){ setMsg('jc-msg', res.error.message, 'err'); return; }
-    closeModal(); boot();
-  });
 }
 
 var NAV_GROUPS = [
@@ -495,6 +486,7 @@ function viewAllowed(hash){
     for(var i=0;i<grp.items.length;i++){ if(grp.items[i].h === hash){ return true; } }
   }
   if(hash === 'certificate'){ return true; }
+  if(hash === 'about'){ return true; }
   return false;
 }
 function renderNav(){
@@ -518,7 +510,7 @@ function markNav(hash){
 
 var ROUTES = {
   'home':vHome, 'chapters':vChapters, 'labs':vLabs, 'practice':vPractice,
-  'exams':vExams, 'progress':vProgress, 'certificate':vCertificate,
+  'exams':vExams, 'progress':vProgress, 'certificate':vCertificate, 'about':vAbout,
   't-dashboard':vDashboard, 't-courses':vCourses, 't-roster':vRoster,
   't-gradebook':vGradebook, 't-analytics':vAnalytics, 't-exams':vExamAssembler,
   't-grade-written':vGradeWritten, 't-subscriptions':vSubscriptions, 't-diagnostics':vDiagnostics,
@@ -556,15 +548,24 @@ function launchLab(slug){
     if(labUnlocked(slug, paid)){
       location.replace(labFile(slug));   /* same tab, same origin: Supabase session carries over */
     } else if(isAnon()){
-      el('view').innerHTML = softWallHTML('Unlock the full course', 'This arena is part of the full course. Create a free account (your progress is saved), then unlock everything for a one-time $25.');
+      el('view').innerHTML = softWallHTML('Unlock the full course', 'This arena is part of the full course. Create a free account (your progress is saved), then unlock every chapter and Lab with a one-time payment of ' + priceStr() + '.');
     } else {
       el('view').innerHTML = '<div class="panel"><h2>This arena is locked</h2>' +
-        '<p>It is part of the full course. Unlock all chapters and Labs for $25.</p>' +
+        '<p>It is part of the full course \u2014 a one-time payment of ' + priceStr() + ' unlocks every chapter and Lab.</p>' +
         '<div class="row" style="gap:10px;margin-top:12px">' +
-        '<a class="btn gold" href="' + esc(subscribeUrl()) + '" target="_blank" rel="noopener">Unlock \u2014 $25</a>' +
+        '<a class="btn gold" href="' + esc(subscribeUrl()) + '" target="_blank" rel="noopener">Unlock the course</a>' +
         '<a class="btn ghost" href="#labs">Back to Labs</a></div></div>';
     }
   });
+}
+
+/* ---- configurable price (super-admin sets price_cents/currency in Platform) ---- */
+function priceStr(){
+  var cents = (SETTINGS && SETTINGS.price_cents != null) ? SETTINGS.price_cents : 2500;
+  var cur = (SETTINGS && SETTINGS.currency) ? String(SETTINGS.currency) : 'usd';
+  var sym = cur.toLowerCase()==='usd' ? '$' : (cur.toUpperCase() + ' ');
+  var d = cents/100;
+  return sym + ((d % 1 === 0) ? String(d) : d.toFixed(2));
 }
 
 /* ---- access checks for content ---- */
@@ -585,11 +586,17 @@ function subscribeUrl(){
    LEARN: Home, Chapters, Labs, Practice
    ============================================================ */
 function vHome(){
-  var name = (PROFILE.full_name || '').split(' ')[0] || 'there';
-  var html = '<div class="page-h">Welcome back, ' + esc(name) + '</div>';
-  html += '<div class="page-sub">Applied econometrics you learn by doing \u2014 17 chapters, 14 interactive Labs, real ' +
-          'Python under the hood.</div>';
-  if(roleOf()==='student' && !COURSE){
+  var guest = isAnon();
+  var name = (PROFILE.full_name || '').split(' ')[0] || '';
+  var html = (guest
+      ? '<div class="page-h">Econometrics you learn by doing</div>'
+      : '<div class="page-h">Welcome' + (name ? ', ' + esc(name) : '') + '</div>');
+  html += '<div class="page-sub">17 chapters, 14 interactive Labs, real Python under the hood \u2014 ' +
+          'from your first regression to double machine learning.</div>';
+  if(guest){
+    html += '<div class="banner">You\u2019re exploring as a guest. Chapters 1\u20132 and the Least-Squares Archer lab are open \u2014 ' +
+      '<button class="btn gold sm" onclick="openAuth(\'signup\')">create a free account</button> to save your progress.</div>';
+  } else if(roleOf()==='student' && !COURSE){
     html += '<div class="banner">You are exploring independently. Have a class join code? ' +
       '<button class="btn ghost sm" onclick="openJoin()">Join a course</button></div>';
   }
@@ -599,13 +606,33 @@ function vHome(){
     card('\u269B Labs', '14 original Labs. Start free with the Least-Squares Archer.', '#labs', 'Open') +
     card('\u270E Practice', 'Auto-generated questions, any chapter, unlimited.', '#practice', 'Open') +
     card('\u2606 My Progress', 'Track completion and earn your certificate at 70%.', '#progress', 'Open') +
+    card('\u2709 About the author', 'Meet the economist behind the course.', '#about', 'Read') +
     '</div>';
   el('view').innerHTML = html;
   hasPaidAccess().then(function(paid){
-    if(paid || roleOf()!=='student'){ return; }
+    if(paid || isStaff()){ return; }
     el('home-access').innerHTML = '<div class="banner">Free preview active \u2014 Chapters 1\u20132 and the Least-Squares Archer lab. ' +
-      '<a class="btn gold sm" href="' + esc(subscribeUrl()) + '" target="_blank" rel="noopener">Unlock everything \u2014 $25</a></div>';
+      (isAnon()
+        ? '<button class="btn gold sm" onclick="openAuth(\'signup\')">Create a free account</button>'
+        : '<a class="btn gold sm" href="' + esc(subscribeUrl()) + '" target="_blank" rel="noopener">Unlock the course</a>') +
+      '</div>';
   });
+}
+function vAbout(){
+  var photo = (SETTINGS && SETTINGS.author_photo_url) ? SETTINGS.author_photo_url : '';
+  var bio = (SETTINGS && SETTINGS.author_bio) ? SETTINGS.author_bio : '';
+  var html = '<div class="page-h">About the author</div>';
+  html += '<div style="display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start;margin-top:10px">';
+  if(photo){ html += '<img src="' + esc(photo) + '" alt="Author" style="width:170px;height:170px;border-radius:16px;object-fit:cover;border:1px solid var(--line)">'; }
+  html += '<div style="flex:1;min-width:260px">';
+  if(bio){
+    var paras = bio.split('\n');
+    for(var i=0;i<paras.length;i++){ if(paras[i].trim()){ html += '<p>' + esc(paras[i]) + '</p>'; } }
+  } else {
+    html += '<p class="page-sub">The author bio has not been added yet.' + (isAdmin() ? ' Add it in Platform &amp; Pricing.' : '') + '</p>';
+  }
+  html += '</div></div>';
+  el('view').innerHTML = html;
 }
 function card(title, body, href, cta){
   return '<div class="card"><h3>' + title + '</h3><p>' + esc(body) + '</p>' +
@@ -652,7 +679,7 @@ function vChapters(){
         '<p>' + esc(ch.subtitle || '') + '</p>' +
         '<div class="bar" style="margin-bottom:10px"><div class="fill" style="width:' + Math.min(100,p) + '%"></div></div>';
       if(unlocked){ html += '<a class="btn sm" href="' + CURRICULUM_FILE + '#chapter-' + ch.id + '" target="_blank" rel="noopener">Open chapter</a>'; }
-      else { html += '<a class="btn gold sm" href="' + esc(subscribeUrl()) + '" target="_blank" rel="noopener">Unlock \u2014 $25</a>'; }
+      else { html += '<a class="btn gold sm" href="' + esc(subscribeUrl()) + '" target="_blank" rel="noopener">Unlock the course</a>'; }
       html += '</div>';
     }
     html += '</div>';
@@ -680,7 +707,7 @@ function vLabs(){
       html += '<div class="card"><div class="row" style="justify-content:space-between"><span class="meta">Ch ' + lab.chapter + '</span>' + badge + '</div>' +
         '<h3 style="margin-top:6px">' + esc(lab.title) + '</h3>';
       if(unlocked){ html += '<a class="btn sm" href="' + labFile(lab.id) + '" target="_blank" rel="noopener">Launch lab</a>'; }
-      else { html += '<a class="btn gold sm" href="' + esc(subscribeUrl()) + '" target="_blank" rel="noopener">Unlock \u2014 $25</a>'; }
+      else { html += '<a class="btn gold sm" href="' + esc(subscribeUrl()) + '" target="_blank" rel="noopener">Unlock the course</a>'; }
       html += '</div>';
     }
     html += '</div>';
@@ -1651,7 +1678,12 @@ function vPlatform(){
       '<div class="field" style="flex:1"><label>Currency</label><input id="pf-cur" type="text" value="' + esc(s.currency||'usd') + '"></div></div>' +
       '<div class="field"><label>Stripe payment link</label><input id="pf-link" type="text" value="' + esc(s.stripe_link||'') + '"></div>' +
       '<div class="field"><label>Notification email</label><input id="pf-notify" type="email" value="' + esc(s.notify_email||'') + '"></div>' +
-      '<div class="field"><label>Author photo URL</label><input id="pf-photo" type="text" value="' + esc(s.author_photo_url||'') + '"></div>' +
+      '<div class="field"><label>Author photo</label><input id="pf-photo" type="text" placeholder="https://\u2026 or upload below" value="' + esc(s.author_photo_url||'') + '">' +
+        '<div class="row" style="gap:10px;margin-top:6px;align-items:center">' +
+        '<input id="pf-photo-file" type="file" accept="image/*">' +
+        '<button class="btn ghost sm" type="button" onclick="uploadPhoto()">Upload</button>' +
+        (s.author_photo_url ? '<img src="' + esc(s.author_photo_url) + '" alt="" style="width:44px;height:44px;border-radius:8px;object-fit:cover;border:1px solid var(--line)">' : '') +
+        '</div></div>' +
       '<div class="field"><label>Author bio</label><textarea id="pf-bio">' + esc(s.author_bio||'') + '</textarea></div>' +
       '<div class="msg" id="pf-msg"></div><div class="row"><button class="btn" onclick="savePlatform()">Save settings</button></div></div>';
     el('pf-host').innerHTML = html;
@@ -1666,6 +1698,20 @@ function savePlatform(){
     if(res.error){ setMsg('pf-msg', res.error.message,'err'); return; }
     SETTINGS = rec; if(rec.stripe_link){ STRIPE_LINK = rec.stripe_link; }
     setMsg('pf-msg','Saved.','ok');
+  });
+}
+
+function uploadPhoto(){
+  var fi = el('pf-photo-file');
+  if(!fi || !fi.files || !fi.files[0]){ setMsg('pf-msg','Choose an image file first.','err'); return; }
+  var f = fi.files[0];
+  var path = 'author/' + Date.now() + '_' + f.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  setMsg('pf-msg','Uploading\u2026');
+  SB.storage.from('eq-public').upload(path, f, { upsert:true, contentType: f.type }).then(function(r){
+    if(r.error){ setMsg('pf-msg','Upload failed: ' + r.error.message, 'err'); return; }
+    var pub = SB.storage.from('eq-public').getPublicUrl(path);
+    el('pf-photo').value = (pub && pub.data) ? pub.data.publicUrl : '';
+    setMsg('pf-msg','Uploaded. Click \u201cSave settings\u201d to apply.','ok');
   });
 }
 
