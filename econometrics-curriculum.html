@@ -58,6 +58,7 @@ h1{font-family:var(--serif);font-weight:400;font-size:42px;line-height:1.12;marg
 h2{font-family:var(--serif);font-weight:400;font-size:27px;margin:42px 0 12px;color:var(--ink)}
 h3{font-size:17px;font-weight:600;margin:26px 0 8px;color:var(--teal-bright)}
 p{margin:0 0 14px;color:var(--ink-dim)}
+.muted{color:var(--ink-faint);font-size:.93em}
 p strong,li strong{color:var(--ink)}
 ul.body,ol.body{margin:0 0 14px 22px;color:var(--ink-dim)}
 ul.body li,ol.body li{margin-bottom:6px}
@@ -103,6 +104,14 @@ details.soln summary{cursor:pointer;color:var(--violet);font-size:12.5px;font-we
 details.soln summary::-webkit-details-marker{display:none}
 details.soln summary::before{content:"\25B8 ";color:var(--violet)}
 details.soln[open] summary::before{content:"\25BE "}
+details.maths{background:rgba(25,195,178,.05);border:1px solid var(--line);border-left:3px solid var(--teal);border-radius:0 10px 10px 0;padding:8px 16px;margin:16px 0}
+details.maths summary{cursor:pointer;color:var(--teal-bright);font-size:12px;font-weight:600;list-style:none;font-family:var(--mono);letter-spacing:.05em;text-transform:uppercase}
+details.maths summary::-webkit-details-marker{display:none}
+details.maths summary::before{content:"\25B8 ";color:var(--teal-bright)}
+details.maths[open] summary::before{content:"\25BE ";color:var(--teal-bright)}
+details.maths .mbody{padding:10px 0 4px}
+.byod{background:rgba(124,92,255,.06);border:1px solid var(--line);border-left:3px solid var(--violet);border-radius:0 12px 12px 0;padding:14px 20px;margin:22px 0}
+.byod h3{margin:0 0 6px;color:var(--violet);font-size:15px}
 details.soln .sol-body{color:var(--ink-dim);font-size:13.5px;margin-top:8px;line-height:1.6}
 .arena-link{background:linear-gradient(135deg, rgba(124,92,255,.13), rgba(251,191,36,.07));border:1px solid rgba(124,92,255,.42);border-radius:14px;padding:16px 20px;margin:26px 0}
 .arena-link .al-label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;font-weight:700}
@@ -253,18 +262,34 @@ table.data td{padding:6px 14px;border:1px solid var(--line);color:var(--ink-dim)
 <p>The <em>ceteris paribus</em> (other things equal) effect of a variable on an outcome is the change in the outcome produced by a change in that variable while all other determinants of the outcome are held fixed. Estimating such an effect from observational data requires approximating the unobserved potential outcome of each treated unit using the observed outcomes of comparable untreated units.</p></div>
 <p>Every method in this book is a strategy for constructing such comparisons. Their validity rests on the comparability of the treated and untreated units in all respects other than the treatment &mdash; a requirement that the subsequent chapters make precise and, by various devices, attempt to satisfy.</p>
 
-<h2>1.5 Structures of economic data</h2>
+<h2>1.5 A first map of the strategies</h2>
+<p>It is worth seeing the whole map before studying any single route. The skill the rest of the book builds &mdash; and the one the <strong>Causal Courtroom</strong> arena asks you to practise &mdash; is recognising <em>which</em> strategy a given question calls for. You are not yet expected to estimate any of them; you only need to know, in plain terms, what each one does and the situation it fits. Five recur throughout.</p>
+<div class="assumptions"><div class="as-label">The five comparison strategies</div><ol>
+<li><b>Randomized controlled trial (RCT).</b> Decide who is treated by something like a coin flip. Randomization makes the treated and untreated groups comparable in <em>every</em> respect, observed and unobserved, so a plain difference in their average outcomes is already the causal effect. When a real experiment is possible it is the benchmark; the remaining four are devices for imitating it when randomization is not possible.</li>
+<li><b>Controlling for confounders.</b> When the two groups differ in <em>measured</em> characteristics, compare only units that share those characteristics &mdash; equivalently, put the characteristics into a regression as control variables. This removes the part of the gap explained by the controls, but is only as credible as the claim that the important confounders are observed. <span class="muted">(Chapters 2&ndash;6.)</span></li>
+<li><b>Instrumental variables (IV).</b> When a key confounder is <em>unobserved</em>, find a third variable &mdash; an instrument &mdash; that nudges the treatment but touches the outcome <em>only</em> through the treatment. The part of the treatment driven by that nudge is as good as random, and reveals the effect. <span class="muted">(Chapter 9.)</span></li>
+<li><b>Difference-in-differences (DiD).</b> When a treatment switches on for one group at a known date, compare the before-to-after change in that group with the change over the same window in a group that was never treated. Subtracting the untreated group's change nets out whatever was trending anyway. <span class="muted">(Chapter 12.)</span></li>
+<li><b>Regression discontinuity (RD).</b> When treatment is assigned by a sharp cutoff in some running variable &mdash; a scholarship granted just above a test-score threshold &mdash; compare units just above the cutoff with those just below. Being a hair apart on the score, they are otherwise nearly identical, so the jump in outcomes at the cutoff is the effect. <span class="muted">(Chapter 13.)</span></li>
+</ol></div>
+<p>These are not interchangeable. Each buys its credibility with a <em>different</em> assumption, and each suits some questions and not others. The Courtroom puts a causal claim on trial and asks you to call the strategy whose assumption is defensible for <em>that</em> claim &mdash; the judgement this entire book is about. You will return to each strategy in depth in its own chapter; for now, the goal is simply to tell them apart.</p>
+
+<h2>1.6 Structures of economic data</h2>
 <p>The applicable methods depend on the structure of the data, of which four recur throughout the book.</p>
 <div class="assumptions"><div class="as-label">Data structures</div><ol>
 <li><b>Cross-sectional data:</b> many units observed at a single point in time. The setting of Chapters 2&ndash;9 and 14.</li>
 <li><b>Time-series data:</b> a single unit observed at many points in time, in which the ordering of observations is informative. The setting of Chapters 15&ndash;16.</li>
 <li><b>Panel (longitudinal) data:</b> many units each observed at several points in time, permitting each unit to be compared with itself across time. The setting of Chapters 10&ndash;12.</li>
 <li><b>Pooled cross-sections:</b> independent cross-sectional samples drawn at different times, not following the same units. Employed in Chapter 12.</li>
-</ol></div><h2>1.6 Handling data in Python</h2>
+</ol></div><h2>1.7 Handling data in Python</h2>
 <p>The computations in this book use the <code>pandas</code> library for data manipulation and, in later chapters, <code>statsmodels</code> and <code>scikit-learn</code> for estimation. A dataset is loaded into a <code>DataFrame</code>, the central tabular object, from which rows, columns, and summaries are obtained.</p><pre class="code">import pandas as pd
 
 <span class="c"># a dataset is a table; each row is one unit of observation, each column a variable</span>
-df = pd.read_csv(&quot;wages.csv&quot;)     <span class="c"># load a comma-separated data file</span>
+<span class="c"># real datasets load from a file with pd.read_csv("path.csv"); here we build the</span>
+<span class="c"># small table from Section 1.1 directly, so the example runs on its own</span>
+df = pd.DataFrame({
+    &quot;schooling&quot;: [10, 12, 12, 16, 16],
+    &quot;earnings&quot;:  [14, 15, 18, 24, 30],
+})
 print(df.shape)                   <span class="c"># (number of rows, number of columns)</span>
 print(df.head())                  <span class="c"># the first five rows</span>
 print(df.describe())              <span class="c"># count, mean, standard deviation, min, max per column</span></pre><p>Means, group means, and the correlation between variables &mdash; the quantities of Sections 1.1 and 1.2 &mdash; are computed directly.</p><pre class="code"><span class="c"># the average (mean) of a column</span>
@@ -312,6 +337,30 @@ plt.legend(); plt.tight_layout()
 <div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
 <p>A discipline that repays adoption from the outset is to state, before any data are examined, the experiment one would conduct if experimentation were possible. For the schooling question, the experiment is the random assignment of additional schooling to otherwise identical individuals, followed by comparison of their earnings. This hypothetical experiment serves as a standard against which every observational method is to be judged: each technique in this book is an attempt to approximate it when assignment is not under the analyst's control. The formulation also functions as a diagnostic. If the experiment cannot be stated precisely, the causal question itself has not been posed precisely, and no estimation procedure can supply the missing clarity.</p></div>
 
+<h2>1.8 Using your own data</h2>
+<p>These Python cells run a complete scientific Python environment <em>inside your browser</em> &mdash; the same <code>pandas</code> and <code>statsmodels</code> used throughout the book &mdash; so you are not limited to the book's examples. You can load your <strong>own</strong> dataset and analyse it here. Click <b>Upload CSV</b> below and choose a comma-separated file; it becomes available to the code as <code>data.csv</code>. Edit the cell freely, run it, and read the output. To keep your results, have the code write a file and click <b>Download results.csv</b>. Nothing is uploaded to a server and nothing is saved &mdash; the file exists only in this browser tab and disappears when you close it.</p>
+<div class="python-cell" data-cell="ch1-sandbox" data-io="1">
+<div class="pc-head"><span class="pc-dot"></span><span class="pc-title">python &middot; your own data &middot; sandbox</span><span class="pc-status">idle</span></div>
+<script type="text/x-python">
+import pandas as pd
+
+# 1) Click "Upload CSV" above, choose a file, then run this cell.
+df = pd.read_csv("data.csv")          # your uploaded file, available as data.csv
+print("rows, columns:", df.shape)
+print(df.head().to_string())
+print()
+print(df.describe().to_string())      # count, mean, std, min, max per numeric column
+
+# 2) Do something with it, then save it to download:
+out = df.describe()
+out.to_csv("results.csv")             # now click "Download results.csv" to keep it
+print("\nwrote results.csv (use the Download button)")
+</script>
+<div class="pc-bar"><button class="btn small pc-run">&#9654; Run Python</button><span style="font-size:12px;color:var(--ink-faint)">Upload a CSV, edit the code, run it, then download your results.</span></div>
+<div class="pc-out"></div>
+</div>
+<p>This same sandbox handles the Python exercises that ask you to analyse a dataset: upload the data, adapt the code, and download whatever you compute. Every chapter's cells share one Python session, so a file you upload here can be read by the cells in later chapters during the same visit. From Chapter&nbsp;2 onward, each chapter also carries a <strong>"Run your own regression"</strong> sandbox that fits a model of your choosing to your uploaded data &mdash; you can use this platform in place of opening Python on your computer.</p>
+
 <div class="summary-box"><div class="sb-label">Chapter Summary</div>
 <ul class="body">
 <li>Economic data are organized as units (rows) by variables (columns); the mean is the elementary summary of a variable, and within-group means describe association (Sections 1.1&ndash;1.2).</li>
@@ -358,33 +407,58 @@ plt.legend(); plt.tight_layout()
 <p>By how much does hourly earnings change, on average, with one additional year of schooling?</p></div>
 
 <div class="arena-banner"><span class="ab-pre">Arena</span><a href="index.html#lab/regression-archer" target="_blank" rel="noopener">&#9876; Least-Squares Archer &rarr;</a></div>
-<p class="lede">This chapter develops the simple linear regression model, the foundation of the entire book. It specifies the model and its assumptions, derives the ordinary least squares estimator by minimization, establishes its unbiasedness and sampling variance, defines the coefficient of determination, and presents its estimation in Python. The multiple-regression model of Chapter 3 and every subsequent method are extensions of the apparatus introduced here.</p>
+<p class="lede">This chapter builds the one tool the rest of the book extends: the simple linear regression. Everything here serves a single, very practical task &mdash; drawing the "best" straight line through a cloud of points, then saying clearly what its slope <em>means</em>, how much to <em>trust</em> it, and when it may <em>mislead</em>. The plain-English account comes first; each derivation is tucked into a collapsible box for readers who want the formal version.</p>
+
+<div class="key-idea"><div class="ki-label">A motivating question</div><p>Suppose you are pricing houses. For hundreds of recent sales you know each home's size in square feet and its sale price. Bigger homes clearly sell for more &mdash; but by <em>how much</em>? Is it $100 a square foot, or $200? And how confident can you be in that number, given just this sample? "How much does one more unit of \(x\) move \(y\), and how sure are we?" is precisely what simple regression answers. We develop the method on this housing question, then turn the very same machinery on the book's running question &mdash; the earnings return to a year of schooling.</p></div>
 
 <h2>2.1 The model and its assumptions</h2>
 <div class="definition"><div class="df-label">Definition 2.1 &mdash; Simple linear regression model</div>
-<p>The model is \( y = \beta_0 + \beta_1 x + u \), where \(y\) is the outcome, \(x\) the explanatory variable, \(\beta_0\) and \(\beta_1\) unknown population parameters (the intercept and slope), and \(u\) the disturbance, comprising all determinants of \(y\) other than \(x\). The slope \(\beta_1\) is the change in \(y\) associated with a one-unit change in \(x\); it is the <em>ceteris paribus</em> effect of \(x\) on \(y\) only under Assumption SLR.4 below.</p></div>
+<p>The model is \( y = \beta_0 + \beta_1 x + u \), where \(y\) is the outcome, \(x\) the explanatory variable, \(\beta_0\) and \(\beta_1\) unknown population parameters (the intercept and slope), and \(u\) the disturbance, comprising all <em>unobserved</em> determinants of \(y\) other than \(x\). The slope \(\beta_1\) is the change in \(y\) associated with a one-unit change in \(x\); it is the <em>ceteris paribus</em> effect of \(x\) on \(y\) only under Assumption SLR.4 below. The disturbance \(u\) is worth pausing on: it is everything else that moves the outcome and that we have not put in the model &mdash; location, age, and condition for a house; ability and family background for a worker. We never observe \(u\), and the entire question of whether a slope is causal comes down to how \(u\) relates to \(x\).</p></div>
+<p>The model rests on five assumptions, and they reward being understood one at a time &mdash; much of the book is the story of what happens when each one fails and how to cope (non-constant variance in Chapter 7, mismeasured regressors in Chapter 8, unobserved confounders in Chapter 9, and so on). Stated plainly once, the later chapters become variations on a theme.</p>
 <div class="assumptions"><div class="as-label">Assumptions SLR.1&ndash;SLR.5</div><ol>
-<li><b>SLR.1 (linearity in parameters):</b> \(y = \beta_0 + \beta_1 x + u\). The restriction is on how the parameters enter; \(x\) may itself be a transformation such as \(\log\) or a square.</li>
-<li><b>SLR.2 (random sampling):</b> the \(n\) observations are drawn independently from the population.</li>
-<li><b>SLR.3 (variation in \(x\)):</b> \(\sum_i (x_i-\bar x)^2 &gt; 0\); the explanatory variable is not constant.</li>
-<li><b>SLR.4 (zero conditional mean):</b> \(\mathrm{E}[u\mid x]=0\). The disturbance has mean zero at every value of \(x\); equivalently, \(x\) is uncorrelated with all other determinants of \(y\). This is the identifying assumption for a causal interpretation.</li>
-<li><b>SLR.5 (homoskedasticity):</b> \(\mathrm{Var}(u\mid x)=\sigma^2\), constant across \(x\). Required for the standard-error formula of Section 2.3, not for unbiasedness; relaxed in Chapter 7.</li>
+<li><b>SLR.1 (linearity in parameters):</b> \(y = \beta_0 + \beta_1 x + u\). <em>Why we assume it:</em> it fixes the shape we are fitting &mdash; a line in the parameters &mdash; so that a single number \(\beta_1\) can summarise the effect. The restriction is only on how \(\beta_0,\beta_1\) enter; \(x\) may itself be a \(\log\) or a square, so genuinely curved relationships remain within reach (Chapter 5).</li>
+<li><b>SLR.2 (random sampling):</b> the \(n\) observations are drawn independently from the population. <em>Why:</em> it lets the sample stand in fairly for the population, so that what we learn generalises. It fails for clustered or time-dependent data, handled later (Chapters 10&ndash;12, 15).</li>
+<li><b>SLR.3 (variation in \(x\)):</b> \(\sum_i (x_i-\bar x)^2 &gt; 0\); \(x\) is not constant. <em>Why:</em> a slope measures how \(y\) changes <em>as \(x\) changes</em> &mdash; if \(x\) never varies there is nothing to measure, and the more \(x\) varies the sharper the estimate (Section 2.3).</li>
+<li><b>SLR.4 (zero conditional mean):</b> \(\mathrm{E}[u\mid x]=0\); equivalently, \(x\) is uncorrelated with the <em>unobserved</em> determinants of \(y\) collected in \(u\). <em>Why it is the crucial one:</em> this is what turns a slope into a <em>cause</em>. It says the units we compare at different \(x\) do not also differ systematically in what we left out. It is the most often violated and the hardest to defend &mdash; bigger houses sit in nicer neighbourhoods, more-schooled workers tend to have higher ability &mdash; and nearly every method after this chapter exists to rescue it.</li>
+<li><b>SLR.5 (homoskedasticity):</b> \(\mathrm{Var}(u\mid x)=\sigma^2\), constant across \(x\). <em>Why:</em> it is <em>not</em> needed to get the slope right &mdash; only for the textbook standard-error formula to be valid. When it fails (Chapter 7) the estimate stays unbiased but our stated precision is wrong, so we switch to robust standard errors.</li>
 </ol></div>
+<p>Note the division of labour: SLR.1&ndash;SLR.4 make the <em>estimate</em> trustworthy (right on average), while SLR.5 affects only how we gauge its <em>precision</em>. That split is why some violations bias the answer itself and others merely distort the error bars.</p>
 
-<h2>2.2 The ordinary least squares estimator</h2>
-<p>Given estimates \(\hat\beta_0,\hat\beta_1\), the fitted value for observation \(i\) is \(\hat y_i = \hat\beta_0 + \hat\beta_1 x_i\) and the residual is \(\hat u_i = y_i - \hat y_i\). The <strong>ordinary least squares</strong> (OLS) estimator chooses \(\hat\beta_0,\hat\beta_1\) to minimize the sum of squared residuals,</p>
+<h2>2.2 How OLS chooses the line</h2>
+<p>Through any cloud of points one could draw countless straight lines; we need a rule that picks one. The rule is this: for each candidate line, measure how far it misses every point vertically &mdash; those misses are the <strong>residuals</strong> \(\hat u_i = y_i - \hat y_i\), where \(\hat y_i=\hat\beta_0+\hat\beta_1 x_i\) is the line's prediction &mdash; and choose the line that makes the misses collectively smallest. "Smallest" is made precise by squaring each miss and adding them up: <strong>ordinary least squares</strong> (OLS) chooses \(\hat\beta_0,\hat\beta_1\) to minimise the sum of squared residuals,</p>
 \[ \mathrm{SSR}(\hat\beta_0,\hat\beta_1) = \sum_{i=1}^{n}\big(y_i - \hat\beta_0 - \hat\beta_1 x_i\big)^2. \]
-<p>Squaring renders the criterion non-negative and differentiable and penalizes large residuals more than small ones. The minimum is obtained by setting the partial derivatives to zero, yielding the <strong>normal equations</strong></p>
-\[ \sum_i \hat u_i = 0, \qquad \sum_i x_i \hat u_i = 0, \]
-<p>which state that the residuals have mean zero and are uncorrelated with the regressor. Solving them gives</p>
+<p><em>Why squared, rather than the plain or absolute miss?</em> Three practical reasons. Squaring makes every miss count as positive, so over- and under-predictions cannot cancel; it penalises a few large misses far more than many tiny ones, so the line refuses to badly fit any point it could fit; and &mdash; decisively &mdash; it yields a clean calculus solution, a single closed-form formula rather than an iterative search. That last property is why this rule, among all sensible ones, became the workhorse.</p>
+<p>Carrying out the minimisation gives the two estimates we use throughout:</p>
 \[ \hat\beta_1 = \frac{\sum_i (x_i-\bar x)(y_i-\bar y)}{\sum_i (x_i-\bar x)^2}, \qquad \hat\beta_0 = \bar y - \hat\beta_1\bar x. \]
-<p>The slope is the sample covariation of \(x\) and \(y\) divided by the sample variation of \(x\); the intercept formula ensures the fitted line passes through the point of means \((\bar x,\bar y)\).</p>
+<p>Read them in words. The slope \(\hat\beta_1\) is <em>how \(x\) and \(y\) move together, divided by how much \(x\) moves on its own</em> &mdash; co-movement scaled by \(x\)'s own spread. The intercept then shifts the line so it passes through the average point \((\bar x,\bar y)\). For the housing data, \(\hat\beta_1\) is simply the dollars of price that come, on average, with each extra square foot.</p>
+<details class="maths"><summary>For the mathematically curious: deriving the estimates</summary><div class="mbody">
+<p>Setting the partial derivatives of \(\mathrm{SSR}\) to zero gives the <strong>normal equations</strong></p>
+\[ \sum_i \hat u_i = 0, \qquad \sum_i x_i \hat u_i = 0, \]
+<p>which say the residuals average to zero and are uncorrelated with the regressor &mdash; the two facts OLS uses up. The first gives \(\hat\beta_0=\bar y-\hat\beta_1\bar x\); substituting into the second and solving for \(\hat\beta_1\) yields the slope formula above. These two conditions, not any distributional assumption, are the entire content of "least squares."</p>
+</div></details>
 
-<h2>2.3 Properties of the estimator</h2>
+<h2>2.3 Why we can trust the estimate</h2>
+<p>OLS hands us a number, \(\hat\beta_1\). A different random sample of houses would hand us a slightly different one. So the honest question is not "is \(\hat\beta_1\) correct?" &mdash; it never is, exactly &mdash; but "does our recipe for producing it have good properties across the samples we might have drawn?" Four properties matter, and each answers a worry a sceptic would raise.</p>
+
+<p><strong>Is it right on average? (Unbiasedness.)</strong> A sceptic might fear the method systematically overstates or understates the effect. Unbiasedness answers that worry: averaged over all the samples we might have drawn, the estimate lands on the truth. It promises nothing about any single estimate &mdash; only that the procedure is not tilted.</p>
 <div class="proposition"><div class="pr-label">Proposition 2.1 &mdash; Unbiasedness</div>
-<p>Under SLR.1&ndash;SLR.4, \(\mathrm{E}[\hat\beta_1]=\beta_1\). <em>Proof sketch.</em> Substituting \(y_i=\beta_0+\beta_1x_i+u_i\) into the slope formula gives \(\hat\beta_1 = \beta_1 + \sum_i w_i u_i\), where \(w_i = (x_i-\bar x)/\sum_j (x_j-\bar x)^2\) depends only on the regressor. Taking the expectation conditional on the \(x_i\) and applying SLR.4, \(\mathrm{E}[\sum_i w_i u_i \mid x]=\sum_i w_i\,\mathrm{E}[u_i\mid x]=0\). Hence \(\mathrm{E}[\hat\beta_1\mid x]=\beta_1\), and unconditionally \(\mathrm{E}[\hat\beta_1]=\beta_1\).</p></div>
+<p>Under SLR.1&ndash;SLR.4, \(\mathrm{E}[\hat\beta_1]=\beta_1\): on average across samples, OLS recovers the true slope. The load-bearing assumption is SLR.4; if \(x\) is correlated with what we left out, this breaks and the estimate is biased &mdash; the subject of Chapter 3.</p>
+<details class="maths"><summary>For the mathematically curious: the proof</summary><div class="mbody">
+<p>Substituting \(y_i=\beta_0+\beta_1x_i+u_i\) into the slope formula gives \(\hat\beta_1 = \beta_1 + \sum_i w_i u_i\), where \(w_i = (x_i-\bar x)/\sum_j (x_j-\bar x)^2\) depends only on the regressor. Conditioning on the \(x_i\) and applying SLR.4, \(\mathrm{E}[\sum_i w_i u_i \mid x]=\sum_i w_i\,\mathrm{E}[u_i\mid x]=0\). Hence \(\mathrm{E}[\hat\beta_1\mid x]=\beta_1\), and unconditionally \(\mathrm{E}[\hat\beta_1]=\beta_1\). The estimate is the truth plus a weighted average of the disturbances; SLR.4 makes that second piece vanish on average.</p>
+</div></details></div>
+
+<p><strong>How sharp is it? (Sampling variance.)</strong> Unbiased is not enough &mdash; an estimate that is right on average but swings wildly from sample to sample is still useless in the one sample we hold. The variance measures that swing.</p>
 <div class="proposition"><div class="pr-label">Proposition 2.2 &mdash; Sampling variance</div>
-<p>Under SLR.1&ndash;SLR.5, \( \mathrm{Var}(\hat\beta_1\mid x) = \dfrac{\sigma^2}{\sum_i (x_i-\bar x)^2}. \) The variance falls with the error variance \(\sigma^2\), and rises as the variation in \(x\) falls. The error variance is estimated by \(\hat\sigma^2 = \mathrm{SSR}/(n-2)\), the divisor \(n-2\) reflecting the two estimated parameters. Under SLR.1&ndash;SLR.5 the OLS estimator is, moreover, the minimum-variance linear unbiased estimator (the Gauss&ndash;Markov theorem).</p></div>
+<p>Under SLR.1&ndash;SLR.5, \( \mathrm{Var}(\hat\beta_1\mid x) = \dfrac{\sigma^2}{\sum_i (x_i-\bar x)^2}. \) In words: precision improves when the noise \(\sigma^2\) is small and when \(x\) varies widely. This is why observing very different house sizes buys more precision than collecting many similar houses &mdash; with real consequences for how one gathers data (see Sharma's Take). The noise is estimated by \(\hat\sigma^2=\mathrm{SSR}/(n-2)\), the divisor \(n-2\) reflecting the two parameters already used.</p>
+<details class="maths"><summary>For the mathematically curious: where the formula comes from</summary><div class="mbody">
+<p>From \(\hat\beta_1-\beta_1=\sum_i w_i u_i\) with non-random weights \(w_i\), independence (SLR.2) gives \(\mathrm{Var}(\hat\beta_1\mid x)=\sum_i w_i^2\,\mathrm{Var}(u_i\mid x)\). Under homoskedasticity (SLR.5) each \(\mathrm{Var}(u_i\mid x)=\sigma^2\), so the variance is \(\sigma^2\sum_i w_i^2 = \sigma^2/\sum_i (x_i-\bar x)^2\), using \(\sum_i w_i^2 = 1/\sum_i(x_i-\bar x)^2\). When SLR.5 fails, \(\sigma^2\) cannot be pulled out and this formula is wrong &mdash; the motivation for robust standard errors in Chapter 7.</p>
+</div></details></div>
+
+<p><strong>Is it the best such estimate? (Efficiency.)</strong> Among all estimators that are both linear in \(y\) and unbiased, OLS has the smallest variance &mdash; it wastes no information. This is the <strong>Gauss&ndash;Markov theorem</strong>, and it is why OLS, rather than some other unbiased rule, is the default: under SLR.1&ndash;SLR.5 you cannot do better without giving something up.</p>
+
+<p><strong>Does more data help? (Consistency.)</strong> As the sample grows, \(\hat\beta_1\) converges to the true \(\beta_1\): the denominator \(\sum_i(x_i-\bar x)^2\) grows, the variance shrinks toward zero, and with enough data the estimate is almost surely close to the truth &mdash; provided SLR.4 holds. Consistency is the large-sample counterpart of unbiasedness, and it is the property we lean on when exact unbiasedness is out of reach in later chapters.</p>
+
+<div class="key-idea"><div class="ki-label">The four properties, in one breath</div><p>Unbiased = right on average; small variance = sharp in your one sample; efficient = the sharpest among fair (linear, unbiased) rules; consistent = converges to the truth with enough data. The first three rest on SLR.1&ndash;SLR.4 for "right" and add SLR.5 for honest error bars. Lose SLR.4 and "right on average" is the first casualty &mdash; which is why the entire second half of the book is devoted to defending it.</p></div>
 
 <h2>2.4 Goodness of fit</h2>
 <p>Decompose the total variation in \(y\) into explained and residual components. With \(\mathrm{SST}=\sum_i (y_i-\bar y)^2\), \(\mathrm{SSE}=\sum_i (\hat y_i-\bar y)^2\), and \(\mathrm{SSR}=\sum_i \hat u_i^2\), the normal equations imply \(\mathrm{SST}=\mathrm{SSE}+\mathrm{SSR}\). The <strong>coefficient of determination</strong> is</p>
@@ -410,8 +484,46 @@ xbar, ybar = x.mean(), y.mean()
 <span class="c"># slope = covariation of x and y, divided by variation of x</span>
 b1 = np.sum((x - xbar) * (y - ybar)) / np.sum((x - xbar)**2)
 b0 = ybar - b1 * xbar
-print(b0, b1)                      <span class="c"># identical to the statsmodels estimates</span></pre><p>The demonstration below fits the model to a larger constructed sample and reports the standard regression output.</p>
-<h3>2.5.1 Demonstration</h3>
+print(b0, b1)                      <span class="c"># identical to the statsmodels estimates</span></pre><p>We first fit the model to our motivating example &mdash; house price on size &mdash; and read the full output closely, then re-run the same two lines on the book's wage question.</p>
+<h3>2.5.1 The motivating example: house price on size</h3>
+<div class="python-cell" data-cell="ch2-house" data-io="1">
+<div class="pc-head"><span class="pc-dot"></span><span class="pc-title">python &middot; chapter 2 &middot; price ~ size</span><span class="pc-status">idle</span></div>
+<script type="text/x-python">
+import numpy as np, pandas as pd
+import statsmodels.formula.api as smf
+import matplotlib.pyplot as plt
+
+rng = np.random.default_rng(202)
+n = 400
+size = rng.uniform(800, 3000, n)                  # square feet
+# true process: each square foot adds about $150 to price (price in $1000s)
+price = 30 + 0.15*size + rng.normal(0, 45, n)     # thousands of dollars
+df = pd.DataFrame({"price": price.round(1), "size": size.round(0)})
+
+m = smf.ols("price ~ size", data=df).fit()        # regress price on size (intercept included)
+print(m.summary())
+
+b0, b1 = m.params["Intercept"], m.params["size"]
+plt.figure(figsize=(7.2,4.2))
+plt.scatter(df["size"], df["price"], s=10, alpha=.35)
+xs = np.linspace(df["size"].min(), df["size"].max(), 50)
+plt.plot(xs, b0 + b1*xs, linewidth=2.4, color="#FBBF24",
+         label="OLS: price = %.1f + %.4f*size" % (b0, b1))
+plt.xlabel("size (square feet)"); plt.ylabel("price ($1000s)")
+plt.title("About $%.0f per extra square foot" % (b1*1000))
+plt.legend(); plt.tight_layout()
+</script>
+<div class="pc-bar"><button class="btn small pc-run">&#9654; Run Python</button><span style="font-size:12px;color:var(--ink-faint)">Or Upload CSV with columns price, size to fit your own data.</span></div>
+<div class="pc-out"></div>
+</div>
+
+<div class="interp"><b>Reading the output, line by line.</b>
+The <code>coef</code> column holds two numbers. The one on <code>size</code> &mdash; about <strong>0.15</strong> &mdash; is the slope: because price is measured in thousands of dollars, it says each additional square foot adds roughly <strong>$150</strong> to the predicted price, so a home 200&nbsp;sq&nbsp;ft larger is predicted to cost about $30,000 more. The <code>Intercept</code>, near 30, is the predicted price of a zero-square-foot house &mdash; a meaningless extrapolation far outside the data, and a reminder that an intercept is often just the number that makes the line pass through the average point, not a quantity to interpret.
+Beside the slope, <code>std&nbsp;err</code> says how much that 0.15 would wobble from sample to sample; the <code>t</code> statistic is the slope divided by its standard error; and <code>P&gt;|t|</code> &mdash; here essentially 0 &mdash; is the probability of a slope this large if size truly had no effect, so a tiny value means the relationship is far too strong to be chance. The <code>[0.025&nbsp;0.975]</code> columns give the 95% confidence interval &mdash; the range of slopes the data are consistent with.
+<code>R-squared</code> is the share of the variation in price that size alone explains; the remainder lives in \(u\) &mdash; location, age, condition, lot size. That is exactly the force behind SLR.4: if larger homes also sit in pricier neighbourhoods, size is correlated with that omitted quality, and our $150 is part size and part neighbourhood. Chapter 3 adds such controls. Here, with simulated data in which size is the only true driver, the estimate is clean and recovers the built-in $150.</div>
+
+<h3>2.5.2 The book's question: wage on schooling</h3>
+<p>The identical two lines &mdash; <code>smf.ols("y ~ x", data=df).fit()</code> and <code>.summary()</code> &mdash; answer the running question of the book. Read its slope the same way: the change in hourly earnings that accompanies one more year of schooling, causal only insofar as SLR.4 holds (which, for schooling and ability, it plainly does not &mdash; the gap Chapter 3 confronts).</p>
 <div class="python-cell" data-cell="ch2">
 <div class="pc-head"><span class="pc-dot"></span><span class="pc-title">python &middot; chapter 2 &middot; wage ~ educ</span><span class="pc-status">idle</span></div>
 <script type="text/x-python">
@@ -446,6 +558,35 @@ plt.title("OLS fitted line over the wage data"); plt.legend(); plt.tight_layout(
 <div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
 <p>The sampling variance of the slope, \(\sigma^2/\sum(x_i-\bar x)^2\), shows that precision is determined not only by sample size but by the dispersion of the explanatory variable: the estimate is sharp when \(x\) varies widely and imprecise when \(x\) is concentrated, irrespective of \(n\). This has a consequence for the design of data collection that is frequently overlooked. Where the analyst can influence which observations are gathered, precision is increased by deliberately securing variation in the explanatory variable of interest, rather than by accumulating observations that are similar in that variable. A moderate sample with wide variation in \(x\) yields a more precise slope than a large sample in which \(x\) is nearly constant. Precision is a property to be designed into the data, not merely estimated from them.</p></div>
 
+<div class="byod"><h3>&#128202; Run your own regression</h3>
+<p>A general regression tool you can use <em>instead of</em> opening Python on your computer. Click <b>Upload CSV</b>, choose any dataset, and run once to print your column names and a preview. Then edit the formula <code>"outcome ~ predictor1 + predictor2"</code> with your own column names and run again. Transformations are supported: <code>I(x**2)</code> for squares, <code>np.log(x)</code> for logs, <code>C(x)</code> for categorical variables, and <code>x1:x2</code> for interactions. <b>Download results.csv</b> saves the coefficient table. Everything runs in your browser; nothing is uploaded to a server.</p>
+<div class="python-cell" data-cell="byod-ch2" data-io="1">
+<div class="pc-head"><span class="pc-dot"></span><span class="pc-title">python &middot; your own regression</span><span class="pc-status">idle</span></div>
+<script type="text/x-python">
+import pandas as pd, numpy as np
+import statsmodels.formula.api as smf
+
+df = pd.read_csv("data.csv")               # the CSV you uploaded
+print("Your columns:", list(df.columns))   # run once to see your variable names
+print(df.head())
+
+# === EDIT this formula to use YOUR column names from the list above ===
+formula = "y ~ x"                          # e.g. "price ~ size + bedrooms"
+
+try:
+    model = smf.ols(formula, data=df).fit()
+    print(model.summary())
+    model.params.to_frame("coef").to_csv("results.csv")   # then click "Download results.csv"
+except Exception as e:
+    print("\nCould not run the formula:", repr(formula))
+    print("It likely uses names that are not columns in your data.")
+    print("Your columns are:", list(df.columns))
+    if len(df.columns) >= 2:
+        print('Edit the formula line to use them, e.g.:  formula = "%s ~ %s"' % (df.columns[0], df.columns[1]))
+</script>
+<div class="pc-bar"><button class="btn small pc-run">&#9654; Run Python</button><span style="font-size:12px;color:var(--ink-faint)">Upload a CSV &middot; edit the formula &middot; run &middot; download.</span></div>
+<div class="pc-out"></div>
+</div></div>
 <div class="summary-box"><div class="sb-label">Chapter Summary</div>
 <ul class="body">
 <li>The simple linear regression model is \(y=\beta_0+\beta_1 x+u\); the slope is a causal effect only under the zero-conditional-mean assumption SLR.4 (Section 2.1).</li>
@@ -577,6 +718,35 @@ plt.legend(); plt.tight_layout()
 <div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
 <p>The direction in which a coefficient moves as a control is added is itself informative about the sign of the confounding, and this information is frequently left unused. The omitted-variable bias formula states that the movement equals minus the bias removed; thus a coefficient that <em>falls</em> when a control enters indicates that the omitted control was biasing it upward, while a coefficient that <em>rises</em> indicates downward bias. Reporting that an estimate is &ldquo;robust to controls&rdquo; discards this content. The disciplined practice is to record the direction of each control's effect on the coefficient of interest and to compare it with the sign predicted by \(\beta_2\delta_1\); agreement corroborates the analyst's understanding of the confounding structure, and disagreement signals a determinant that has not been correctly conceived.</p></div>
 
+<div class="byod"><h3>&#128202; Run your own regression</h3>
+<p>A general regression tool you can use <em>instead of</em> opening Python on your computer. Click <b>Upload CSV</b>, choose any dataset, and run once to print your column names and a preview. Then edit the formula <code>"outcome ~ predictor1 + predictor2"</code> with your own column names and run again. Transformations are supported: <code>I(x**2)</code> for squares, <code>np.log(x)</code> for logs, <code>C(x)</code> for categorical variables, and <code>x1:x2</code> for interactions. <b>Download results.csv</b> saves the coefficient table. Everything runs in your browser; nothing is uploaded to a server.</p>
+<div class="python-cell" data-cell="byod-ch3" data-io="1">
+<div class="pc-head"><span class="pc-dot"></span><span class="pc-title">python &middot; your own regression</span><span class="pc-status">idle</span></div>
+<script type="text/x-python">
+import pandas as pd, numpy as np
+import statsmodels.formula.api as smf
+
+df = pd.read_csv("data.csv")               # the CSV you uploaded
+print("Your columns:", list(df.columns))   # run once to see your variable names
+print(df.head())
+
+# === EDIT this formula to use YOUR column names from the list above ===
+formula = "y ~ x"                          # e.g. "price ~ size + bedrooms"
+
+try:
+    model = smf.ols(formula, data=df).fit()
+    print(model.summary())
+    model.params.to_frame("coef").to_csv("results.csv")   # then click "Download results.csv"
+except Exception as e:
+    print("\nCould not run the formula:", repr(formula))
+    print("It likely uses names that are not columns in your data.")
+    print("Your columns are:", list(df.columns))
+    if len(df.columns) >= 2:
+        print('Edit the formula line to use them, e.g.:  formula = "%s ~ %s"' % (df.columns[0], df.columns[1]))
+</script>
+<div class="pc-bar"><button class="btn small pc-run">&#9654; Run Python</button><span style="font-size:12px;color:var(--ink-faint)">Upload a CSV &middot; edit the formula &middot; run &middot; download.</span></div>
+<div class="pc-out"></div>
+</div></div>
 <div class="summary-box"><div class="sb-label">Chapter Summary</div>
 <ul class="body">
 <li>The multiple-regression coefficient \(\beta_j\) is the partial effect of \(x_j\) holding the other regressors fixed (Section 3.1).</li>
@@ -696,6 +866,35 @@ print("Joint F test (exper = tenure = 0): F = %.3f, p = %.4f" % (float(f.fvalue)
 <div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
 <p>A failure to reject the null hypothesis is frequently reported as evidence of no effect, which it is not. The confidence interval distinguishes two cases that the verdict &ldquo;not significant&rdquo; conflates. An interval extending from a small negative value to a substantial positive value indicates that the data are uninformative: a large effect remains consistent with the evidence. An interval tightly bracketing zero indicates that a large effect has genuinely been excluded. The two situations have opposite substantive implications despite identical significance verdicts. The disciplined practice, on failing to reject, is to report the range of effects the data exclude rather than merely the failure to detect one; the confidence interval, not the p-value, carries this information.</p></div>
 
+<div class="byod"><h3>&#128202; Run your own regression</h3>
+<p>A general regression tool you can use <em>instead of</em> opening Python on your computer. Click <b>Upload CSV</b>, choose any dataset, and run once to print your column names and a preview. Then edit the formula <code>"outcome ~ predictor1 + predictor2"</code> with your own column names and run again. Transformations are supported: <code>I(x**2)</code> for squares, <code>np.log(x)</code> for logs, <code>C(x)</code> for categorical variables, and <code>x1:x2</code> for interactions. <b>Download results.csv</b> saves the coefficient table. Everything runs in your browser; nothing is uploaded to a server.</p>
+<div class="python-cell" data-cell="byod-ch4" data-io="1">
+<div class="pc-head"><span class="pc-dot"></span><span class="pc-title">python &middot; your own regression</span><span class="pc-status">idle</span></div>
+<script type="text/x-python">
+import pandas as pd, numpy as np
+import statsmodels.formula.api as smf
+
+df = pd.read_csv("data.csv")               # the CSV you uploaded
+print("Your columns:", list(df.columns))   # run once to see your variable names
+print(df.head())
+
+# === EDIT this formula to use YOUR column names from the list above ===
+formula = "y ~ x"                          # e.g. "price ~ size + bedrooms"
+
+try:
+    model = smf.ols(formula, data=df).fit()
+    print(model.summary())
+    model.params.to_frame("coef").to_csv("results.csv")   # then click "Download results.csv"
+except Exception as e:
+    print("\nCould not run the formula:", repr(formula))
+    print("It likely uses names that are not columns in your data.")
+    print("Your columns are:", list(df.columns))
+    if len(df.columns) >= 2:
+        print('Edit the formula line to use them, e.g.:  formula = "%s ~ %s"' % (df.columns[0], df.columns[1]))
+</script>
+<div class="pc-bar"><button class="btn small pc-run">&#9654; Run Python</button><span style="font-size:12px;color:var(--ink-faint)">Upload a CSV &middot; edit the formula &middot; run &middot; download.</span></div>
+<div class="pc-out"></div>
+</div></div>
 <div class="summary-box"><div class="sb-label">Chapter Summary</div>
 <ul class="body">
 <li>Sampling uncertainty arises because the estimator varies across the samples that might be drawn; its distribution is the sampling distribution (Section 4.1).</li>
@@ -761,7 +960,7 @@ print("Joint F test (exper = tenure = 0): F = %.3f, p = %.4f" % (float(f.fvalue)
 <div class="key-idea"><div class="ki-label">Key Idea</div><p>In any specification containing a power of a regressor, the effect of that regressor is not a single coefficient but a function of its level, \(\beta_1+2\beta_2 x\). It must be reported at specified values &mdash; typically the mean or several points across the range &mdash; rather than as one number.</p></div>
 
 <h2>5.3 Interactions</h2>
-<p>An interaction term represents an effect that depends on a second variable. In \( y=\beta_0+\beta_1 x_1+\beta_2 x_2+\beta_3 x_1 x_2+u \), the effect of \(x_1\) is \(\partial y/\partial x_1 = \beta_1+\beta_3 x_2\), a function of \(x_2\). A nonzero \(\beta_3\) indicates that the two variables modify each other's effects; the sign of \(\beta_3\) determines whether they are complementary or substitutive.</p>
+<p>An interaction term represents an effect that depends on a second variable. In \( y=\beta_0+\beta_1 x_1+\beta_2 x_2+\beta_3 x_1 x_2+u \), the effect of \(x_1\) is \(\partial y/\partial x_1 = \beta_1+\beta_3 x_2\), a function of \(x_2\). A nonzero \(\beta_3\) indicates that the two variables modify each other's effects; the sign of \(\beta_3\) determines whether they are complementary or substitutive. A <strong>positive</strong> \(\beta_3\) means each variable <em>raises</em> the other's marginal effect: the two are <strong>complements</strong> &mdash; for example, if the wage return to a year of schooling is larger for workers who also have more experience. A <strong>negative</strong> \(\beta_3\) means each variable <em>lowers</em> the other's marginal effect: the two are <strong>substitutes</strong> &mdash; the return to schooling is smaller for the more experienced, as though experience and schooling were alternative routes to the same earning power. A useful check: read \(\partial y/\partial x_1=\beta_1+\beta_3 x_2\) and ask whether a larger \(x_2\) makes the effect of \(x_1\) bigger (complements) or smaller (substitutes).</p>
 
 <h2>5.4 Influential observations</h2>
 <p>Because the OLS criterion weights observations by their distance from the mean of the regressor (Chapter 2), a small number of extreme observations can determine the estimated form. A nonlinear specification supported only by a few outlying points is not robust. Two safeguards are standard: inspection of a scatter plot before adopting a functional form, and re-estimation with the extreme observations excluded to confirm that the conclusion does not depend on them.</p><h2>5.5 Functional forms in Python</h2>
@@ -821,6 +1020,35 @@ plt.title("The estimated experience profile (quadratic)"); plt.tight_layout()
 <div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
 <p>The selection of a functional form is commonly treated as a technical convenience, but it constitutes a substantive hypothesis about the phenomenon under study, and should be made deliberately. A logarithmic outcome asserts that the effect of a regressor is proportional &mdash; of equal percentage magnitude for low and high values of the outcome &mdash; whereas a level outcome asserts a constant absolute effect. These are distinct economic claims, and the data themselves bear on their plausibility. The form should be chosen to express the hypothesis the analyst intends to test, rather than adopted by default; it is a component of the model's economic content, not a presentational detail.</p></div>
 
+<div class="byod"><h3>&#128202; Run your own regression</h3>
+<p>A general regression tool you can use <em>instead of</em> opening Python on your computer. Click <b>Upload CSV</b>, choose any dataset, and run once to print your column names and a preview. Then edit the formula <code>"outcome ~ predictor1 + predictor2"</code> with your own column names and run again. Transformations are supported: <code>I(x**2)</code> for squares, <code>np.log(x)</code> for logs, <code>C(x)</code> for categorical variables, and <code>x1:x2</code> for interactions. <b>Download results.csv</b> saves the coefficient table. Everything runs in your browser; nothing is uploaded to a server.</p>
+<div class="python-cell" data-cell="byod-ch5" data-io="1">
+<div class="pc-head"><span class="pc-dot"></span><span class="pc-title">python &middot; your own regression</span><span class="pc-status">idle</span></div>
+<script type="text/x-python">
+import pandas as pd, numpy as np
+import statsmodels.formula.api as smf
+
+df = pd.read_csv("data.csv")               # the CSV you uploaded
+print("Your columns:", list(df.columns))   # run once to see your variable names
+print(df.head())
+
+# === EDIT this formula to use YOUR column names from the list above ===
+formula = "y ~ x"                          # e.g. "price ~ size + bedrooms"
+
+try:
+    model = smf.ols(formula, data=df).fit()
+    print(model.summary())
+    model.params.to_frame("coef").to_csv("results.csv")   # then click "Download results.csv"
+except Exception as e:
+    print("\nCould not run the formula:", repr(formula))
+    print("It likely uses names that are not columns in your data.")
+    print("Your columns are:", list(df.columns))
+    if len(df.columns) >= 2:
+        print('Edit the formula line to use them, e.g.:  formula = "%s ~ %s"' % (df.columns[0], df.columns[1]))
+</script>
+<div class="pc-bar"><button class="btn small pc-run">&#9654; Run Python</button><span style="font-size:12px;color:var(--ink-faint)">Upload a CSV &middot; edit the formula &middot; run &middot; download.</span></div>
+<div class="pc-out"></div>
+</div></div>
 <div class="summary-box"><div class="sb-label">Chapter Summary</div>
 <ul class="body">
 <li>Linearity in parameters permits nonlinear relationships in the variables through transformation; estimation remains OLS (Section 5.1).</li>
@@ -846,8 +1074,22 @@ plt.title("The estimated experience profile (quadratic)"); plt.tight_layout()
 <li><span class="extag">conceptual</span> Explain the difference in economic meaning between specifying the outcome in levels and in logarithms.
 <details class="soln"><summary>Solution</summary><div class="sol-body">A level outcome implies a constant absolute effect of the regressor (the same number of units for all individuals); a logarithmic outcome implies a constant proportional effect (the same percentage for all individuals). These are distinct hypotheses about how the effect scales with the level of the outcome (Sharma's Take).</div></details></li>
 
-<li><span class="extag">python</span> Estimate a quadratic-in-experience wage regression, and compute the marginal effect of experience at its mean and the turning point.
-<details class="soln"><summary>Solution</summary><div class="sol-body">Fit <code>smf.ols("wage ~ exper + I(exper**2)", data=df).fit()</code>; with <code>b1</code> and <code>b2</code> the coefficients on <code>exper</code> and <code>I(exper ** 2)</code>, the marginal effect at the mean is <code>b1 + 2*b2*df["exper"].mean()</code> and the turning point is <code>-b1/(2*b2)</code>. The code of Section 5.5 implements this.</div></details></li>
+<li><span class="extag">python</span> Estimate a quadratic-in-experience wage regression, and compute the marginal effect of experience at its mean and the turning point. <span class="muted">(Generate your own sample with the snippet below, or reuse <code>df</code> from the Section 5.5 demonstration.)</span>
+<details class="soln"><summary>Solution</summary><div class="sol-body">A self-contained version that simulates a concave experience profile, fits the quadratic, and reads off both quantities:
+<pre class="code">import numpy as np, pandas as pd, statsmodels.formula.api as smf
+rng = np.random.default_rng(505)
+n = 800
+exper = rng.integers(0, 40, n)                          # years of work experience
+# true process: returns to experience rise, then fall (concave)
+wage  = 8 + 0.9*exper - 0.018*exper**2 + rng.normal(0, 3, n)
+df = pd.DataFrame({"wage": wage, "exper": exper})
+
+m  = smf.ols("wage ~ exper + I(exper**2)", data=df).fit()
+b1 = m.params["exper"]; b2 = m.params["I(exper ** 2)"]
+me_at_mean    = b1 + 2*b2*df["exper"].mean()             # marginal effect at mean experience
+turning_point = -b1/(2*b2)                               # where the profile peaks
+print(round(me_at_mean, 3), round(turning_point, 1))</pre>
+With <code>b1</code> and <code>b2</code> the coefficients on <code>exper</code> and <code>I(exper ** 2)</code>, the marginal effect at the mean is <code>b1 + 2*b2*df["exper"].mean()</code> and the turning point is <code>-b1/(2*b2)</code>. For the process above the turning point lands near 25 years, the level of experience at which the fitted wage profile is highest.</div></details></li>
 </ol></div>
 
 <div class="quiz" id="quiz-5"><h3>Chapter 5 Quiz</h3><div class="quiz-body"></div></div>
@@ -928,6 +1170,35 @@ print("\nReturn to educ: men %.3f, women %.3f" %
 <div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
 <p>The choice of base category, although immaterial to the fitted model, governs the interpretability of the entire table, since every coefficient is expressed relative to it. A base chosen without consideration yields coefficients that answer questions of no interest; a base equal to the largest or most natural reference category yields coefficients that correspond to substantively meaningful comparisons. Furthermore, when two estimated tables are compared, a coefficient that differs between them may do so solely because the base category differs, not because any underlying quantity has changed. The base should therefore be selected deliberately and held constant across compared specifications.</p></div>
 
+<div class="byod"><h3>&#128202; Run your own regression</h3>
+<p>A general regression tool you can use <em>instead of</em> opening Python on your computer. Click <b>Upload CSV</b>, choose any dataset, and run once to print your column names and a preview. Then edit the formula <code>"outcome ~ predictor1 + predictor2"</code> with your own column names and run again. Transformations are supported: <code>I(x**2)</code> for squares, <code>np.log(x)</code> for logs, <code>C(x)</code> for categorical variables, and <code>x1:x2</code> for interactions. <b>Download results.csv</b> saves the coefficient table. Everything runs in your browser; nothing is uploaded to a server.</p>
+<div class="python-cell" data-cell="byod-ch6" data-io="1">
+<div class="pc-head"><span class="pc-dot"></span><span class="pc-title">python &middot; your own regression</span><span class="pc-status">idle</span></div>
+<script type="text/x-python">
+import pandas as pd, numpy as np
+import statsmodels.formula.api as smf
+
+df = pd.read_csv("data.csv")               # the CSV you uploaded
+print("Your columns:", list(df.columns))   # run once to see your variable names
+print(df.head())
+
+# === EDIT this formula to use YOUR column names from the list above ===
+formula = "y ~ x"                          # e.g. "price ~ size + bedrooms"
+
+try:
+    model = smf.ols(formula, data=df).fit()
+    print(model.summary())
+    model.params.to_frame("coef").to_csv("results.csv")   # then click "Download results.csv"
+except Exception as e:
+    print("\nCould not run the formula:", repr(formula))
+    print("It likely uses names that are not columns in your data.")
+    print("Your columns are:", list(df.columns))
+    if len(df.columns) >= 2:
+        print('Edit the formula line to use them, e.g.:  formula = "%s ~ %s"' % (df.columns[0], df.columns[1]))
+</script>
+<div class="pc-bar"><button class="btn small pc-run">&#9654; Run Python</button><span style="font-size:12px;color:var(--ink-faint)">Upload a CSV &middot; edit the formula &middot; run &middot; download.</span></div>
+<div class="pc-out"></div>
+</div></div>
 <div class="summary-box"><div class="sb-label">Chapter Summary</div>
 <ul class="body">
 <li>A dummy variable encodes category membership; its coefficient is a difference in conditional means relative to the base group (Section 6.1).</li>
@@ -1038,6 +1309,35 @@ plt.title("Residual fan: variance grows with income"); plt.tight_layout()
 <div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
 <p>A residual plot that widens systematically with a regressor is conventionally read as evidence of heteroskedasticity, but the same pattern is produced by an incorrect functional form. If the true relationship is curved and a linear specification is fitted, the residuals fan out exactly as under heteroskedasticity; robust standard errors then correct the inference while leaving the misspecification of the conditional mean uncorrected. The systematic widening of residuals should therefore prompt, first, an examination of functional form &mdash; the introduction of a logarithm or a polynomial term &mdash; and only thereafter the application of robust standard errors. The diagnostic for non-constant variance and the diagnostic for incorrect form coincide in appearance, and the form should be addressed before the variance.</p></div>
 
+<div class="byod"><h3>&#128202; Run your own regression</h3>
+<p>A general regression tool you can use <em>instead of</em> opening Python on your computer. Click <b>Upload CSV</b>, choose any dataset, and run once to print your column names and a preview. Then edit the formula <code>"outcome ~ predictor1 + predictor2"</code> with your own column names and run again. Transformations are supported: <code>I(x**2)</code> for squares, <code>np.log(x)</code> for logs, <code>C(x)</code> for categorical variables, and <code>x1:x2</code> for interactions. <b>Download results.csv</b> saves the coefficient table. Everything runs in your browser; nothing is uploaded to a server.</p>
+<div class="python-cell" data-cell="byod-ch7" data-io="1">
+<div class="pc-head"><span class="pc-dot"></span><span class="pc-title">python &middot; your own regression</span><span class="pc-status">idle</span></div>
+<script type="text/x-python">
+import pandas as pd, numpy as np
+import statsmodels.formula.api as smf
+
+df = pd.read_csv("data.csv")               # the CSV you uploaded
+print("Your columns:", list(df.columns))   # run once to see your variable names
+print(df.head())
+
+# === EDIT this formula to use YOUR column names from the list above ===
+formula = "y ~ x"                          # e.g. "price ~ size + bedrooms"
+
+try:
+    model = smf.ols(formula, data=df).fit()
+    print(model.summary())
+    model.params.to_frame("coef").to_csv("results.csv")   # then click "Download results.csv"
+except Exception as e:
+    print("\nCould not run the formula:", repr(formula))
+    print("It likely uses names that are not columns in your data.")
+    print("Your columns are:", list(df.columns))
+    if len(df.columns) >= 2:
+        print('Edit the formula line to use them, e.g.:  formula = "%s ~ %s"' % (df.columns[0], df.columns[1]))
+</script>
+<div class="pc-bar"><button class="btn small pc-run">&#9654; Run Python</button><span style="font-size:12px;color:var(--ink-faint)">Upload a CSV &middot; edit the formula &middot; run &middot; download.</span></div>
+<div class="pc-out"></div>
+</div></div>
 <div class="summary-box"><div class="sb-label">Chapter Summary</div>
 <ul class="body">
 <li>Heteroskedasticity is non-constant conditional variance of the disturbance; it is typical of cross-sectional data (Section 7.1).</li>
@@ -1151,6 +1451,35 @@ plt.title("Attenuation bias: the estimate melts toward zero"); plt.legend(); plt
 <div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
 <p>The known direction of attenuation may be turned to the analyst's advantage. Because classical measurement error in a regressor biases its coefficient toward zero, an estimate obtained from a noisily measured regressor is conservative: the true effect is at least as large in magnitude as the estimate. A regressor measured with error that nonetheless exhibits a substantial, clearly nonzero coefficient therefore licenses the stronger conclusion that the true effect is larger still. The corresponding caution applies to a null result: a regressor expected to matter but estimated as an imprecise zero may have been rendered so by measurement error alone, and its unimportance cannot be inferred without consideration of how well it was measured.</p></div>
 
+<div class="byod"><h3>&#128202; Run your own regression</h3>
+<p>A general regression tool you can use <em>instead of</em> opening Python on your computer. Click <b>Upload CSV</b>, choose any dataset, and run once to print your column names and a preview. Then edit the formula <code>"outcome ~ predictor1 + predictor2"</code> with your own column names and run again. Transformations are supported: <code>I(x**2)</code> for squares, <code>np.log(x)</code> for logs, <code>C(x)</code> for categorical variables, and <code>x1:x2</code> for interactions. <b>Download results.csv</b> saves the coefficient table. Everything runs in your browser; nothing is uploaded to a server.</p>
+<div class="python-cell" data-cell="byod-ch8" data-io="1">
+<div class="pc-head"><span class="pc-dot"></span><span class="pc-title">python &middot; your own regression</span><span class="pc-status">idle</span></div>
+<script type="text/x-python">
+import pandas as pd, numpy as np
+import statsmodels.formula.api as smf
+
+df = pd.read_csv("data.csv")               # the CSV you uploaded
+print("Your columns:", list(df.columns))   # run once to see your variable names
+print(df.head())
+
+# === EDIT this formula to use YOUR column names from the list above ===
+formula = "y ~ x"                          # e.g. "price ~ size + bedrooms"
+
+try:
+    model = smf.ols(formula, data=df).fit()
+    print(model.summary())
+    model.params.to_frame("coef").to_csv("results.csv")   # then click "Download results.csv"
+except Exception as e:
+    print("\nCould not run the formula:", repr(formula))
+    print("It likely uses names that are not columns in your data.")
+    print("Your columns are:", list(df.columns))
+    if len(df.columns) >= 2:
+        print('Edit the formula line to use them, e.g.:  formula = "%s ~ %s"' % (df.columns[0], df.columns[1]))
+</script>
+<div class="pc-bar"><button class="btn small pc-run">&#9654; Run Python</button><span style="font-size:12px;color:var(--ink-faint)">Upload a CSV &middot; edit the formula &middot; run &middot; download.</span></div>
+<div class="pc-out"></div>
+</div></div>
 <div class="summary-box"><div class="sb-label">Chapter Summary</div>
 <ul class="body">
 <li>Classical measurement error in the outcome reduces precision but preserves unbiasedness (Section 8.1).</li>
@@ -1271,6 +1600,35 @@ print("dedicated IV routines correct them. The coefficient is identical.")
 <div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
 <p>Because the exclusion restriction is not testable, the credibility of an instrumental-variables estimate rests entirely on a substantive argument, and that argument is best examined by attempting to refute it. The instrument should be stated as a complete proposition &mdash; that it influences the endogenous regressor and affects the outcome through no other channel &mdash; and the analyst should then enumerate alternative channels by which the instrument might affect the outcome directly. If any plausible such channel exists, the exclusion restriction is doubtful, and no statistical procedure will disclose the resulting inconsistency. The weakness of an instrument announces itself in the first-stage statistics; a violation of exogeneity does not, and it is therefore the point on which scrutiny should concentrate.</p></div>
 
+<div class="byod"><h3>&#128202; Run your own regression</h3>
+<p>A general regression tool you can use <em>instead of</em> opening Python on your computer. Click <b>Upload CSV</b>, choose any dataset, and run once to print your column names and a preview. Then edit the formula <code>"outcome ~ predictor1 + predictor2"</code> with your own column names and run again. Transformations are supported: <code>I(x**2)</code> for squares, <code>np.log(x)</code> for logs, <code>C(x)</code> for categorical variables, and <code>x1:x2</code> for interactions. <b>Download results.csv</b> saves the coefficient table. Everything runs in your browser; nothing is uploaded to a server.</p>
+<div class="python-cell" data-cell="byod-ch9" data-io="1">
+<div class="pc-head"><span class="pc-dot"></span><span class="pc-title">python &middot; your own regression</span><span class="pc-status">idle</span></div>
+<script type="text/x-python">
+import pandas as pd, numpy as np
+import statsmodels.formula.api as smf
+
+df = pd.read_csv("data.csv")               # the CSV you uploaded
+print("Your columns:", list(df.columns))   # run once to see your variable names
+print(df.head())
+
+# === EDIT this formula to use YOUR column names from the list above ===
+formula = "y ~ x"                          # e.g. "price ~ size + bedrooms"
+
+try:
+    model = smf.ols(formula, data=df).fit()
+    print(model.summary())
+    model.params.to_frame("coef").to_csv("results.csv")   # then click "Download results.csv"
+except Exception as e:
+    print("\nCould not run the formula:", repr(formula))
+    print("It likely uses names that are not columns in your data.")
+    print("Your columns are:", list(df.columns))
+    if len(df.columns) >= 2:
+        print('Edit the formula line to use them, e.g.:  formula = "%s ~ %s"' % (df.columns[0], df.columns[1]))
+</script>
+<div class="pc-bar"><button class="btn small pc-run">&#9654; Run Python</button><span style="font-size:12px;color:var(--ink-faint)">Upload a CSV &middot; edit the formula &middot; run &middot; download.</span></div>
+<div class="pc-out"></div>
+</div></div>
 <div class="summary-box"><div class="sb-label">Chapter Summary</div>
 <ul class="body">
 <li>A regressor is endogenous when correlated with the disturbance; OLS is then biased and inconsistent (Section 9.1).</li>
@@ -1393,6 +1751,35 @@ plt.legend(); plt.tight_layout()
 <div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
 <p>The capacity of fixed effects to eliminate unobserved confounders invites uncritical application, but the transformation discards all between-unit variation and retains only within-unit variation, and the quantity of the latter should be examined before the estimate is trusted. If the regressor of interest changes little within units over the observation period &mdash; as is common for policies or characteristics that are stable for each unit &mdash; the within transformation leaves little variation from which to estimate the effect, and the resulting estimate rests on a small number of units that happen to change. An estimate may thus be simultaneously free of time-invariant confounding and founded on negligible identifying variation. The within-unit variation in the key regressor should therefore be assessed directly before the absence of confounding is taken to imply the reliability of the estimate.</p></div>
 
+<div class="byod"><h3>&#128202; Run your own regression</h3>
+<p>A general regression tool you can use <em>instead of</em> opening Python on your computer. Click <b>Upload CSV</b>, choose any dataset, and run once to print your column names and a preview. Then edit the formula <code>"outcome ~ predictor1 + predictor2"</code> with your own column names and run again. Transformations are supported: <code>I(x**2)</code> for squares, <code>np.log(x)</code> for logs, <code>C(x)</code> for categorical variables, and <code>x1:x2</code> for interactions. <b>Download results.csv</b> saves the coefficient table. Everything runs in your browser; nothing is uploaded to a server.</p>
+<div class="python-cell" data-cell="byod-ch10" data-io="1">
+<div class="pc-head"><span class="pc-dot"></span><span class="pc-title">python &middot; your own regression</span><span class="pc-status">idle</span></div>
+<script type="text/x-python">
+import pandas as pd, numpy as np
+import statsmodels.formula.api as smf
+
+df = pd.read_csv("data.csv")               # the CSV you uploaded
+print("Your columns:", list(df.columns))   # run once to see your variable names
+print(df.head())
+
+# === EDIT this formula to use YOUR column names from the list above ===
+formula = "y ~ x"                          # e.g. "price ~ size + bedrooms"
+
+try:
+    model = smf.ols(formula, data=df).fit()
+    print(model.summary())
+    model.params.to_frame("coef").to_csv("results.csv")   # then click "Download results.csv"
+except Exception as e:
+    print("\nCould not run the formula:", repr(formula))
+    print("It likely uses names that are not columns in your data.")
+    print("Your columns are:", list(df.columns))
+    if len(df.columns) >= 2:
+        print('Edit the formula line to use them, e.g.:  formula = "%s ~ %s"' % (df.columns[0], df.columns[1]))
+</script>
+<div class="pc-bar"><button class="btn small pc-run">&#9654; Run Python</button><span style="font-size:12px;color:var(--ink-faint)">Upload a CSV &middot; edit the formula &middot; run &middot; download.</span></div>
+<div class="pc-out"></div>
+</div></div>
 <div class="summary-box"><div class="sb-label">Chapter Summary</div>
 <ul class="body">
 <li>The fixed-effects model assigns each unit its own intercept \(\alpha_i\), capturing all time-invariant characteristics (Section 10.1).</li>
@@ -1501,6 +1888,35 @@ print("Naive SEs should be too small by about sqrt(%.1f) = %.2f x" % (1+(m-1)*rh
 <div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
 <p>The principal difficulty in clustering is not computational but the selection of the cluster level, and the correct choice is frequently coarser than is comfortable. The cluster should correspond to the level at which the disturbances are dependent, which is typically the level at which treatment is assigned: when a policy applies to an entire jurisdiction, the independent units are the jurisdictions, not the individuals within them, however numerous. If this leaves few clusters, that paucity is an accurate reflection of the limited independent information in the data, not a deficiency to be circumvented by clustering more finely. The temptation to cluster at a fine level arises precisely because it yields smaller standard errors and more significant results; it should be resisted, and the cluster chosen to match the dependence structure of the data.</p></div>
 
+<div class="byod"><h3>&#128202; Run your own regression</h3>
+<p>A general regression tool you can use <em>instead of</em> opening Python on your computer. Click <b>Upload CSV</b>, choose any dataset, and run once to print your column names and a preview. Then edit the formula <code>"outcome ~ predictor1 + predictor2"</code> with your own column names and run again. Transformations are supported: <code>I(x**2)</code> for squares, <code>np.log(x)</code> for logs, <code>C(x)</code> for categorical variables, and <code>x1:x2</code> for interactions. <b>Download results.csv</b> saves the coefficient table. Everything runs in your browser; nothing is uploaded to a server.</p>
+<div class="python-cell" data-cell="byod-ch11" data-io="1">
+<div class="pc-head"><span class="pc-dot"></span><span class="pc-title">python &middot; your own regression</span><span class="pc-status">idle</span></div>
+<script type="text/x-python">
+import pandas as pd, numpy as np
+import statsmodels.formula.api as smf
+
+df = pd.read_csv("data.csv")               # the CSV you uploaded
+print("Your columns:", list(df.columns))   # run once to see your variable names
+print(df.head())
+
+# === EDIT this formula to use YOUR column names from the list above ===
+formula = "y ~ x"                          # e.g. "price ~ size + bedrooms"
+
+try:
+    model = smf.ols(formula, data=df).fit()
+    print(model.summary())
+    model.params.to_frame("coef").to_csv("results.csv")   # then click "Download results.csv"
+except Exception as e:
+    print("\nCould not run the formula:", repr(formula))
+    print("It likely uses names that are not columns in your data.")
+    print("Your columns are:", list(df.columns))
+    if len(df.columns) >= 2:
+        print('Edit the formula line to use them, e.g.:  formula = "%s ~ %s"' % (df.columns[0], df.columns[1]))
+</script>
+<div class="pc-bar"><button class="btn small pc-run">&#9654; Run Python</button><span style="font-size:12px;color:var(--ink-faint)">Upload a CSV &middot; edit the formula &middot; run &middot; download.</span></div>
+<div class="pc-out"></div>
+</div></div>
 <div class="summary-box"><div class="sb-label">Chapter Summary</div>
 <ul class="body">
 <li>Observations within a group share unobserved influences, so their disturbances are correlated and the independence assumption fails (Section 11.1).</li>
@@ -1544,12 +1960,19 @@ print("Naive SEs should be too small by about sqrt(%.1f) = %.2f x" % (1+(m-1)*rh
 <p>A policy is introduced for one group and not another. How is its effect estimated, separating it from permanent differences between the groups and from trends common to both?</p></div>
 
 <div class="arena-banner"><span class="ab-pre">Arena</span><a href="index.html#lab/did-time-machine" target="_blank" rel="noopener">&#9876; The DiD Time Machine &rarr;</a></div>
-<p class="lede">When a policy is applied to one group and withheld from another, comparison over time of the two groups can identify its effect. The difference-in-differences estimator removes both the permanent differences between groups and the trends common to them, isolating the change attributable to the policy. This chapter develops the estimator, its identifying assumption of parallel trends, the event-study assessment of that assumption, and the Python implementation. It is the most widely used quasi-experimental design in applied economics.</p>
+<p class="lede">Difference-in-differences is the most widely used quasi-experimental design in applied economics, and the intuition behind it is something you already use. When a policy hits one group but not another, you watch how both groups <em>change</em> over the same window and credit the policy with the <em>extra</em> change in the treated group. This chapter builds that idea carefully &mdash; the estimator, the one assumption it leans on (parallel trends), the event study that makes that assumption credible, and the Python &mdash; with the formal pieces tucked into collapsible boxes.</p>
+
+<div class="key-idea"><div class="ki-label">A motivating example</div><p>In 2015, suppose half the states in a region raise their cigarette tax and the other half leave it unchanged. Cigarette sales were already drifting down everywhere. So if sales fall in the tax states after 2015, how much of that is the tax and how much is the trend that was happening anyway? Difference-in-differences answers it: take the before-to-after change in sales in the <em>tax</em> states, and subtract the before-to-after change in the <em>untaxed</em> states over the same years. Whatever was trending everywhere cancels; what remains is the tax's effect. We develop the method on this example and estimate it in Python below.</p></div>
 
 <h2>12.1 The estimator</h2>
-<p>Let a treated group be exposed to a policy between two periods and a control group not. Two naive comparisons each fail: the before&ndash;after change in the treated group confounds the policy with trends common to both groups, and the treated&ndash;control difference after the policy confounds it with permanent differences between the groups. The <strong>difference-in-differences</strong> estimator combines them:</p>
-\[ \hat\tau = (\bar y_{\text{treated,after}}-\bar y_{\text{treated,before}}) - (\bar y_{\text{control,after}}-\bar y_{\text{control,before}}). \]
-<p>The control group's change estimates the common trend; subtracting it removes the trend, while the use of each group's own change removes its permanent level. Equivalently, \(\hat\tau\) is the coefficient on the interaction of a treated-group indicator with an after-period indicator in the regression \( y = \beta_0 + \beta_1\,\text{treated} + \beta_2\,\text{post} + \tau\,(\text{treated}\times\text{post}) + u. \)</p>
+<p><em>Why not just compare?</em> Two tempting shortcuts each fail. Looking only at the <em>tax</em> states before and after 2015 confounds the tax with the downward trend that was happening anyway. Comparing <em>tax</em> and <em>untaxed</em> states only in 2016 confounds the tax with permanent differences between them (perhaps the tax states always smoked less). Difference-in-differences uses <em>both</em> differences to cancel <em>both</em> problems:</p>
+\[ \hat\tau = (\bar y_{\text{tax,after}}-\bar y_{\text{tax,before}}) - (\bar y_{\text{untaxed,after}}-\bar y_{\text{untaxed,before}}). \]
+<p>Read it plainly: the untaxed states' change is the trend the tax states <em>would</em> have followed without the tax, so subtracting it leaves the tax's own effect. Using each group's own before-to-after change wipes out its permanent level; subtracting the control's change wipes out the common trend &mdash; two subtractions, two confounders gone.</p>
+<details class="maths"><summary>For the mathematically curious: the regression form</summary><div class="mbody">
+<p>The same \(\hat\tau\) is the coefficient on the interaction of a treated-group indicator with an after-period indicator,</p>
+\[ y = \beta_0 + \beta_1\,\text{treated} + \beta_2\,\text{post} + \tau\,(\text{treated}\times\text{post}) + u. \]
+<p>Here \(\beta_1\) absorbs the permanent group difference, \(\beta_2\) the common trend, and \(\tau\) &mdash; the interaction &mdash; is exactly the double difference above. Writing it as a regression is what lets us add controls, use many periods, and attach (clustered) standard errors.</p>
+</div></details>
 
 <h2>12.2 The parallel-trends assumption</h2>
 <div class="definition"><div class="df-label">Definition 12.1 &mdash; Parallel trends</div>
@@ -1570,57 +1993,91 @@ event = smf.ols(&quot;y ~ treated + C(year) + treated:C(year)&quot;, data=df).fi
             cov_type=&quot;cluster&quot;, cov_kwds={&quot;groups&quot;: df[&quot;state&quot;]})
 <span class="c"># the treated:C(year) coefficients trace the gap period by period:</span>
 <span class="c"># flat (near zero) before the policy, opening up after</span></pre><p>The demonstration below estimates the difference-in-differences coefficient and plots the event study, exhibiting approximately zero pre-policy gaps and a post-policy effect.</p>
-<h3>12.4.1 Demonstration</h3>
+<h3>12.4.1 Demonstration: the cigarette tax</h3>
 <div class="python-cell" data-cell="ch12">
-<div class="pc-head"><span class="pc-dot"></span><span class="pc-title">python &middot; chapter 12 &middot; DiD + event study</span><span class="pc-status">idle</span></div>
+<div class="pc-head"><span class="pc-dot"></span><span class="pc-title">python &middot; chapter 12 &middot; cigarette tax DiD + event study</span><span class="pc-status">idle</span></div>
 <script type="text/x-python">
 import numpy as np, pandas as pd
 import statsmodels.formula.api as smf
 import matplotlib.pyplot as plt
 
 rng = np.random.default_rng(1212)
-N, T0, T, tau = 60, 5, 10, 2.0           # treatment hits half the units at t = 5
+n_states = 40
+years = np.arange(2010, 2020)
+TAX_YEAR = 2015
+tau = -15.0                                   # true effect: 15 fewer packs per capita
 rows = []
-for i in range(N):
-    treat = int(i < N//2)
-    ai = rng.normal(0, 1.5)
-    for t in range(T):
-        lam = 0.4*t                       # common trend
-        y = 10 + ai + lam + tau*treat*(t >= T0) + rng.normal(0, .8)
-        rows.append((i, t, treat, int(t>=T0), y))
-df = pd.DataFrame(rows, columns=["unit","t","treat","post","y"])
+for s in range(n_states):
+    taxed = int(s < n_states // 2)            # half the states raise the tax in 2015
+    level = rng.normal(120, 15)               # permanent state difference in smoking
+    for y in years:
+        trend = -2.0 * (y - 2010)             # cigarettes decline everywhere over time
+        post = int(y >= TAX_YEAR)
+        packs = level + trend + tau*taxed*post + rng.normal(0, 4)
+        rows.append((s, y, taxed, post, round(packs, 1)))
+df = pd.DataFrame(rows, columns=["state", "year", "taxed", "post", "packs"])
 
-twfe = smf.ols("y ~ treat*post + C(t) + C(unit)", data=df).fit(
-        cov_type="cluster", cov_kwds={"groups": df["unit"]})
-print("TWFE DiD estimate (true tau = 2.0): %.3f  (clustered se %.3f)" %
-      (twfe.params["treat:post"], twfe.bse["treat:post"]))
+# difference-in-differences: the taxed:post interaction, SEs clustered by state
+did = smf.ols("packs ~ taxed + post + taxed:post", data=df).fit(
+        cov_type="cluster", cov_kwds={"groups": df["state"]})
+print("DiD estimate (true effect = -15): %.2f  (clustered se %.2f)" %
+      (did.params["taxed:post"], did.bse["taxed:post"]))
 
-# Event study: leads and lags around the event, k = -1 omitted
-df["k"] = df["t"] - T0
-es = smf.ols("y ~ C(k):treat + C(t) + C(unit)", data=df).fit(
-        cov_type="cluster", cov_kwds={"groups": df["unit"]})
-ks, coefs, ses = [], [], []
-for k in range(-T0, T - T0):
-    if k == -1:
-        ks.append(k); coefs.append(0.0); ses.append(0.0); continue
-    name = "C(k)[%d]:treat" % k
-    if name in es.params.index:
-        ks.append(k); coefs.append(es.params[name]); ses.append(es.bse[name])
-plt.figure(figsize=(7.2,4.0))
-plt.errorbar(ks, coefs, yerr=[1.96*s for s in ses], fmt="o", capsize=3)
-plt.axhline(0, linewidth=1); plt.axvline(-0.5, linestyle="--", linewidth=1)
-plt.xlabel("event time k (treatment at k = 0)"); plt.ylabel("effect vs k = -1")
-plt.title("Event study: flat leads, a jump at zero"); plt.tight_layout()
+# event study: average (taxed - untaxed) gap each year, recentered so 2014 = 0
+g = df.groupby(["year", "taxed"])["packs"].mean().unstack()
+gap = (g[1] - g[0]); gap = gap - gap.loc[2014]
+plt.figure(figsize=(7.4, 4.0))
+plt.plot(gap.index, gap.values, marker="o", color="#7C5CFF")
+plt.axhline(0, linewidth=1); plt.axvline(2014.5, linestyle="--", linewidth=1)
+plt.xlabel("year (tax rises in 2015)"); plt.ylabel("taxed - untaxed gap (recentered)")
+plt.title("Event study: flat before 2015, a drop after"); plt.tight_layout()
 </script>
 <div class="pc-bar"><button class="btn small pc-run">&#9654; Run Python</button></div>
 <div class="pc-out"></div>
 </div>
 
-<div class="interp"><b>Reading the output.</b> The interaction coefficient is the estimated policy effect. The event-study plot shows the period-by-period gaps: their approximate flatness before the policy supports parallel trends, and their departure afterward traces the effect.</div>
+<div class="interp"><b>Reading the output.</b>
+The printed <code>DiD estimate</code> is the <code>taxed:post</code> interaction &mdash; close to the built-in <strong>&minus;15</strong>, meaning the tax cut per-capita sales by about 15 packs relative to the path the untaxed states' trend predicts for the tax states. The <code>clustered se</code> beside it is the honest standard error: because all the years within a state move together, we cluster by state (Chapter 11) rather than pretend each state-year is independent, which would understate the uncertainty.
+The event-study plot is the credibility check. Each point is the gap between taxed and untaxed states in a year, recentred so the 2014 (pre-tax) gap is zero. Before 2015 the points sit flat near zero &mdash; the two groups were already moving in parallel, which is the visible evidence for parallel trends. At 2015 the gap drops and stays down, tracing the tax's effect and its persistence. Flat leads earn trust in the design; a pre-2015 line that already sloped would warn that the groups were diverging anyway, and the estimate could not be believed.</div>
+
+<h2>12.5 A caution: when treatment is staggered</h2>
+<p>Our cigarette example is the clean case &mdash; every treated state raises the tax in the same year, 2015. Many real policies instead roll out at <em>different</em> times: some states adopt in 2013, others in 2016, others in 2018. This is called <strong>staggered adoption</strong>, and it hides a trap worth knowing before you ever run such a regression.</p>
+<p>The instinct is to run the same two-way fixed-effects (TWFE) regression &mdash; unit dummies, time dummies, and a single treatment indicator &mdash; and read off one number. But with staggered timing that one coefficient is secretly a weighted average of <em>many</em> little before/after comparisons, and some of them use <em>already-treated</em> units as the "control" for units treated later. If a policy's effect grows or fades over time (dynamic effects) or differs across units (heterogeneous effects), those particular comparisons receive <strong>negative weights</strong> &mdash; and a weighted average with negative weights can be biased, occasionally so badly that the estimate carries the wrong sign even when every unit's true effect is positive.</p>
+<p>The remedy is to compare only <em>clean</em> controls &mdash; units not yet treated &mdash; and to estimate each adoption cohort's effect separately before averaging. Estimators that do this (Callaway &amp; Sant'Anna; Sun &amp; Abraham; de Chaisemartin &amp; D'Haultf&oelig;uille) are now standard for staggered designs, and the Goodman-Bacon decomposition shows exactly where the bad comparisons come from. The two-group, single-date case of this chapter is immune; the caution applies the moment adoption dates differ.</p>
+<div class="key-idea"><div class="ki-label">Rule of thumb</div><p>One treatment date and two groups: plain TWFE is fine. Many different treatment dates: do not trust a single TWFE coefficient &mdash; use a modern staggered-DiD estimator, and build the event study from not-yet-treated controls.</p></div>
 
 <div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
 <p>The event-study figure is presented as a test of parallel trends, which it is, but the post-policy coefficients additionally convey the time profile of the effect, which is itself a principal finding. An effect that appears immediately and persists differs in its implications from one that emerges gradually or one that decays, although all three may share the same average. Before the estimate is reduced to a single number, the post-policy trajectory should be read as a result in its own right: whether the effect is immediate or delayed, and whether it is durable or transient, bears directly on the value of the policy and is frequently the information a decision-maker most requires. The average answers whether the policy had an effect; the trajectory answers how that effect evolved.</p></div>
 
+<div class="byod"><h3>&#128202; Run your own regression</h3>
+<p>A general regression tool you can use <em>instead of</em> opening Python on your computer. Click <b>Upload CSV</b>, choose any dataset, and run once to print your column names and a preview. Then edit the formula <code>"outcome ~ predictor1 + predictor2"</code> with your own column names and run again. Transformations are supported: <code>I(x**2)</code> for squares, <code>np.log(x)</code> for logs, <code>C(x)</code> for categorical variables, and <code>x1:x2</code> for interactions. <b>Download results.csv</b> saves the coefficient table. Everything runs in your browser; nothing is uploaded to a server.</p>
+<div class="python-cell" data-cell="byod-ch12" data-io="1">
+<div class="pc-head"><span class="pc-dot"></span><span class="pc-title">python &middot; your own regression</span><span class="pc-status">idle</span></div>
+<script type="text/x-python">
+import pandas as pd, numpy as np
+import statsmodels.formula.api as smf
+
+df = pd.read_csv("data.csv")               # the CSV you uploaded
+print("Your columns:", list(df.columns))   # run once to see your variable names
+print(df.head())
+
+# === EDIT this formula to use YOUR column names from the list above ===
+formula = "y ~ x"                          # e.g. "price ~ size + bedrooms"
+
+try:
+    model = smf.ols(formula, data=df).fit()
+    print(model.summary())
+    model.params.to_frame("coef").to_csv("results.csv")   # then click "Download results.csv"
+except Exception as e:
+    print("\nCould not run the formula:", repr(formula))
+    print("It likely uses names that are not columns in your data.")
+    print("Your columns are:", list(df.columns))
+    if len(df.columns) >= 2:
+        print('Edit the formula line to use them, e.g.:  formula = "%s ~ %s"' % (df.columns[0], df.columns[1]))
+</script>
+<div class="pc-bar"><button class="btn small pc-run">&#9654; Run Python</button><span style="font-size:12px;color:var(--ink-faint)">Upload a CSV &middot; edit the formula &middot; run &middot; download.</span></div>
+<div class="pc-out"></div>
+</div></div>
 <div class="summary-box"><div class="sb-label">Chapter Summary</div>
 <ul class="body">
 <li>Difference-in-differences subtracts the control group's change from the treated group's change, removing both common trends and permanent group differences (Section 12.1).</li>
@@ -1655,6 +2112,9 @@ plt.title("Event study: flat leads, a jump at zero"); plt.tight_layout()
 <li>Card, D. &amp; Krueger, A. (1994), "Minimum Wages and Employment: A Case Study of the Fast-Food Industry in New Jersey and Pennsylvania," <em>American Economic Review</em> 84(4), 772&ndash;793.</li>
 <li>Bertrand, M., Duflo, E. &amp; Mullainathan, S. (2004), "How Much Should We Trust Differences-in-Differences Estimates?", <em>Quarterly Journal of Economics</em> 119(1), 249&ndash;275.</li>
 <li>Goodman-Bacon, A. (2021), "Difference-in-Differences with Variation in Treatment Timing," <em>Journal of Econometrics</em> 225(2), 254&ndash;277.</li>
+<li>Callaway, B. &amp; Sant'Anna, P. (2021), "Difference-in-Differences with Multiple Time Periods," <em>Journal of Econometrics</em> 225(2), 200&ndash;230.</li>
+<li>Sun, L. &amp; Abraham, S. (2021), "Estimating Dynamic Treatment Effects in Event Studies with Heterogeneous Treatment Effects," <em>Journal of Econometrics</em> 225(2), 175&ndash;199.</li>
+<li>de Chaisemartin, C. &amp; D'Haultf&oelig;uille, X. (2020), "Two-Way Fixed Effects Estimators with Heterogeneous Treatment Effects," <em>American Economic Review</em> 110(9), 2964&ndash;2996.</li>
 </ul></div>
 </div></article>
 
@@ -1666,7 +2126,9 @@ plt.title("Event study: flat leads, a jump at zero"); plt.tight_layout()
 <p>When a treatment is assigned by a strict threshold on a continuous variable, can the units just above and just below the threshold be used to identify its effect?</p></div>
 
 <div class="arena-banner"><span class="ab-pre">Arena</span><a href="index.html#lab/rd-cliff" target="_blank" rel="noopener">&#9876; The Regression-Discontinuity Cliff &rarr;</a></div>
-<p class="lede">When a treatment is allocated according to whether a continuous variable crosses a fixed threshold, the units immediately on either side of the threshold are nearly identical in all respects save the treatment. Comparing them approximates random assignment. This chapter develops the regression-discontinuity design: the threshold as a source of identification, the estimation of the discontinuity by local regression, the bandwidth trade-off, the assessment of manipulation, and the Python implementation. It is among the most credible quasi-experimental designs.</p>
+<p class="lede">Regression discontinuity is among the most credible quasi-experimental designs, and the idea is almost unfairly simple: when a sharp cutoff decides who gets treated, the people a hair below the cutoff are near-perfect stand-ins for the people a hair above &mdash; identical in everything except the treatment. Compare them, and you have something close to a randomized experiment that nature ran for you. This chapter develops that idea &mdash; the threshold as identification, local regression, the bandwidth trade-off, the manipulation check &mdash; with the formal pieces in collapsible boxes.</p>
+
+<div class="key-idea"><div class="ki-label">A motivating example</div><p>In the United States it becomes legal to drink alcohol the day you turn 21. Someone aged 20 years and 360 days and someone aged 21 years and 5 days are, on average, the same in maturity, health, and circumstance &mdash; yet one can legally drink and the other cannot. So if we plot, say, the mortality rate against age and see a sudden <em>jump</em> exactly at 21, that jump is hard to attribute to anything but the new legal access to alcohol. The running variable is age, the cutoff is 21, and &mdash; crucially &mdash; no one can fake their birthday, which makes this about as clean as the design ever gets. We build the method on this example and estimate it in Python below.</p></div>
 
 <h2>13.1 Identification at the threshold</h2>
 <p>Let treatment be assigned according to whether a <strong>running variable</strong> crosses a <strong>cutoff</strong>: units at or above the cutoff are treated, units below are not. Consider units arbitrarily close to the cutoff on either side. They differ negligibly in the running variable, and hence &mdash; assuming all other determinants of the outcome vary smoothly through the cutoff &mdash; in every other characteristic; yet one set is treated and the other is not. At the cutoff, treatment is therefore as good as randomly assigned.</p>
@@ -1675,6 +2137,9 @@ plt.title("Event study: flat leads, a jump at zero"); plt.tight_layout()
 <h2>13.2 Estimation</h2>
 <p>The discontinuity is estimated by fitting the outcome against the running variable separately on each side of the cutoff &mdash; <strong>local linear regression</strong> &mdash; and taking the difference of the two fitted values at the cutoff. Since only the discontinuity at the cutoff is of interest, the fit must be accurate near the cutoff, which raises the choice of the window width, the <strong>bandwidth</strong>.</p>
 <div class="key-idea"><div class="ki-label">Key Idea &mdash; the bandwidth trade-off</div><p>A wide bandwidth includes more observations, reducing variance, but observations far from the cutoff may follow a different relationship, introducing bias. A narrow bandwidth reduces bias by restricting attention to comparable units, but reduces the number of observations, increasing variance. The estimate should be reported across several bandwidths; stability as the bandwidth narrows supports its credibility.</p></div>
+<details class="maths"><summary>For the mathematically curious: the bias-variance trade-off</summary><div class="mbody">
+<p>Within a bandwidth \(h\), the variance of the discontinuity estimate falls roughly like \(1/(nh)\) &mdash; more data nearby, more precision &mdash; while the bias from approximating a curved relationship by a straight line grows like \(h^2\). Minimising the sum of squared bias and variance gives an optimal bandwidth that shrinks with the sample at the rate \(h^{*}\propto n^{-1/5}\). Data-driven selectors (Imbens&ndash;Kalyanaraman 2012; Calonico, Cattaneo &amp; Titiunik 2014) automate this choice and supply bias-corrected confidence intervals.</p>
+</div></details>
 
 <h2>13.3 Manipulation of the running variable</h2>
 <p>The design requires that units be unable to control their position relative to the cutoff. If they can &mdash; if applicants just below the cutoff secure reclassification above it &mdash; then those just above differ systematically from those just below in the characteristic that enabled the manipulation, and the comparability assumption fails. Manipulation is assessed by examining the <strong>density</strong> of the running variable at the cutoff: absent manipulation, the density is continuous; manipulation produces a discontinuity &mdash; an accumulation of units just above the cutoff and a deficit just below (the McCrary test).</p><h2>13.4 Regression discontinuity in Python</h2>
@@ -1693,56 +2158,93 @@ for h in [5, 10, 20]:
     w = df[df[&quot;score_c&quot;].abs() &lt;= h]
     est = smf.ols(&quot;y ~ above + score_c + above:score_c&quot;, data=w).fit().params[&quot;above&quot;]
     print(h, est)</pre><p>The demonstration below constructs data with a known discontinuity, estimates it, and examines the sensitivity to the bandwidth and the density at the cutoff.</p>
-<h3>13.4.1 Demonstration</h3>
+<h3>13.4.1 Demonstration: the drinking age</h3>
 <div class="python-cell" data-cell="ch13">
-<div class="pc-head"><span class="pc-dot"></span><span class="pc-title">python &middot; chapter 13 &middot; sharp RD</span><span class="pc-status">idle</span></div>
+<div class="pc-head"><span class="pc-dot"></span><span class="pc-title">python &middot; chapter 13 &middot; drinking age at 21</span><span class="pc-status">idle</span></div>
 <script type="text/x-python">
 import numpy as np, pandas as pd
 import statsmodels.api as sm
 import matplotlib.pyplot as plt
 
 rng = np.random.default_rng(1313)
-n, c, tau = 1200, 80.0, 7.2
-x = rng.uniform(50, 110, n)                      # running variable (test score)
-D = (x >= c).astype(float)
-y = 30 + 0.5*x + 0.004*(x-80)**2 + tau*D + rng.normal(0, 4, n)
+n = 1500
+age = rng.uniform(19, 23, n)                       # running variable: age, in years
+c = 21.0                                            # cutoff: legal drinking age
+D = (age >= c).astype(float)                        # legal to drink at/after 21
+tau = 9.0                                            # true jump: +9 deaths per 100k
+mortality = 92 + 2.0*(age-19) + tau*D + rng.normal(0, 6, n)   # deaths per 100k
 
-h = 10.0                                          # bandwidth
-win = np.abs(x - c) <= h
-below = win & (x <  c); above = win & (x >= c)
+h = 1.0                                              # bandwidth: +/- 1 year around 21
+win = np.abs(age - c) <= h
+below = win & (age <  c); above = win & (age >= c)
 def local_lin(mask):
-    X = sm.add_constant(x[mask] - c)
-    return sm.OLS(y[mask], X).fit()
+    X = sm.add_constant(age[mask] - c)
+    return sm.OLS(mortality[mask], X).fit()
 mb, ma = local_lin(below), local_lin(above)
-print("limit from below: %.2f   from above: %.2f" % (mb.params[0], ma.params[0]))
-print("sharp RD estimate (true tau = 7.2): %.2f" % (ma.params[0] - mb.params[0]))
-for hh in [5.0, 10.0, 20.0]:
-    wb = (np.abs(x-c)<=hh)&(x<c); wa = (np.abs(x-c)<=hh)&(x>=c)
-    est = (sm.OLS(y[wa], sm.add_constant(x[wa]-c)).fit().params[0]
-         - sm.OLS(y[wb], sm.add_constant(x[wb]-c)).fit().params[0])
-    print("  bandwidth %4.0f -> estimate %.2f" % (hh, est))
+print("mortality just below 21: %.1f   just above 21: %.1f" % (mb.params[0], ma.params[0]))
+print("RD estimate (true jump = 9.0): %.2f per 100k" % (ma.params[0] - mb.params[0]))
+for hh in [0.5, 1.0, 2.0]:                          # bandwidth sensitivity
+    wb = (np.abs(age-c)<=hh)&(age<c); wa = (np.abs(age-c)<=hh)&(age>=c)
+    est = (sm.OLS(mortality[wa], sm.add_constant(age[wa]-c)).fit().params[0]
+         - sm.OLS(mortality[wb], sm.add_constant(age[wb]-c)).fit().params[0])
+    print("  bandwidth +/-%.1f yr -> estimate %.2f" % (hh, est))
 
-bins = np.arange(50, 111, 2.0)
-mids = (bins[:-1]+bins[1:])/2
-means = [y[(x>=bins[i])&(x<bins[i+1])].mean() for i in range(len(mids))]
-plt.figure(figsize=(7.2,4.2))
-plt.scatter(mids, means, s=22)
-xs_b = np.linspace(c-h, c, 30); xs_a = np.linspace(c, c+h, 30)
-plt.plot(xs_b, mb.params[0]+mb.params[1]*(xs_b-c), linewidth=2.2)
-plt.plot(xs_a, ma.params[0]+ma.params[1]*(xs_a-c), linewidth=2.2)
-plt.axvline(c, linestyle="--", linewidth=1.2)
-plt.xlabel("running variable (score)"); plt.ylabel("outcome (binned means)")
-plt.title("Sharp RD: local linear fits on each side of the cutoff"); plt.tight_layout()
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(7.2, 5.4), gridspec_kw={"height_ratios":[3,1]})
+bins = np.arange(19, 23.01, 0.25); mids = (bins[:-1]+bins[1:])/2
+means = [mortality[(age>=bins[i])&(age<bins[i+1])].mean() for i in range(len(mids))]
+ax1.scatter(mids, means, s=22)
+xb = np.linspace(c-h, c, 30); xa = np.linspace(c, c+h, 30)
+ax1.plot(xb, mb.params[0]+mb.params[1]*(xb-c), linewidth=2.2)
+ax1.plot(xa, ma.params[0]+ma.params[1]*(xa-c), linewidth=2.2, color="#FBBF24")
+ax1.axvline(c, linestyle="--", linewidth=1.2)
+ax1.set_ylabel("mortality (per 100k)")
+ax1.set_title("A jump in mortality exactly at age 21")
+ax2.hist(age, bins=bins, color="#7C5CFF", alpha=.75)   # McCrary density check
+ax2.axvline(c, linestyle="--", linewidth=1.2)
+ax2.set_xlabel("age (years)"); ax2.set_ylabel("count")
+plt.tight_layout()
 </script>
 <div class="pc-bar"><button class="btn small pc-run">&#9654; Run Python</button></div>
 <div class="pc-out"></div>
 </div>
 
-<div class="interp"><b>Reading the output.</b> The coefficient on the above-cutoff indicator is the estimated jump in the outcome at the cutoff, the treatment effect for units near the threshold. Its approximate stability across bandwidths supports the estimate; a continuous density at the cutoff supports the absence of manipulation.</div>
+<div class="interp"><b>Reading the output.</b>
+The <code>RD estimate</code> is the difference between fitted mortality just above and just below 21 &mdash; close to the built-in <strong>+9 per 100k</strong>. Read it carefully: it is the effect of legal drinking access <em>for people right at age 21</em>, the marginal cases &mdash; not for 30-year-olds. That local nature is the price of the design's credibility, and it should accompany every RD result.
+The bandwidth list shows the trade-off in action: the narrowest window (&plusmn;0.5&nbsp;yr) uses only the most comparable people but few of them, so the estimate is noisier; the widest (&plusmn;2&nbsp;yr) uses more people but risks letting the underlying age&ndash;mortality slope, rather than the jump, drive the number. The reassuring sign is that the estimate stays near 9 as the window changes.
+The top panel shows the two local-linear fits meeting at a clear step at 21 &mdash; that step is the effect. The bottom panel is the <strong>manipulation (McCrary) check</strong>: the density of ages runs smoothly through 21 with no pile-up on either side. Here that is guaranteed &mdash; no one can choose their birthday &mdash; which is precisely why age-based discontinuities are the gold standard. Where the running variable <em>can</em> be gamed (a self-reported income, a gradeable test score), a spike just on the treated side of the cutoff would betray manipulation and invalidate the comparison.</div>
 
 <div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
 <p>The regression-discontinuity design yields an unusually credible estimate of an unusually specific quantity, and the specificity is essential to its interpretation. The estimate is the effect of treatment for units <em>at the cutoff</em> &mdash; the marginal cases &mdash; and is not informative about the effect for units far from it. This is not a defect: a precise estimate for the marginal units is exactly what is required by a decision concerning where to set the cutoff. But the estimate does not generalize as a randomized experiment on the whole population would, and the qualification &ldquo;for units near the threshold&rdquo; should accompany every statement of the result. The credibility of the design derives entirely from confining attention to the vicinity of the cutoff, and the reach of its conclusion is confined to the same vicinity.</p></div>
 
+<div class="byod"><h3>&#128202; Run your own regression</h3>
+<p>A general regression tool you can use <em>instead of</em> opening Python on your computer. Click <b>Upload CSV</b>, choose any dataset, and run once to print your column names and a preview. Then edit the formula <code>"outcome ~ predictor1 + predictor2"</code> with your own column names and run again. Transformations are supported: <code>I(x**2)</code> for squares, <code>np.log(x)</code> for logs, <code>C(x)</code> for categorical variables, and <code>x1:x2</code> for interactions. <b>Download results.csv</b> saves the coefficient table. Everything runs in your browser; nothing is uploaded to a server.</p>
+<div class="python-cell" data-cell="byod-ch13" data-io="1">
+<div class="pc-head"><span class="pc-dot"></span><span class="pc-title">python &middot; your own regression</span><span class="pc-status">idle</span></div>
+<script type="text/x-python">
+import pandas as pd, numpy as np
+import statsmodels.formula.api as smf
+
+df = pd.read_csv("data.csv")               # the CSV you uploaded
+print("Your columns:", list(df.columns))   # run once to see your variable names
+print(df.head())
+
+# === EDIT this formula to use YOUR column names from the list above ===
+formula = "y ~ x"                          # e.g. "price ~ size + bedrooms"
+
+try:
+    model = smf.ols(formula, data=df).fit()
+    print(model.summary())
+    model.params.to_frame("coef").to_csv("results.csv")   # then click "Download results.csv"
+except Exception as e:
+    print("\nCould not run the formula:", repr(formula))
+    print("It likely uses names that are not columns in your data.")
+    print("Your columns are:", list(df.columns))
+    if len(df.columns) >= 2:
+        print('Edit the formula line to use them, e.g.:  formula = "%s ~ %s"' % (df.columns[0], df.columns[1]))
+</script>
+<div class="pc-bar"><button class="btn small pc-run">&#9654; Run Python</button><span style="font-size:12px;color:var(--ink-faint)">Upload a CSV &middot; edit the formula &middot; run &middot; download.</span></div>
+<div class="pc-out"></div>
+</div></div>
 <div class="summary-box"><div class="sb-label">Chapter Summary</div>
 <ul class="body">
 <li>When treatment is assigned by a threshold on a running variable, units near the cutoff are comparable, and treatment is as good as randomly assigned there (Section 13.1).</li>
@@ -1860,6 +2362,35 @@ plt.title("LPM escapes the unit interval; logit cannot"); plt.legend(); plt.tigh
 <div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
 <p>The choice between the linear probability model and the logit or probit is commonly debated in terms of whether fitted probabilities can fall outside the unit interval, but the more pertinent consideration is the base rate of the event. For events occurring between roughly twenty and eighty percent of the time, the central portion of the S-shaped curve is nearly linear, the two approaches agree closely, and the linear model is preferable for its interpretability. The approaches diverge materially only for rare events, where the curve bends sharply and a linear model would predict probabilities outside the admissible range. The base rate should therefore be examined first: where the event is common, the linear model suffices; where it is rare, the nonlinear models are warranted, and the analysis of rare events also demands particular care with the quality of the data.</p></div>
 
+<div class="byod"><h3>&#128202; Run your own regression</h3>
+<p>A general regression tool you can use <em>instead of</em> opening Python on your computer. Click <b>Upload CSV</b>, choose any dataset, and run once to print your column names and a preview. Then edit the formula <code>"outcome ~ predictor1 + predictor2"</code> with your own column names and run again. Transformations are supported: <code>I(x**2)</code> for squares, <code>np.log(x)</code> for logs, <code>C(x)</code> for categorical variables, and <code>x1:x2</code> for interactions. <b>Download results.csv</b> saves the coefficient table. Everything runs in your browser; nothing is uploaded to a server.</p>
+<div class="python-cell" data-cell="byod-ch14" data-io="1">
+<div class="pc-head"><span class="pc-dot"></span><span class="pc-title">python &middot; your own regression</span><span class="pc-status">idle</span></div>
+<script type="text/x-python">
+import pandas as pd, numpy as np
+import statsmodels.formula.api as smf
+
+df = pd.read_csv("data.csv")               # the CSV you uploaded
+print("Your columns:", list(df.columns))   # run once to see your variable names
+print(df.head())
+
+# === EDIT this formula to use YOUR column names from the list above ===
+formula = "y ~ x"                          # e.g. "price ~ size + bedrooms"
+
+try:
+    model = smf.ols(formula, data=df).fit()
+    print(model.summary())
+    model.params.to_frame("coef").to_csv("results.csv")   # then click "Download results.csv"
+except Exception as e:
+    print("\nCould not run the formula:", repr(formula))
+    print("It likely uses names that are not columns in your data.")
+    print("Your columns are:", list(df.columns))
+    if len(df.columns) >= 2:
+        print('Edit the formula line to use them, e.g.:  formula = "%s ~ %s"' % (df.columns[0], df.columns[1]))
+</script>
+<div class="pc-bar"><button class="btn small pc-run">&#9654; Run Python</button><span style="font-size:12px;color:var(--ink-faint)">Upload a CSV &middot; edit the formula &middot; run &middot; download.</span></div>
+<div class="pc-out"></div>
+</div></div>
 <div class="summary-box"><div class="sb-label">Chapter Summary</div>
 <ul class="body">
 <li>For a binary outcome coded 0/1, the conditional mean is the conditional probability of the event (Section 14.1).</li>
@@ -1975,6 +2506,35 @@ plt.tight_layout()
 <div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
 <p>A discipline applicable to any relationship measured over time is to determine whether it persists in differences. A genuine relationship, in which movements of one series drive movements of another, manifests in the period-to-period changes as well as in the levels: when one series moves, the other responds. A spurious relationship resides only in the shared wandering of the levels and disappears under differencing. The most informative single question to pose of a striking time-series correlation is therefore whether it survives in the differenced data. A relationship dramatic in levels but absent in differences reflects two series wandering in coincidental company rather than a mechanism connecting them; this consideration alone would invalidate a substantial portion of confident time-series claims.</p></div>
 
+<div class="byod"><h3>&#128202; Run your own regression</h3>
+<p>A general regression tool you can use <em>instead of</em> opening Python on your computer. Click <b>Upload CSV</b>, choose any dataset, and run once to print your column names and a preview. Then edit the formula <code>"outcome ~ predictor1 + predictor2"</code> with your own column names and run again. Transformations are supported: <code>I(x**2)</code> for squares, <code>np.log(x)</code> for logs, <code>C(x)</code> for categorical variables, and <code>x1:x2</code> for interactions. <b>Download results.csv</b> saves the coefficient table. Everything runs in your browser; nothing is uploaded to a server.</p>
+<div class="python-cell" data-cell="byod-ch15" data-io="1">
+<div class="pc-head"><span class="pc-dot"></span><span class="pc-title">python &middot; your own regression</span><span class="pc-status">idle</span></div>
+<script type="text/x-python">
+import pandas as pd, numpy as np
+import statsmodels.formula.api as smf
+
+df = pd.read_csv("data.csv")               # the CSV you uploaded
+print("Your columns:", list(df.columns))   # run once to see your variable names
+print(df.head())
+
+# === EDIT this formula to use YOUR column names from the list above ===
+formula = "y ~ x"                          # e.g. "price ~ size + bedrooms"
+
+try:
+    model = smf.ols(formula, data=df).fit()
+    print(model.summary())
+    model.params.to_frame("coef").to_csv("results.csv")   # then click "Download results.csv"
+except Exception as e:
+    print("\nCould not run the formula:", repr(formula))
+    print("It likely uses names that are not columns in your data.")
+    print("Your columns are:", list(df.columns))
+    if len(df.columns) >= 2:
+        print('Edit the formula line to use them, e.g.:  formula = "%s ~ %s"' % (df.columns[0], df.columns[1]))
+</script>
+<div class="pc-bar"><button class="btn small pc-run">&#9654; Run Python</button><span style="font-size:12px;color:var(--ink-faint)">Upload a CSV &middot; edit the formula &middot; run &middot; download.</span></div>
+<div class="pc-out"></div>
+</div></div>
 <div class="summary-box"><div class="sb-label">Chapter Summary</div>
 <ul class="body">
 <li>Time-series observations are autocorrelated, reducing the effective quantity of independent information (Section 15.1).</li>
@@ -2098,6 +2658,35 @@ plt.legend(); plt.tight_layout()
 <div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
 <p>The question whether two series are cointegrated or merely spuriously related is presented as statistical, but its substantive form is whether a mechanism exists that restores the relationship when it is disturbed. A genuine long-run relationship has an economic basis &mdash; arbitrage that eliminates a price differential, a budget constraint linking expenditure to income, a policy rule connecting two rates. Before a cointegration test is conducted, the analyst should be able to name the restoring mechanism. Where the mechanism can be specified, a stable relationship is plausible and the test confirms an existing hypothesis; where no restoring force can be identified, a relationship that the test appears to detect should be regarded with suspicion, since a borderline test result may arise by chance as readily for unrelated series as a spurious one does. The mechanism is logically prior to the test, and the test should not be permitted to supply it.</p></div>
 
+<div class="byod"><h3>&#128202; Run your own regression</h3>
+<p>A general regression tool you can use <em>instead of</em> opening Python on your computer. Click <b>Upload CSV</b>, choose any dataset, and run once to print your column names and a preview. Then edit the formula <code>"outcome ~ predictor1 + predictor2"</code> with your own column names and run again. Transformations are supported: <code>I(x**2)</code> for squares, <code>np.log(x)</code> for logs, <code>C(x)</code> for categorical variables, and <code>x1:x2</code> for interactions. <b>Download results.csv</b> saves the coefficient table. Everything runs in your browser; nothing is uploaded to a server.</p>
+<div class="python-cell" data-cell="byod-ch16" data-io="1">
+<div class="pc-head"><span class="pc-dot"></span><span class="pc-title">python &middot; your own regression</span><span class="pc-status">idle</span></div>
+<script type="text/x-python">
+import pandas as pd, numpy as np
+import statsmodels.formula.api as smf
+
+df = pd.read_csv("data.csv")               # the CSV you uploaded
+print("Your columns:", list(df.columns))   # run once to see your variable names
+print(df.head())
+
+# === EDIT this formula to use YOUR column names from the list above ===
+formula = "y ~ x"                          # e.g. "price ~ size + bedrooms"
+
+try:
+    model = smf.ols(formula, data=df).fit()
+    print(model.summary())
+    model.params.to_frame("coef").to_csv("results.csv")   # then click "Download results.csv"
+except Exception as e:
+    print("\nCould not run the formula:", repr(formula))
+    print("It likely uses names that are not columns in your data.")
+    print("Your columns are:", list(df.columns))
+    if len(df.columns) >= 2:
+        print('Edit the formula line to use them, e.g.:  formula = "%s ~ %s"' % (df.columns[0], df.columns[1]))
+</script>
+<div class="pc-bar"><button class="btn small pc-run">&#9654; Run Python</button><span style="font-size:12px;color:var(--ink-faint)">Upload a CSV &middot; edit the formula &middot; run &middot; download.</span></div>
+<div class="pc-out"></div>
+</div></div>
 <div class="summary-box"><div class="sb-label">Chapter Summary</div>
 <ul class="body">
 <li>Cointegrated series are non-stationary but possess a stationary linear combination, representing a stable long-run relationship (Definition 16.1).</li>
@@ -2387,6 +2976,35 @@ plt.legend(); plt.tight_layout()
 <p>The partially linear model restricts the treatment effect \(\theta\) to be constant across units. When the effect is believed to vary with observed characteristics &mdash; that is, when one seeks the conditional effect \(\theta(x)\) &mdash; the same orthogonalization-and-cross-fitting template extends to estimate it: the final residual-on-residual regression is replaced by a flexible model relating the outcome residual to the treatment residual as a function of covariates. The causal forest is the leading instance of this extension. The methods lie beyond the scope of this chapter, but the underlying principle &mdash; orthogonalize to protect the causal parameter, cross-fit to keep predictions honest &mdash; is the one developed above, and it is the durable lesson of this material.</p>
 <div class="sharma-take"><div class="st-label">&#9733; Sharma's Take</div>
 <p>The intended use of an estimate should determine the method chosen to produce it, and the two purposes treated in this chapter call for opposite priorities. When the object is to <em>rank</em> or <em>flag</em> units &mdash; to identify which applicants are likely to default or which patients require monitoring &mdash; the relevant criterion is out-of-sample predictive accuracy, and the interpretability of individual coefficients is irrelevant; the flexible, regularized methods of Sections 17.2&ndash;17.5 are appropriate, and they should be evaluated by cross-validation alone. When the object is to <em>intervene</em> &mdash; to determine the consequence of altering a policy, a price, or a rule &mdash; predictive accuracy is no longer the operative criterion, and a coefficient extracted from an accurate predictive model is, as Section 17.6 demonstrates, generally a biased estimate of the causal quantity required. The recurring and costly error in applied work is the use of a predictive model's coefficients to guide intervention. Double machine learning is significant precisely because it supplies a principled means of retaining the flexibility of predictive methods while restoring the discipline of causal estimation; it should be understood not as a prediction method but as an estimator of a causal parameter that happens to use prediction methods as components.</p></div>
+<div class="byod"><h3>&#128202; Run your own regression</h3>
+<p>A general regression tool you can use <em>instead of</em> opening Python on your computer. Click <b>Upload CSV</b>, choose any dataset, and run once to print your column names and a preview. Then edit the formula <code>"outcome ~ predictor1 + predictor2"</code> with your own column names and run again. Transformations are supported: <code>I(x**2)</code> for squares, <code>np.log(x)</code> for logs, <code>C(x)</code> for categorical variables, and <code>x1:x2</code> for interactions. <b>Download results.csv</b> saves the coefficient table. Everything runs in your browser; nothing is uploaded to a server.</p>
+<div class="python-cell" data-cell="byod-ch17" data-io="1">
+<div class="pc-head"><span class="pc-dot"></span><span class="pc-title">python &middot; your own regression</span><span class="pc-status">idle</span></div>
+<script type="text/x-python">
+import pandas as pd, numpy as np
+import statsmodels.formula.api as smf
+
+df = pd.read_csv("data.csv")               # the CSV you uploaded
+print("Your columns:", list(df.columns))   # run once to see your variable names
+print(df.head())
+
+# === EDIT this formula to use YOUR column names from the list above ===
+formula = "y ~ x"                          # e.g. "price ~ size + bedrooms"
+
+try:
+    model = smf.ols(formula, data=df).fit()
+    print(model.summary())
+    model.params.to_frame("coef").to_csv("results.csv")   # then click "Download results.csv"
+except Exception as e:
+    print("\nCould not run the formula:", repr(formula))
+    print("It likely uses names that are not columns in your data.")
+    print("Your columns are:", list(df.columns))
+    if len(df.columns) >= 2:
+        print('Edit the formula line to use them, e.g.:  formula = "%s ~ %s"' % (df.columns[0], df.columns[1]))
+</script>
+<div class="pc-bar"><button class="btn small pc-run">&#9654; Run Python</button><span style="font-size:12px;color:var(--ink-faint)">Upload a CSV &middot; edit the formula &middot; run &middot; download.</span></div>
+<div class="pc-out"></div>
+</div></div>
 <div class="summary-box"><div class="sb-label">Chapter Summary</div>
 <ul class="body">
 <li>The expected prediction error of an estimator decomposes into irreducible noise, squared bias, and variance; flexibility lowers bias and raises variance, and the optimal flexibility minimizes their sum (Section 17.2).</li>
@@ -2933,6 +3551,16 @@ function ensureSklearn(py) {
   if (PY.sklearn) { return Promise.resolve(py); }
   return py.loadPackage('scikit-learn').then(function () { PY.sklearn = true; return py; });
 }
+/* uploaded files (filename -> bytes), written to the Pyodide FS before each run
+   so an uploaded data.csv is always present when the code runs (no race) */
+var EQ_UPLOADS = {};
+function writeUploads(py) {
+  for (var k in EQ_UPLOADS) {
+    if (EQ_UPLOADS.hasOwnProperty(k) && EQ_UPLOADS[k]) {
+      try { py.FS.writeFile(k, EQ_UPLOADS[k]); } catch (e) { /* ignore */ }
+    }
+  }
+}
 function runPython(py, code) {
   py.globals.set('__user_code', code);
   var wrapper = [
@@ -2980,6 +3608,7 @@ function initPythonCells() {
           return needsSk ? ensureSklearn(py) : py;
         }).then(function (py) {
           setCellStatus(cell, 'running...');
+          writeUploads(py);
           return runPython(py, ta.value);
         }).then(function (res) {
           var html = '';
@@ -3003,6 +3632,42 @@ function initPythonCells() {
           btn.disabled = false;
         });
       };
+      /* Bring-your-own-data: load a CSV into Pyodide's in-browser filesystem,
+         and download a results file back out. Nothing is sent to any server. */
+      if (cell.getAttribute('data-io') === '1') {
+        var fileInput = document.createElement('input');
+        fileInput.type = 'file'; fileInput.accept = '.csv,text/csv'; fileInput.style.display = 'none';
+        var upBtn = document.createElement('button');
+        upBtn.className = 'btn small ghost'; upBtn.type = 'button'; upBtn.innerHTML = '\u2191 Upload CSV';
+        upBtn.onclick = function () { fileInput.click(); };
+        fileInput.onchange = function () {
+          var file = fileInput.files && fileInput.files[0];
+          if (!file) { return; }
+          var rdr = new FileReader();
+          rdr.onload = function () {
+            EQ_UPLOADS['data.csv'] = new Uint8Array(rdr.result);
+            setCellStatus(cell, 'loaded "' + file.name + '" as data.csv \u2014 now click Run, then read it with pd.read_csv("data.csv")');
+            if (PY.state === 'ready' && PY.pyodide) { try { PY.pyodide.FS.writeFile('data.csv', EQ_UPLOADS['data.csv']); } catch (e) { /* written at run time anyway */ } }
+          };
+          rdr.onerror = function () { setCellStatus(cell, 'could not read that file', true); };
+          rdr.readAsArrayBuffer(file);
+        };
+        var dlBtn = document.createElement('button');
+        dlBtn.className = 'btn small ghost'; dlBtn.type = 'button'; dlBtn.innerHTML = '\u2193 Download results.csv';
+        dlBtn.onclick = function () {
+          ensurePyodide(cell).then(function (py) {
+            var data;
+            try { data = py.FS.readFile('results.csv'); }
+            catch (e) { setCellStatus(cell, 'no results.csv yet \u2014 in your code write one with: df.to_csv("results.csv", index=False)', true); return; }
+            var blob = new Blob([data], { type: 'text/csv' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a'); a.href = url; a.download = 'results.csv';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          });
+        };
+        bar.appendChild(upBtn); bar.appendChild(dlBtn); bar.appendChild(fileInput);
+      }
     })(cells[i]);
   }
 }
