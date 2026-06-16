@@ -199,6 +199,31 @@ var FREE_CHAPTERS = [1, 2];
 var FREE_LABS = ['regression-archer'];
 var AUTHOR_NAME = 'Dr. Amarendra Sharma';
 
+/* Stitch the MacroNations portal session and log an Econometrics visit.
+   Adopts ?mn_sid= passed by the portal so one visitor is one session across
+   both apps; writes to the shared page_views table (course/event_type columns
+   already exist). Fire-and-forget; never blocks the app. */
+(function () {
+  try {
+    var sid = new URLSearchParams(location.search).get('mn_sid');
+    if (sid) { try { sessionStorage.setItem('mn_sid', sid); } catch (e) {} }
+    if (!sid) { try { sid = sessionStorage.getItem('mn_sid'); } catch (e) {} }
+    if (!sid) { sid = Math.random().toString(36).slice(2) + Date.now().toString(36);
+                try { sessionStorage.setItem('mn_sid', sid); } catch (e) {} }
+    fetch(EQ_SUPABASE_URL + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': EQ_SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + EQ_SUPABASE_ANON_KEY },
+      body: JSON.stringify({
+        session_id: sid,
+        referrer: document.referrer ? document.referrer.slice(0, 500) : null,
+        visited_at: new Date().toISOString(),
+        course: 'econometrics',
+        event_type: 'visit'
+      })
+    }).catch(function () {});
+  } catch (e) {}
+})();
+
 /* 14 labs -> econometrics-{slug}.html */
 var LABS = [
   {id:'bias-detective',    title:'The Omitted-Variable Detective', chapter:3},
