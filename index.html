@@ -150,6 +150,7 @@ td.num,th.num{text-align:right;font-family:var(--mono)}
     </div>
     <button class="btn block" id="au-go" onclick="doAuth()">Sign in</button>
     <div class="msg" id="au-msg"></div>
+    <div style="margin-top:10px;text-align:center"><a href="#" id="au-forgot" onclick="doForgotPassword();return false;" style="color:#8b93a7;font-size:13px;text-decoration:none">Forgot your password?</a></div>
     <div class="note" style="margin-top:14px">The full course is a one-time payment of <b id="au-price">$25</b>. Chapters 1&ndash;2 and the Least-Squares Archer lab are free to explore.</div>
     <div style="margin-top:12px;text-align:center"><a href="#" onclick="closeAuth();return false;" style="color:#8b93a7;font-size:13px;text-decoration:none">&larr; Keep browsing without an account</a></div>
   </div>
@@ -324,7 +325,50 @@ function initClient(){
   if(SB){ return true; }
   if(EQ_SUPABASE_URL.indexOf('http') !== 0 || !window.supabase){ return false; }
   SB = window.supabase.createClient(EQ_SUPABASE_URL, EQ_SUPABASE_ANON_KEY);
+  SB.auth.onAuthStateChange(function(event){ if(event === 'PASSWORD_RECOVERY'){ openResetPassword(); } });
   return true;
+}
+
+function doForgotPassword(){
+  if(!initClient()){ setMsg('au-msg','Backend not ready yet.','err'); return; }
+  var email = el('au-email') ? el('au-email').value.trim() : '';
+  if(!email){ email = window.prompt('Enter your account email to receive a password reset link:'); }
+  if(!email){ return; }
+  email = email.trim();
+  var redirectTo = location.origin + location.pathname + '?reset=1';
+  setMsg('au-msg','Sending reset link\u2026');
+  SB.auth.resetPasswordForEmail(email, { redirectTo: redirectTo }).then(function(r){
+    if(r && r.error){ setMsg('au-msg', r.error.message, 'err'); return; }
+    setMsg('au-msg','If an account exists for ' + email + ', a reset link is on its way. Check your inbox (and spam).','ok');
+  });
+}
+function openResetPassword(){
+  if(document.getElementById('rpBg')){ return; }
+  var bg = document.createElement('div'); bg.id = 'rpBg';
+  bg.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(6,12,32,.94);display:flex;align-items:center;justify-content:center;padding:24px;';
+  bg.innerHTML =
+    '<div style="width:100%;max-width:380px;box-sizing:border-box;background:#0d1a3a;border:1px solid #c9920a;border-radius:16px;padding:28px;">' +
+      '<h2 style="margin:0 0 6px;color:#fff;font-size:20px;">Set a new password</h2>' +
+      '<p style="color:#9fb0d0;font-size:13px;margin:0 0 16px;">Choose a new password for your account.</p>' +
+      '<input id="rpNew" type="password" placeholder="New password" style="width:100%;box-sizing:border-box;padding:10px;margin-bottom:10px;border-radius:8px;border:1px solid #2a3a66;background:#08122a;color:#fff;">' +
+      '<input id="rpConf" type="password" placeholder="Confirm new password" style="width:100%;box-sizing:border-box;padding:10px;margin-bottom:10px;border-radius:8px;border:1px solid #2a3a66;background:#08122a;color:#fff;">' +
+      '<div id="rpMsg" style="font-size:13px;margin-bottom:10px;min-height:16px;color:#9fb0d0;"></div>' +
+      '<button id="rpGo" style="width:100%;padding:11px;border:0;border-radius:8px;background:#c9920a;color:#10213f;font-weight:700;cursor:pointer;">Update password</button>' +
+    '</div>';
+  document.body.appendChild(bg);
+  el('rpGo').addEventListener('click', function(){
+    var p = el('rpNew').value, c = el('rpConf').value, m = el('rpMsg');
+    if(!p || p.length < 8){ m.style.color = '#ff9b9b'; m.textContent = 'Password must be at least 8 characters.'; return; }
+    if(p !== c){ m.style.color = '#ff9b9b'; m.textContent = 'Passwords do not match.'; return; }
+    el('rpGo').disabled = true; m.style.color = '#9fb0d0'; m.textContent = 'Updating\u2026';
+    SB.auth.updateUser({ password: p }).then(function(r){
+      el('rpGo').disabled = false;
+      if(r && r.error){ m.style.color = '#ff9b9b'; m.textContent = r.error.message; return; }
+      m.style.color = '#7fe0a0'; m.textContent = 'Password updated. You are signed in.';
+      try { history.replaceState({}, '', location.origin + location.pathname); } catch(e){}
+      setTimeout(function(){ if(document.getElementById('rpBg')){ document.body.removeChild(bg); } }, 1300);
+    });
+  });
 }
 
 function doAuth(){
@@ -420,6 +464,7 @@ function boot(){
     /* browse-first: start an anonymous session so visitors can explore the menu
        without signing up. Requires "Allow anonymous sign-ins" enabled in Supabase. */
     SB.auth.signInAnonymously().then(function(a){
+      if(a && a.error){ try{ console.warn('[Econometrics] anonymous sign-in failed:', a.error.message, '\u2014 enable "Allow anonymous sign-ins" in Supabase Auth to let visitors browse without an account.'); }catch(e){} }
       SESSION = (a && a.data && a.data.session) ? a.data.session : null;
       if(!SESSION){ el('app').classList.remove('on'); show('auth'); return; }
       continueBoot();
