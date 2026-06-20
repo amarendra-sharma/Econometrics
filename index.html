@@ -456,6 +456,23 @@ function doLogout(){ SB.auth.signOut().then(function(){ location.hash=''; locati
 /* ============================================================
    BOOT + profile + router + sidebar
    ============================================================ */
+/* Independent (no-course) learners WITH paid access are auto-enrolled into the
+   default Self-Paced course, so the Exams tab works for them. Staff, anonymous,
+   and already-enrolled users are skipped. */
+function maybeEnrollSelfPaced(){
+  if(COURSE || isStaff() || isAnon()){ return Promise.resolve(true); }
+  return hasPaidAccess().then(function(acc){
+    if(!acc){ return true; }
+    return SB.from('eq_courses').select('*').eq('is_self_paced', true).eq('is_active', true).limit(1).then(function(c){
+      var sp = (c && c.data && c.data.length) ? c.data[0] : null;
+      if(!sp){ return true; }
+      return SB.from('eq_enrollments').upsert({ course_id: sp.id, student_id: SESSION.user.id }, { onConflict: 'course_id,student_id' }).then(function(ins){
+        if(!ins.error){ COURSE = sp; }
+        return true;
+      });
+    });
+  });
+}
 function boot(){
   if(!initClient()){ return; }
   SB.auth.getSession().then(function(r){
@@ -496,6 +513,8 @@ function loadProfile(){
     if(en && en.data && en.data.length){
       for(var i=0;i<en.data.length;i++){ if(en.data[i].eq_courses){ COURSE = en.data[i].eq_courses; break; } }
     }
+    return maybeEnrollSelfPaced();   /* paid independent learners get the self-paced course */
+  }).then(function(){
     /* instructor's owned courses */
     if(isStaff()){
       return SB.from('eq_courses').select('*').eq('owner_id', SESSION.user.id).order('created_at',{ascending:false}).then(function(c){
@@ -1013,7 +1032,28 @@ function exSubmit(auto){
     html += '<div class="kv"><span class="k">Auto-graded score</span><span class="v">' + (pct==null?'\u2013':fmtPct(pct)) + ' (' + autoEarned + '/' + autoPossible + ')</span></div>';
     if(pending){ html += '<div class="kv"><span class="k">Written items pending instructor review</span><span class="v">' + pending + '</span></div>'; }
     html += '<p class="note" style="margin-top:10px">Final exam score appears in My Progress once any written items are graded.</p>';
+    var wrongCount = 0; for(var w=0; w<g.length; w++){ if(g[w].is_correct === false){ wrongCount++; } }
+    if(res.late){ html += '<p class="note" style="margin-top:6px;color:#b45309">Submitted after the time limit.</p>'; }
+    if(examState && examState.meta && examState.meta.review_wrong && wrongCount>0){
+      html += '<div class="row" style="margin-top:12px"><button class="btn" onclick="reviewExam(\'' + examState.examId + '\',' + (examState.meta.attempt_no||1) + ')">Review ' + wrongCount + ' incorrect ' + (wrongCount===1?'answer':'answers') + '</button></div>';
+    }
     html += '<div class="row" style="margin-top:12px"><a class="btn" href="#progress">My Progress</a><a class="btn ghost" href="#exams">Back to exams</a></div></div>';
+    el('view').innerHTML = html;
+  });
+}
+function reviewExam(examId, attemptNo){
+  el('view').innerHTML = '<div class="panel"><span class="spin"></span> Loading review\u2026</div>';
+  callEdge('eq-grade-attempt', { action:'review', exam_id: examId, attempt_no: attemptNo }).then(function(res){
+    if(res.error){ el('view').innerHTML = msgPanel('Review unavailable', res.error); return; }
+    var rev = res.review || [];
+    var html = '<div class="page-h">Review &mdash; incorrect answers</div><div class="page-sub">Only the questions you missed are shown, each with the correct answer.</div>';
+    if(!rev.length){ html += msgPanel('Nothing to review','No incorrectly answered auto-graded questions on this attempt.'); }
+    for(var i=0;i<rev.length;i++){ var r=rev[i];
+      html += '<div class="panel" style="margin-bottom:10px"><div style="margin-bottom:8px">' + esc(r.prompt) + '</div>' +
+        '<div class="kv"><span class="k">Your answer</span><span class="v" style="color:#b91c1c">' + (r.your_answer?esc(r.your_answer):'\u2014') + '</span></div>' +
+        '<div class="kv"><span class="k">Correct answer</span><span class="v" style="color:#15803d">' + (r.correct_answer?esc(r.correct_answer):'\u2014') + '</span></div></div>';
+    }
+    html += '<div class="row" style="margin-top:12px"><a class="btn ghost" href="#exams">Back to exams</a></div>';
     el('view').innerHTML = html;
   });
 }
@@ -1447,9 +1487,22 @@ function vExamAssembler(){
   asmCourse = MY_COURSES.length ? MY_COURSES[0].id : null;
   asmSelected = [];
   el('view').innerHTML = '<div class="page-h">Exams</div><div class="page-sub">Assemble and publish midterms and finals.</div>' +
-    courseSelector(asmCourse, 'asmSwitch') + '<div id="asm-existing"></div>' +
+    courseSelector(asmCourse, 'asmSwitch') +
+    '<div class="row" style="margin:6px 0 12px"><button class="btn ghost sm" onclick="adoptSelfPaced()">Adopt self-paced module (Midterm + Final)</button>' +
+    '<span class="note" style="align-self:center;margin-left:8px">Copies the ready-made Part I &amp; Part II exams into this course as drafts.</span></div>' +
+    '<div id="asm-existing"></div>' +
     '<div class="panel"><h2>Build a new exam</h2><div id="asm-build"></div></div>';
   if(asmCourse){ loadExistingExams(); renderAssembler(); }
+}
+function adoptSelfPaced(){
+  if(!asmCourse){ alert('Pick one of your courses first.'); return; }
+  if(asmCourse === 'self-paced'){ alert('That is the source module. Switch to one of your own courses to adopt it.'); return; }
+  if(!confirm('Add the ready-made self-paced Midterm (Part I) and Final (Part II) to this course as drafts? You can then edit and publish them.')){ return; }
+  SB.rpc('eq_adopt_self_paced', { p_course_id: asmCourse }).then(function(res){
+    if(res.error){ alert('Could not adopt: ' + res.error.message); return; }
+    alert('Added ' + (res.data||0) + ' exam(s) as drafts. Review and publish them below.');
+    loadExistingExams();
+  });
 }
 function asmSwitch(id){ asmCourse = id; asmSelected = []; loadExistingExams(); renderAssembler(); }
 function loadExistingExams(){
@@ -1488,6 +1541,7 @@ function renderAssembler(){
     '<div class="field" style="flex:1"><label>Opens</label><input id="asm-open" type="datetime-local"></div>' +
     '<div class="field" style="flex:1"><label>Closes</label><input id="asm-close" type="datetime-local"></div></div>' +
     '<div class="field"><label><input type="checkbox" id="asm-shuffle" checked> Shuffle question order</label></div>' +
+    '<div class="field"><label><input type="checkbox" id="asm-review"> Let learners review their wrong answers after submitting (recommended for self-paced)</label></div>' +
     '<div class="panel" style="background:var(--bg3)"><h2 style="font-size:16px">Question bank</h2>' +
     '<div class="row"><div class="field" style="flex:1"><label>Chapter</label><select id="asm-fch" onchange="loadBank()">' + chOpts + '</select></div>' +
     '<div class="field" style="flex:1"><label>Type</label><select id="asm-ftype" onchange="loadBank()">' + typeOpts + '</select></div>' +
@@ -1553,6 +1607,7 @@ function saveExam(){
       max_attempts: num(el('asm-att').value),
       attempt_scoring: el('asm-score').value,
       shuffle_questions: el('asm-shuffle').checked,
+      review_wrong: el('asm-review').checked,
       is_published: false
     };
     var op = el('asm-open').value, cl = el('asm-close').value;
