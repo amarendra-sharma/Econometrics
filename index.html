@@ -227,6 +227,7 @@ td.num,th.num{text-align:right;font-family:var(--mono)}
 <div id="cert-print"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="mn-proctor.js"></script>
 <script>
 /* ============================================================
    Econometrics unified app - Safari-safe front-end dialect
@@ -369,6 +370,10 @@ function initClient(){
   if(SB){ return true; }
   if(EQ_SUPABASE_URL.indexOf('http') !== 0 || !window.supabase){ return false; }
   SB = window.supabase.createClient(EQ_SUPABASE_URL, EQ_SUPABASE_ANON_KEY);
+  if(typeof MNProctor !== 'undefined'){
+    MNProctor.init({ sb: SB, bucket: 'proctor-snapshots', table: 'mn_proctor_events', profilesTable: 'eq_profiles' });
+    MNProctor.onAutoSubmit(function(){ exSubmit(true); });
+  }
   SB.auth.onAuthStateChange(function(event){ if(event === 'PASSWORD_RECOVERY'){ openResetPassword(); } });
   return true;
 }
@@ -667,6 +672,7 @@ var ROUTES = {
   'a-platform':vPlatform, 'a-instructors':vInstructors
 };
 function route(){
+  if(typeof MNProctor !== 'undefined' && EXAM_CFG && EXAM_CFG.proctored && examState && !examState.submitted){ MNProctor.finish(); EXAM_CFG = null; }
   var hash = (location.hash || '#home').slice(1);
   var base = hash.split('?')[0];
   if(base.indexOf('lab/') === 0){ launchLab(base.slice(4)); return; }
@@ -994,7 +1000,24 @@ function vExams(){
     el('ex-list').innerHTML = html;
   });
 }
+var EXAM_CFG = null;
 function startExam(examId){
+  el('view').innerHTML = '<div class="panel"><span class="spin"></span> Preparing your exam\u2026</div>';
+  SB.from('eq_exams').select('id, course_id, proctored, camera_mode').eq('id', examId).maybeSingle().then(function(ex){
+    var d = (ex && ex.data) ? ex.data : null;
+    EXAM_CFG = { id: examId, course_id: d ? d.course_id : (COURSE ? COURSE.id : null),
+      proctored: d ? (d.proctored !== false) : false,
+      camera_mode: (d && d.camera_mode) ? d.camera_mode : 'flag' };
+    if(typeof MNProctor !== 'undefined' && EXAM_CFG.proctored){
+      MNProctor.runConsent(EXAM_CFG, el('view'),
+        function(){ issueAndRun(examId); },
+        function(){ location.hash = '#exams'; });
+    } else {
+      issueAndRun(examId);
+    }
+  });
+}
+function issueAndRun(examId){
   el('view').innerHTML = '<div class="panel"><span class="spin"></span> Issuing your exam\u2026</div>';
   callEdge('eq-grade-attempt', { action:'issue', exam_id: examId }).then(function(res){
     if(res.error || !res.exam){ el('view').innerHTML = msgPanel('Cannot start', res.error || 'Issue failed'); return; }
@@ -1004,6 +1027,7 @@ function startExam(examId){
       examId: examId, meta: res.exam, items: items, idx: 0, answers: {},
       remaining: res.exam.time_limit_minutes * 60, timer: null, submitted: false
     };
+    if(typeof MNProctor !== 'undefined' && EXAM_CFG && EXAM_CFG.proctored){ MNProctor.start(EXAM_CFG, { id: SESSION.user.id }); }
     runExam();
   });
 }
@@ -1076,6 +1100,7 @@ function tickStart(){
 function exSubmit(auto){
   var s = examState; if(s.submitted){ return; }
   s.submitted = true; if(s.timer){ clearInterval(s.timer); }
+  if(typeof MNProctor !== 'undefined' && EXAM_CFG && EXAM_CFG.proctored){ MNProctor.finish(); }
   var answers = [];
   for(var i=0;i<s.items.length;i++){
     var it = s.items[i];
@@ -1644,7 +1669,13 @@ function adoptSelfPaced(){
     loadExistingExams();
   });
 }
+function viewIntegrity(examId){
+  openModal('<h2>Exam integrity log</h2><div id="mnp-log" style="max-height:68vh;overflow:auto;margin:4px 0">Loading\u2026</div><div class="row" style="margin-top:10px;justify-content:flex-end"><button class="btn ghost" onclick="closeModal()">Close</button></div>');
+  if(typeof MNProctor !== 'undefined'){ MNProctor.renderIntegrityLog(examId, el('mnp-log')); }
+  else { el('mnp-log').textContent = 'Proctoring module not loaded.'; }
+}
 function asmSwitch(id){ asmCourse = id; asmSelected = []; loadExistingExams(); renderAssembler(); }
+function asmProctorToggle(){ var r = el('asm-cam-row'); var on = el('asm-proctor') && el('asm-proctor').checked; if(r){ r.style.display = on ? '' : 'none'; } }
 function loadExistingExams(){
   SB.from('eq_exams').select('*').eq('course_id', asmCourse).order('kind').then(function(r){
     var exams = r.data||[];
@@ -1653,8 +1684,11 @@ function loadExistingExams(){
     else { html += '<table><thead><tr><th>Title</th><th>Kind</th><th class="num">Items</th><th class="num">Points</th><th>Status</th><th></th></tr></thead><tbody>';
       for(var i=0;i<exams.length;i++){ var x=exams[i];
         html += '<tr><td>' + esc(x.title) + '</td><td>' + esc(x.kind) + '</td><td class="num">' + (x.item_ids?x.item_ids.length:0) + '</td>' +
-          '<td class="num">' + num(x.total_points) + '</td><td>' + (x.is_published?'<span class="tag done">published</span>':'<span class="tag lock">draft</span>') + '</td>' +
-          '<td><button class="btn ghost sm" onclick="togglePub(\'' + x.id + '\',' + (x.is_published?'false':'true') + ')">' + (x.is_published?'Unpublish':'Publish') + '</button></td></tr>';
+          '<td class="num">' + num(x.total_points) + '</td><td>' + (x.is_published?'<span class="tag done">published</span>':'<span class="tag lock">draft</span>') + (x.proctored!==false?' <span class="tag lock">proctored</span>':'') + '</td>' +
+          '<td><div class="row" style="gap:6px;justify-content:flex-end;flex-wrap:wrap">' +
+          '<button class="btn ghost sm" onclick="togglePub(\'' + x.id + '\',' + (x.is_published?'false':'true') + ')">' + (x.is_published?'Unpublish':'Publish') + '</button>' +
+          (x.proctored!==false ? '<button class="btn ghost sm" onclick="viewIntegrity(\'' + x.id + '\')">Integrity</button>' : '') +
+          '</div></td></tr>';
       }
       html += '</tbody></table>';
     }
@@ -1682,6 +1716,8 @@ function renderAssembler(){
     '<div class="field" style="flex:1"><label>Closes</label><input id="asm-close" type="datetime-local"></div></div>' +
     '<div class="field"><label><input type="checkbox" id="asm-shuffle" checked> Shuffle question order</label></div>' +
     '<div class="field"><label><input type="checkbox" id="asm-review"> Let learners review their wrong answers after submitting (recommended for self-paced)</label></div>' +
+    '<div class="field"><label><input type="checkbox" id="asm-proctor" checked onchange="asmProctorToggle()"> Soft proctoring \u2014 fullscreen, tab-switch detection, copy/paste block, camera + integrity log <span class="note">(deters casual cheating; not a lockdown browser)</span></label></div>' +
+    '<div class="row" id="asm-cam-row"><div class="field" style="flex:1"><label>Camera monitoring</label><select id="asm-cammode"><option value="flag">On \u2014 photo on a flag, video clip if talking is detected</option><option value="block">Required \u2014 a working camera is needed to start</option><option value="off">Off \u2014 screen monitoring only (no camera)</option></select></div></div>' +
     '<div class="panel" style="background:var(--bg3)"><h2 style="font-size:16px">Question bank</h2>' +
     '<div class="row"><div class="field" style="flex:1"><label>Chapter</label><select id="asm-fch" onchange="loadBank()">' + chOpts + '</select></div>' +
     '<div class="field" style="flex:1"><label>Type</label><select id="asm-ftype" onchange="loadBank()">' + typeOpts + '</select></div>' +
@@ -1748,6 +1784,8 @@ function saveExam(){
       attempt_scoring: el('asm-score').value,
       shuffle_questions: el('asm-shuffle').checked,
       review_wrong: el('asm-review').checked,
+      proctored: el('asm-proctor') ? el('asm-proctor').checked : true,
+      camera_mode: el('asm-cammode') ? el('asm-cammode').value : 'flag',
       is_published: false
     };
     var op = el('asm-open').value, cl = el('asm-close').value;
