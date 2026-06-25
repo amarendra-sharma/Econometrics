@@ -115,8 +115,6 @@ td.num,th.num{text-align:right;font-family:var(--mono)}
 .cert .sig .nm2{font-family:var(--serif);font-size:17px}
 .cert .wm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.05;pointer-events:none}
 .cert .wm svg{width:360px;height:360px}
-.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-:focus-visible{outline:2px solid var(--gold,#c9920a);outline-offset:2px}
 </style>
 </head>
 <body>
@@ -124,12 +122,12 @@ td.num,th.num{text-align:right;font-family:var(--mono)}
 <div id="auth">
   <div class="auth-card">
     <div class="brand">
-      <svg class="crest" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M32 3 L58 13 V31 C58 47 46 57 32 61 C18 57 6 47 6 31 V13 Z" fill="#0a2d78" stroke="#c9920a" stroke-width="2"/>
-        <path d="M32 3 L58 13 V31 C58 47 46 57 32 61 C18 57 6 47 6 31 V13 Z" fill="none" stroke="#19C3B2" stroke-width="0.6" opacity="0.5"/>
-        <text x="32" y="40" text-anchor="middle" font-family="Georgia,serif" font-size="24" fill="#c9920a" font-weight="700">MN</text>
-        <circle cx="32" cy="13" r="1.6" fill="#c9920a"/>
-      </svg>
+      <a href="https://macronations.com" target="_blank" rel="noopener" title="MacroNations portal" style="display:inline-flex;cursor:pointer">
+        <svg class="crest" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M32 3 L58 13 V31 C58 47 46 57 32 61 C18 57 6 47 6 31 V13 Z" fill="#0a2d78"/>
+          <text x="32" y="40" text-anchor="middle" font-family="Georgia,serif" font-size="24" fill="#c9920a" font-weight="700">MN</text>
+        </svg>
+      </a>
       <div><h1>Econometrics</h1><div class="sub">MacroNations</div></div>
     </div>
     <div class="tabs">
@@ -162,10 +160,12 @@ td.num,th.num{text-align:right;font-family:var(--mono)}
 <div id="app">
   <aside class="side">
     <div class="brand">
-      <svg class="crest" width="34" height="34" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M32 3 L58 13 V31 C58 47 46 57 32 61 C18 57 6 47 6 31 V13 Z" fill="#0a2d78" stroke="#c9920a" stroke-width="2"/>
-        <text x="32" y="40" text-anchor="middle" font-family="Georgia,serif" font-size="24" fill="#c9920a" font-weight="700">MN</text>
-      </svg>
+      <a href="https://macronations.com" target="_blank" rel="noopener" title="MacroNations portal" style="display:inline-flex;cursor:pointer">
+        <svg class="crest" width="34" height="34" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M32 3 L58 13 V31 C58 47 46 57 32 61 C18 57 6 47 6 31 V13 Z" fill="#0a2d78"/>
+          <text x="32" y="40" text-anchor="middle" font-family="Georgia,serif" font-size="24" fill="#c9920a" font-weight="700">MN</text>
+        </svg>
+      </a>
       <div><h1>Econometrics</h1><div class="sub">MacroNations</div></div>
     </div>
     <nav id="nav"></nav>
@@ -185,7 +185,6 @@ td.num,th.num{text-align:right;font-family:var(--mono)}
 <div id="cert-print"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="mn-proctor.js"></script>
 <script>
 /* ============================================================
    Econometrics unified app - Safari-safe front-end dialect
@@ -328,9 +327,6 @@ function initClient(){
   if(SB){ return true; }
   if(EQ_SUPABASE_URL.indexOf('http') !== 0 || !window.supabase){ return false; }
   SB = window.supabase.createClient(EQ_SUPABASE_URL, EQ_SUPABASE_ANON_KEY);
-  if(typeof MNProctor !== 'undefined'){
-    MNProctor.init({ sb: SB, bucket: 'proctor-snapshots', profilesTable: 'eq_profiles' });
-  }
   SB.auth.onAuthStateChange(function(event){ if(event === 'PASSWORD_RECOVERY'){ openResetPassword(); } });
   return true;
 }
@@ -451,7 +447,10 @@ function finishSignup(email, pass){
   });
 }
 function joinByCode(uid, code){
-  return SB.from('eq_courses').select('id').eq('join_code', code).maybeSingle().then(function(c){
+  code = (code || '').toUpperCase();
+  return ensureProfile().then(function(){
+    return SB.from('eq_courses').select('id').eq('join_code', code).maybeSingle();
+  }).then(function(c){
     if(c && c.data && c.data.id){
       return SB.from('eq_enrollments').upsert({ course_id: c.data.id, student_id: uid }, { onConflict: 'course_id,student_id' });
     }
@@ -503,9 +502,23 @@ function continueBoot(){
     route();
   });
 }
+function ensureProfile(){
+  /* Guarantee the caller has an eq_profiles row: it is the FK parent for
+     enrollments, attempts, progress, etc. Without it, joining a course throws
+     eq_enrollments_student_id_fkey. Idempotent; only id+email (and name when
+     known) are sent, so an existing name/role is never clobbered. */
+  if(!SESSION || !SESSION.user){ return Promise.resolve(false); }
+  var u = SESSION.user, meta = u.user_metadata || {};
+  var prof = { id: u.id, email: u.email || meta.email || null };
+  var nm = meta.full_name || meta.name; if(nm){ prof.full_name = nm; }
+  return SB.from('eq_profiles').upsert(prof, { onConflict:'id' })
+    .then(function(){ return true; }, function(){ return true; });
+}
 function loadProfile(){
   var uid = SESSION.user.id;
-  return SB.from('eq_profiles').select('*').eq('id', uid).maybeSingle().then(function(p){
+  return ensureProfile().then(function(){
+    return SB.from('eq_profiles').select('*').eq('id', uid).maybeSingle();
+  }).then(function(p){
     PROFILE = (p && p.data) ? p.data : { id: uid, email: SESSION.user.email, role:'student', full_name:'' };
     /* settings (price/link/bio) */
     return SB.from('eq_platform_settings').select('*').eq('id',1).maybeSingle();
@@ -550,23 +563,18 @@ function renderWho(){
 var NAV_GROUPS = [
   {lbl:'Learn', roles:['student','instructor','admin'], items:[
     {h:'home', ic:'\u25C8', t:'Home'},
-    {h:'chapters', ic:'\u2630', t:'Chapters'},
+    {h:'chapters', ic:'\u2630', t:'Textbook'},
     {h:'labs', ic:'\u269B', t:'Labs'},
     {h:'practice', ic:'\u270E', t:'Practice'}
   ]},
   {lbl:'Track', roles:['student','instructor','admin'], items:[
     {h:'exams', ic:'\u23F1', t:'Exams'},
-    {h:'assignments', ic:'\u{1F4CE}', t:'Assignments'},
-    {h:'mygrades', ic:'\u{1F393}', t:'My Grades'},
     {h:'progress', ic:'\u2606', t:'My Progress'}
   ]},
   {lbl:'Teach', roles:['instructor','admin'], items:[
     {h:'t-dashboard', ic:'\u25A4', t:'Dashboard'},
     {h:'t-courses', ic:'\u25A6', t:'Courses'},
     {h:'t-roster', ic:'\u26C2', t:'Roster'},
-    {h:'t-materials', ic:'\u25B6', t:'Materials'},
-    {h:'t-announce', ic:'\u2709', t:'Announcements'},
-    {h:'t-assignments', ic:'\u{1F4CE}', t:'Assignments'},
     {h:'t-gradebook', ic:'\u2261', t:'Gradebook'},
     {h:'t-analytics', ic:'\u2248', t:'Analytics'},
     {h:'t-exams', ic:'\u270E', t:'Exams'},
@@ -611,9 +619,7 @@ function markNav(hash){
 var ROUTES = {
   'home':vHome, 'chapters':vChapters, 'labs':vLabs, 'practice':vPractice,
   'exams':vExams, 'progress':vProgress, 'certificate':vCertificate, 'about':vAbout,
-  'assignments':vMyAssignments, 'mygrades':vMyGrades,
   't-dashboard':vDashboard, 't-courses':vCourses, 't-roster':vRoster,
-  't-materials':vMaterials, 't-announce':vAnnounce, 't-assignments':vAssignments,
   't-gradebook':vGradebook, 't-analytics':vAnalytics, 't-exams':vExamAssembler,
   't-grade-written':vGradeWritten, 't-subscriptions':vSubscriptions, 't-diagnostics':vDiagnostics,
   'a-platform':vPlatform, 'a-instructors':vInstructors
@@ -621,14 +627,10 @@ var ROUTES = {
 function route(){
   var hash = (location.hash || '#home').slice(1);
   var base = hash.split('?')[0];
-  // if a proctored exam is running and we're navigating away, end + save it
-  if(typeof MNProctor !== 'undefined' && MNProctor.isActive() && base !== 'exams'){
-    if(examState && !examState.submitted){ MNProctor.finish(); }
-  }
   if(base.indexOf('lab/') === 0){ launchLab(base.slice(4)); return; }
   if(!ROUTES[base]){ base = 'home'; }
   if(!viewAllowed(base) && base !== 'home'){ el('view').innerHTML = msgPanel('Not available','That section is not available for your role.'); markNav(''); return; }
-  if(isAnon() && (base==='practice' || base==='exams' || base==='progress' || base==='certificate' || base==='assignments' || base==='mygrades')){
+  if(isAnon() && (base==='practice' || base==='exams' || base==='progress' || base==='certificate')){
     markNav(base); window.scrollTo(0,0);
     el('view').innerHTML = softWallHTML('Create a free account', 'Sign up to track your progress, practice with the question bank, and take exams \u2014 it is free, and anything you have already explored is saved to your new account.');
     return;
@@ -678,6 +680,7 @@ function priceStr(){
 function hasPaidAccess(){
   /* resolved lazily where needed; returns a Promise<boolean> */
   if(DEV_PREVIEW || isSuperAdmin() || isStaff()){ return Promise.resolve(true); }
+  if(COURSE && COURSE.requires_payment === false){ return Promise.resolve(true); }  /* fee waived for the whole course */
   return SB.from('eq_subscriptions').select('id').eq('student_id', SESSION.user.id).eq('status','active').limit(1).then(function(s){
     return !!(s && s.data && s.data.length);
   });
@@ -708,15 +711,13 @@ function vHome(){
   }
   html += '<div id="home-access"></div>';
   html += '<div class="cards" style="margin-top:8px">' +
-    card('\u2630 Chapters', 'Work through the interactive textbook. Live regressions in every chapter.', '#chapters', 'Open') +
+    card('\u2630 Textbook', 'Work through the interactive textbook. Live regressions in every chapter.', '#chapters', 'Open') +
     card('\u269B Labs', '14 original Labs. Start free with the Least-Squares Archer.', '#labs', 'Open') +
     card('\u270E Practice', 'Auto-generated questions, any chapter, unlimited.', '#practice', 'Open') +
     card('\u2606 My Progress', 'Track completion and earn your certificate at 70%.', '#progress', 'Open') +
     card('\u2709 About the author', 'Meet the economist behind the course.', '#about', 'Read') +
     '</div>';
-  html += '<div id="home-announce"></div><div id="home-materials"></div>';
   el('view').innerHTML = html;
-  if(!guest && SESSION && SESSION.user){ loadStudentAnnounce(); loadStudentMaterials(); }
   hasPaidAccess().then(function(paid){
     if(paid || isStaff()){ return; }
     el('home-access').innerHTML = '<div class="banner">Free preview active \u2014 Chapters 1\u20132 and the Least-Squares Archer lab. ' +
@@ -765,7 +766,7 @@ function submitJoin(){
 }
 
 function vChapters(){
-  el('view').innerHTML = '<div class="page-h">Chapters</div><div class="page-sub">The interactive textbook \u2014 ' +
+  el('view').innerHTML = '<div class="page-h">Textbook</div><div class="page-sub">The interactive textbook \u2014 ' +
     TOTAL_CHAPTERS + ' chapters. Click any chapter to open it in the reader.</div><div id="ch-list">Loading\u2026</div>';
   Promise.all([
     SB.from('eq_chapters').select('*').order('sort_order'),
@@ -952,7 +953,6 @@ function vExams(){
   });
 }
 function startExam(examId){
-  window.__eqConsented = false;   // require consent fresh for each attempt
   el('view').innerHTML = '<div class="panel"><span class="spin"></span> Issuing your exam\u2026</div>';
   callEdge('eq-grade-attempt', { action:'issue', exam_id: examId }).then(function(res){
     if(res.error || !res.exam){ el('view').innerHTML = msgPanel('Cannot start', res.error || 'Issue failed'); return; }
@@ -962,17 +962,6 @@ function startExam(examId){
       examId: examId, meta: res.exam, items: items, idx: 0, answers: {},
       remaining: res.exam.time_limit_minutes * 60, timer: null, submitted: false
     };
-    // Proctoring consent + camera check-in before the exam renders.
-    var ex = res.exam;
-    if(ex.proctored !== false && typeof MNProctor !== 'undefined'){
-      window.__mnpUserId = SESSION && SESSION.user ? SESSION.user.id : null;
-      var cfg = { id: examId, course_id: (COURSE ? COURSE.id : ex.course_id), proctored: ex.proctored, camera_mode: ex.camera_mode };
-      examState._pcfg = cfg;
-      MNProctor.runConsent(cfg, el('view'),
-        function(){ window.__eqConsented = true; runExam(); },
-        function(){ location.hash = '#exams'; });
-      return;
-    }
     runExam();
   });
 }
@@ -1015,12 +1004,6 @@ function runExam(){
   html += '</div>';
   el('view').innerHTML = html;
   tickStart();
-  // start proctoring once (runExam is called on every question nav)
-  if(typeof MNProctor !== 'undefined' && examState._pcfg && !examState._proctoring && (examState.meta && examState.meta.proctored !== false)){
-    examState._proctoring = true;
-    MNProctor.onAutoSubmit(function(){ if(examState && !examState.submitted){ exSubmit(true); } });
-    MNProctor.start(examState._pcfg, { id: SESSION && SESSION.user ? SESSION.user.id : null });
-  }
 }
 function exPick(node){
   var opts = el('view').getElementsByClassName('opt');
@@ -1051,7 +1034,6 @@ function tickStart(){
 function exSubmit(auto){
   var s = examState; if(s.submitted){ return; }
   s.submitted = true; if(s.timer){ clearInterval(s.timer); }
-  if(typeof MNProctor !== 'undefined' && MNProctor.isActive()){ MNProctor.finish(); }
   var answers = [];
   for(var i=0;i<s.items.length;i++){
     var it = s.items[i];
@@ -1372,387 +1354,6 @@ function saveCourse(id){
 
 /* ---------- Roster + accommodations ---------- */
 var rosterCourse = null;
-var matCourse = null, annCourse = null;
-function vMaterials(){
-  matCourse = MY_COURSES.length ? MY_COURSES[0].id : null;
-  el('view').innerHTML = '<div class="page-h">Course Materials</div><div class="page-sub">Share lecture videos and slides with your students via links \u2014 nothing is uploaded.</div>' +
-    courseSelector(matCourse, 'matSwitch') +
-    (matCourse ? ('<div class="panel"><h2>Add material</h2>'+
-      '<div class="field"><label>Title</label><input id="mat-title" placeholder="e.g. Week 3: OLS lecture"></div>'+
-      '<div class="field"><label>Link (URL)</label><input id="mat-url" placeholder="https://\u2026 (YouTube, Drive, Panopto, Dropbox)"></div>'+
-      '<div class="field" style="max-width:240px"><label>Type</label><select id="mat-kind"><option value="video">Video</option><option value="slides">Slides</option><option value="link">Other</option></select></div>'+
-      '<div id="mat-msg" class="msg"></div>'+
-      '<button class="btn sm" onclick="matAdd()">Add material</button></div>'+
-      '<div id="mat-list">Loading\u2026</div>') : '');
-  if(matCourse){ loadMatList(); }
-}
-function matSwitch(id){ matCourse = id; vMaterials(); }
-function matAdd(){
-  var title=el('mat-title').value.trim(), url=el('mat-url').value.trim(), kind=el('mat-kind').value;
-  if(!title || !url){ setMsg('mat-msg','Enter a title and a link.','err'); return; }
-  if(url.indexOf('http')!==0){ setMsg('mat-msg','Link must start with http.','err'); return; }
-  setMsg('mat-msg','Saving\u2026');
-  SB.from('eq_materials').insert({ course_id:matCourse, title:title, url:url, kind:kind, created_by:SESSION.user.id }).then(function(r){
-    if(r.error){ setMsg('mat-msg', r.error.message,'err'); return; }
-    el('mat-title').value=''; el('mat-url').value=''; setMsg('mat-msg','');
-    loadMatList();
-  });
-}
-function matIcon(k){ return k==='video'?'\uD83C\uDFA5':(k==='slides'?'\uD83D\uDCD1':'\uD83D\uDD17'); }
-function loadMatList(){
-  SB.from('eq_materials').select('*').eq('course_id',matCourse).order('created_at',{ascending:false}).then(function(r){
-    var rows=r.data||[];
-    if(!rows.length){ el('mat-list').innerHTML = msgPanel('No materials yet','Add a lecture video or slide link above.'); return; }
-    var html='<div class="panel"><h2>Shared with students</h2>';
-    for(var i=0;i<rows.length;i++){ var m=rows[i];
-      html += '<div class="row" style="justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding:8px 0">'+
-        '<div><span style="margin-right:6px">'+matIcon(m.kind)+'</span><a href="'+esc(m.url)+'" target="_blank" rel="noopener">'+esc(m.title)+'</a>'+
-        '<div class="meta">'+esc(m.url)+'</div></div>'+
-        '<button class="btn ghost sm" onclick="matDel(\''+m.id+'\')">Remove</button></div>';
-    }
-    html += '</div>';
-    el('mat-list').innerHTML = html;
-  });
-}
-function matDel(id){ if(!confirm('Remove this material?')){ return; } SB.from('eq_materials').delete().eq('id',id).then(loadMatList); }
-
-function vAnnounce(){
-  annCourse = MY_COURSES.length ? MY_COURSES[0].id : null;
-  el('view').innerHTML = '<div class="page-h">Announcements</div><div class="page-sub">Post announcements (students see them on Home) and email your students.</div>' +
-    courseSelector(annCourse, 'annSwitch') +
-    (annCourse ? ('<div class="panel"><h2>Post an announcement</h2>'+
-      '<div class="field"><label>Title</label><input id="ann-title" placeholder="e.g. Midterm moved to Friday"></div>'+
-      '<div class="field"><label>Message</label><textarea id="ann-body" rows="4" placeholder="Write your announcement\u2026" style="width:100%;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:11px;font-family:var(--sans)"></textarea></div>'+
-      '<div id="ann-msg" class="msg"></div>'+
-      '<div class="row" style="margin-top:8px"><button class="btn sm" onclick="annPost()">Post announcement</button>'+
-      '<button class="btn ghost sm" onclick="annEmail()">\u2709 Email students this</button></div></div>'+
-      '<div id="ann-list">Loading\u2026</div>') : '');
-  if(annCourse){ loadAnnList(); }
-}
-function annSwitch(id){ annCourse = id; vAnnounce(); }
-function annPost(){
-  var title=el('ann-title').value.trim(), body=el('ann-body').value.trim();
-  if(!title || !body){ setMsg('ann-msg','Enter a title and a message.','err'); return; }
-  setMsg('ann-msg','Posting\u2026');
-  SB.from('eq_announcements').insert({ course_id:annCourse, title:title, body:body, created_by:SESSION.user.id }).then(function(r){
-    if(r.error){ setMsg('ann-msg', r.error.message,'err'); return; }
-    el('ann-title').value=''; el('ann-body').value=''; setMsg('ann-msg','Posted. Students see it on Home.','ok');
-    loadAnnList();
-  });
-}
-function annEmail(){
-  var subject=el('ann-title').value.trim(), body=el('ann-body').value.trim();
-  SB.from('eq_enrollments').select('eq_profiles(email)').eq('course_id',annCourse).then(function(r){
-    var rows=r.data||[]; var emails=[];
-    for(var i=0;i<rows.length;i++){ if(rows[i].eq_profiles && rows[i].eq_profiles.email){ emails.push(rows[i].eq_profiles.email); } }
-    if(!emails.length){ alert('No enrolled students with email addresses yet.'); return; }
-    var subj = subject || 'Course announcement';
-    var mailto='mailto:?bcc='+encodeURIComponent(emails.join(','))+'&subject='+encodeURIComponent(subj)+'&body='+encodeURIComponent(body||'');
-    window.location.href=mailto;
-  });
-}
-function loadAnnList(){
-  SB.from('eq_announcements').select('*').eq('course_id',annCourse).order('created_at',{ascending:false}).then(function(r){
-    var rows=r.data||[];
-    if(!rows.length){ el('ann-list').innerHTML = msgPanel('No announcements yet',''); return; }
-    var html='<div class="panel"><h2>Posted announcements</h2>';
-    for(var i=0;i<rows.length;i++){ var a=rows[i];
-      var when=a.created_at?new Date(a.created_at).toLocaleString():'';
-      html += '<div style="border-bottom:1px solid var(--line);padding:10px 0">'+
-        '<div class="row" style="justify-content:space-between;align-items:flex-start">'+
-          '<div style="flex:1"><b>'+esc(a.title)+'</b><div style="white-space:pre-wrap;color:var(--muted);margin-top:3px">'+esc(a.body)+'</div>'+
-          '<div class="meta" style="margin-top:3px">'+esc(when)+'</div></div>'+
-          '<button class="btn ghost sm" onclick="annDel(\''+a.id+'\')">Delete</button></div></div>';
-    }
-    html += '</div>';
-    el('ann-list').innerHTML = html;
-  });
-}
-function annDel(id){ if(!confirm('Delete this announcement?')){ return; } SB.from('eq_announcements').delete().eq('id',id).then(loadAnnList); }
-
-function loadStudentAnnounce(){
-  var box=el('home-announce'); if(!box){ return; }
-  SB.from('eq_enrollments').select('course_id').eq('student_id',SESSION.user.id).then(function(en){
-    var ids=(en.data||[]).map(function(x){ return x.course_id; });
-    if(!ids.length){ box.innerHTML=''; return; }
-    SB.from('eq_announcements').select('*').in('course_id',ids).order('created_at',{ascending:false}).limit(5).then(function(r){
-      var rows=r.data||[]; if(!rows.length){ box.innerHTML=''; return; }
-      var html='<div class="panel" style="margin-top:10px"><h2>\uD83D\uDCE2 Announcements</h2>';
-      for(var i=0;i<rows.length;i++){ var a=rows[i]; var when=a.created_at?new Date(a.created_at).toLocaleDateString():'';
-        html += '<div style="border-bottom:1px solid var(--line);padding:8px 0"><b>'+esc(a.title)+'</b>'+
-          '<div style="white-space:pre-wrap;color:var(--muted);margin-top:3px">'+esc(a.body)+'</div>'+
-          '<div class="meta" style="margin-top:3px">'+esc(when)+'</div></div>';
-      }
-      html += '</div>'; box.innerHTML = html;
-    });
-  });
-}
-function loadStudentMaterials(){
-  var box=el('home-materials'); if(!box){ return; }
-  SB.from('eq_enrollments').select('course_id').eq('student_id',SESSION.user.id).then(function(en){
-    var ids=(en.data||[]).map(function(x){ return x.course_id; });
-    if(!ids.length){ box.innerHTML=''; return; }
-    SB.from('eq_materials').select('*').in('course_id',ids).order('created_at',{ascending:false}).then(function(r){
-      var rows=r.data||[]; if(!rows.length){ box.innerHTML=''; return; }
-      var html='<div class="panel" style="margin-top:10px"><h2>\uD83C\uDFA5 Lecture materials</h2>';
-      for(var i=0;i<rows.length;i++){ var m=rows[i];
-        html += '<div style="border-bottom:1px solid var(--line);padding:7px 0"><span style="margin-right:6px">'+matIcon(m.kind)+'</span>'+
-          '<a href="'+esc(m.url)+'" target="_blank" rel="noopener">'+esc(m.title)+'</a></div>';
-      }
-      html += '</div>'; box.innerHTML = html;
-    });
-  });
-}
-
-function vMyAssignments(){
-  el('view').innerHTML = '<div class="page-h">Assignments</div><div class="page-sub">Problem sets from your instructor. Submit a written response and/or a link to your work.</div><div id="myasg-body">Loading\u2026</div>';
-  var uid=SESSION.user.id;
-  SB.from('eq_enrollments').select('course_id').eq('student_id',uid).then(function(en){
-    var ids=(en.data||[]).map(function(x){ return x.course_id; });
-    if(!ids.length){ el('myasg-body').innerHTML = msgPanel('No assignments yet','You are not enrolled in a course with assignments.'); return; }
-    Promise.all([
-      SB.from('eq_assignments').select('*').in('course_id',ids).eq('is_published',true).order('created_at',{ascending:false}),
-      SB.from('eq_submissions').select('*').eq('student_id',uid)
-    ]).then(function(res){
-      var asgs=res[0].data||[]; var subs=res[1].data||[];
-      var subBy={}; for(var i=0;i<subs.length;i++){ subBy[subs[i].assignment_id]=subs[i]; }
-      if(!asgs.length){ el('myasg-body').innerHTML = msgPanel('No assignments yet',''); return; }
-      window.__eqAsgCourse={};
-      var html='';
-      for(var k=0;k<asgs.length;k++){ var a=asgs[k]; var s=subBy[a.id];
-        window.__eqAsgCourse[a.id]=a.course_id;
-        var due=a.due_at?('Due '+new Date(a.due_at).toLocaleString()):'No due date';
-        var graded = s && s.score!=null;
-        html += '<div class="panel"><b style="font-size:16px">'+esc(a.title)+'</b><div class="meta">'+esc(due)+' \u00b7 '+a.points+' pts</div>'+
-          (a.instructions?'<div style="white-space:pre-wrap;color:var(--muted);margin:8px 0">'+esc(a.instructions)+'</div>':'')+
-          '<div id="myasgfiles-'+a.id+'"></div>';
-        if(graded){
-          html += '<div style="background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:8px">'+
-            '<b style="color:#2ec27e">Score: '+s.score+' / '+a.points+'</b>'+
-            (s.feedback?'<div style="margin-top:6px;white-space:pre-wrap"><b>Feedback:</b> '+esc(s.feedback)+'</div>':'')+
-            '<div class="meta" style="margin-top:6px">Your submission:</div>'+
-            '<div style="white-space:pre-wrap;color:var(--muted)">'+esc(s.text_response||'')+'</div>'+
-            (s.link_url?'<div style="margin-top:4px"><a href="'+esc(s.link_url)+'" target="_blank" rel="noopener">'+esc(s.link_url)+'</a></div>':'')+
-          '</div>';
-        } else {
-          var note = s ? '<div class="msg ok" role="status">Submitted '+(s.submitted_at?new Date(s.submitted_at).toLocaleString():'')+'. You can resubmit until it is graded.</div>' : '';
-          html += note +
-            '<div class="field"><label for="st-'+a.id+'">Your response</label><textarea id="st-'+a.id+'" rows="4" placeholder="Type your answer here\u2026" style="width:100%;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:11px;font-family:var(--sans)">'+esc(s&&s.text_response?s.text_response:'')+'</textarea></div>'+
-            '<div class="field"><label for="sl-'+a.id+'">Link to your work (optional)</label><input id="sl-'+a.id+'" type="url" placeholder="https://\u2026" value="'+esc(s&&s.link_url?s.link_url:'')+'"></div>'+
-            '<div id="sm-'+a.id+'" class="msg" role="status" aria-live="polite"></div>'+
-            '<button class="btn sm" onclick="asgSubmit(\''+a.id+'\')">'+(s?'Resubmit':'Submit')+'</button>';
-        }
-        html += '</div>';
-      }
-      el('myasg-body').innerHTML = html;
-      for(var m=0;m<asgs.length;m++){ loadMyAsgFiles(asgs[m].id); }
-    });
-  });
-}
-function loadMyAsgFiles(id){
-  var box=el('myasgfiles-'+id); if(!box){ return; }
-  SB.storage.from('eq-assignment-files').list(id, { limit:100, sortBy:{column:'name',order:'asc'} }).then(function(r){
-    var files=r.data||[]; if(!files.length){ return; }
-    var html='<div class="meta" style="font-weight:600;margin:4px 0">Attached files</div><ul style="list-style:none;padding:0;margin:0 0 8px">';
-    for(var i=0;i<files.length;i++){ var f=files[i]; var nice=f.name.replace(/^\d+_/,'');
-      html += '<li style="padding:3px 0"><button class="btn ghost sm" onclick="asgFileDl(\''+esc(id+'/'+f.name)+'\')">\uD83D\uDCCE '+esc(nice)+'</button></li>';
-    }
-    html += '</ul>'; box.innerHTML = html;
-  });
-}
-function asgSubmit(id){
-  var text=el('st-'+id).value.trim(); var link=el('sl-'+id).value.trim();
-  if(!text && !link){ setMsg('sm-'+id,'Enter a response or a link before submitting.','err'); el('st-'+id).focus(); return; }
-  if(link && link.indexOf('http')!==0){ setMsg('sm-'+id,'Link must start with http:// or https://','err'); return; }
-  var courseId = window.__eqAsgCourse ? window.__eqAsgCourse[id] : null;
-  setMsg('sm-'+id,'Submitting\u2026');
-  SB.from('eq_submissions').upsert({ assignment_id:id, course_id:courseId, student_id:SESSION.user.id, text_response:text, link_url:link, submitted_at:new Date().toISOString() }, { onConflict:'assignment_id,student_id' }).then(function(r){
-    if(r.error){ setMsg('sm-'+id, r.error.message,'err'); return; }
-    setMsg('sm-'+id,'Submitted.','ok'); vMyAssignments();
-  });
-}
-
-function vMyGrades(){
-  el('view').innerHTML = '<div class="page-h">My Grades</div><div class="page-sub">Your exam and assignment scores and instructor feedback in one place.</div><div id="mygrades-body">Loading\u2026</div>';
-  var uid=SESSION.user.id;
-  SB.from('eq_enrollments').select('course_id').eq('student_id',uid).then(function(en){
-    var ids=(en.data||[]).map(function(x){ return x.course_id; });
-    if(!ids.length){ el('mygrades-body').innerHTML = msgPanel('No graded work yet','When you take exams or submit assignments, your grades appear here.'); return; }
-    Promise.all([
-      SB.from('eq_exams').select('id, course_id, kind, title, total_points').in('course_id',ids).eq('is_published',true),
-      SB.from('eq_assignments').select('id, course_id, title, points').in('course_id',ids).eq('is_published',true),
-      SB.from('eq_submissions').select('assignment_id, score, feedback').eq('student_id',uid),
-      SB.from('eq_attempts').select('exam_id, item_id, points_earned, graded_at').eq('student_id',uid).not('graded_at','is',null)
-    ]).then(function(res){
-      var exams=res[0].data||[]; var asgs=res[1].data||[]; var subs=res[2].data||[]; var attempts=res[3].data||[];
-      var subBy={}; for(var i=0;i<subs.length;i++){ subBy[subs[i].assignment_id]=subs[i]; }
-      // best points per exam item, then sum
-      var byExamItem={};
-      for(var j=0;j<attempts.length;j++){ var a=attempts[j];
-        if(!byExamItem[a.exam_id]){ byExamItem[a.exam_id]={}; }
-        var prev=byExamItem[a.exam_id][a.item_id];
-        var v=num(a.points_earned);
-        if(prev==null || v>prev){ byExamItem[a.exam_id][a.item_id]=v; }
-      }
-      var examScore={};
-      for(var eid in byExamItem){ var tot=0; for(var iid in byExamItem[eid]){ tot+=byExamItem[eid][iid]; } examScore[eid]=tot; }
-      var html='<div class="panel"><h2>Exams</h2>';
-      if(!exams.length){ html += '<div class="note">No exams yet.</div>'; }
-      else {
-        html += '<table><caption class="sr-only">Your exam scores</caption><thead><tr><th>Exam</th><th class="num">Score</th><th>Status</th></tr></thead><tbody>';
-        for(var x=0;x<exams.length;x++){ var e=exams[x]; var taken=examScore.hasOwnProperty(e.id);
-          html += '<tr><td>'+esc(e.title||e.kind)+'</td><td class="num">'+(taken?(r1(examScore[e.id])+' / '+e.total_points):'\u2013')+'</td><td>'+(taken?'Graded':'Not taken yet')+'</td></tr>';
-        }
-        html += '</tbody></table>';
-      }
-      html += '</div><div class="panel"><h2>Assignments</h2>';
-      if(!asgs.length){ html += '<div class="note">No assignments yet.</div>'; }
-      else {
-        html += '<table><caption class="sr-only">Your assignment scores and feedback</caption><thead><tr><th>Assignment</th><th class="num">Score</th><th>Status</th><th>Feedback</th></tr></thead><tbody>';
-        for(var y=0;y<asgs.length;y++){ var g=asgs[y]; var s=subBy[g.id]; var graded=s&&s.score!=null;
-          var status = !s ? 'Not submitted' : (graded?'Graded':'Submitted \u00b7 awaiting grade');
-          html += '<tr><td>'+esc(g.title)+'</td><td class="num">'+(graded?(s.score+' / '+g.points):'\u2013')+'</td><td>'+status+'</td><td style="max-width:280px;white-space:pre-wrap">'+(graded&&s.feedback?esc(s.feedback):'\u2013')+'</td></tr>';
-        }
-        html += '</tbody></table>';
-      }
-      html += '</div>';
-      el('mygrades-body').innerHTML = html;
-    });
-  });
-}
-
-var asgCourse = null;
-function vAssignments(){
-  asgCourse = MY_COURSES.length ? MY_COURSES[0].id : null;
-  el('view').innerHTML = '<div class="page-h">Assignments</div><div class="page-sub">Create assignments (students submit text and/or a link), attach files, and grade with feedback.</div>' +
-    courseSelector(asgCourse, 'asgCourseSwitch') +
-    (asgCourse ? ('<div class="panel"><h2>Create an assignment</h2>'+
-      '<p class="note">You can attach files (PDFs, datasets) after you click Create &mdash; the file area opens automatically below.</p>'+
-      '<div class="field"><label for="asg-title">Title</label><input id="asg-title" placeholder="e.g. Problem Set 2: OLS inference"></div>'+
-      '<div class="field"><label for="asg-instr">Instructions</label><textarea id="asg-instr" rows="3" placeholder="What students need to do\u2026" style="width:100%;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:11px;font-family:var(--sans)"></textarea></div>'+
-      '<div class="row"><div class="field" style="flex:1"><label for="asg-points">Points</label><input id="asg-points" type="number" min="0" value="100"></div>'+
-      '<div class="field" style="flex:1"><label for="asg-due">Due (optional)</label><input id="asg-due" type="datetime-local"></div></div>'+
-      '<div id="asg-msg" class="msg" role="status" aria-live="polite"></div>'+
-      '<button class="btn sm" onclick="asgCreate()">Create &amp; publish</button></div>'+
-      '<div id="asg-list" aria-live="polite">Loading\u2026</div>') : '');
-  if(asgCourse){ loadAsgList(); }
-}
-function asgCourseSwitch(id){ asgCourse = id; vAssignments(); }
-function asgCreate(){
-  var title=el('asg-title').value.trim(), instr=el('asg-instr').value.trim();
-  var pts=parseInt(el('asg-points').value,10); if(isNaN(pts)||pts<0){ pts=100; }
-  var due=el('asg-due').value ? new Date(el('asg-due').value).toISOString() : null;
-  if(!title){ setMsg('asg-msg','Enter a title.','err'); el('asg-title').focus(); return; }
-  setMsg('asg-msg','Creating\u2026');
-  SB.from('eq_assignments').insert({ course_id:asgCourse, title:title, instructions:instr, points:pts, due_at:due, created_by:SESSION.user.id, is_published:true }).select().then(function(r){
-    if(r.error){ setMsg('asg-msg', r.error.message,'err'); return; }
-    el('asg-title').value=''; el('asg-instr').value=''; el('asg-due').value=''; setMsg('asg-msg','Published. Attach files below (optional).','ok');
-    var newId = (r.data && r.data[0]) ? r.data[0].id : null;
-    loadAsgList(newId);
-  });
-}
-function loadAsgList(openFilesFor){
-  SB.from('eq_assignments').select('*').eq('course_id',asgCourse).order('created_at',{ascending:false}).then(function(r){
-    var rows=r.data||[];
-    if(!rows.length){ el('asg-list').innerHTML = msgPanel('No assignments yet',''); return; }
-    var html='';
-    for(var i=0;i<rows.length;i++){ var a=rows[i];
-      var due=a.due_at?('Due '+new Date(a.due_at).toLocaleString()):'No due date';
-      html += '<div class="panel"><div class="row" style="justify-content:space-between;align-items:flex-start">'+
-        '<div style="flex:1"><b>'+esc(a.title)+'</b><div class="meta">'+esc(due)+' \u00b7 '+a.points+' pts'+(a.is_published?'':' \u00b7 unpublished')+'</div></div>'+
-        '<span class="row">'+
-          '<button class="btn ghost sm" onclick="asgGrade(\''+a.id+'\',\''+esc(a.title).replace(/'/g,"\\'")+'\','+a.points+')">Submissions</button>'+
-          '<button class="btn ghost sm" onclick="asgFiles(\''+a.id+'\')">Files</button>'+
-          '<button class="btn ghost sm" onclick="asgTogglePub(\''+a.id+'\','+(a.is_published?'false':'true')+')">'+(a.is_published?'Unpublish':'Publish')+'</button>'+
-          '<button class="btn ghost sm" onclick="asgDel(\''+a.id+'\')">Delete</button></span></div>'+
-        '<div id="asgfiles-'+a.id+'" class="hidden" style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px"></div>'+
-        '<div id="asggrade-'+a.id+'" class="hidden" style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px"></div></div>';
-    }
-    el('asg-list').innerHTML = html;
-    if(openFilesFor){ var fp=el('asgfiles-'+openFilesFor); if(fp){ asgFiles(openFilesFor); fp.scrollIntoView({behavior:'smooth',block:'center'}); } }
-  });
-}
-function asgTogglePub(id,pub){ SB.from('eq_assignments').update({is_published:pub}).eq('id',id).then(function(){ loadAsgList(); }); }
-function asgDel(id){
-  if(!confirm('Delete this assignment and all its submissions?')){ return; }
-  SB.storage.from('eq-assignment-files').list(id, { limit:100 }).then(function(lr){
-    var paths=(lr.data||[]).map(function(f){ return id+'/'+f.name; });
-    var rm = paths.length ? SB.storage.from('eq-assignment-files').remove(paths) : Promise.resolve();
-    return rm;
-  }).then(function(){ SB.from('eq_assignments').delete().eq('id',id).then(function(){ loadAsgList(); }); });
-}
-function asgFiles(id){
-  var panel=el('asgfiles-'+id); if(!panel){ return; }
-  if(!panel.classList.contains('hidden')){ panel.classList.add('hidden'); panel.innerHTML=''; return; }
-  panel.classList.remove('hidden');
-  panel.innerHTML='<div class="row" style="align-items:center;flex-wrap:wrap;margin-bottom:8px">'+
-    '<label class="sr-only" for="af-'+id+'">Choose a file to attach</label>'+
-    '<input type="file" id="af-'+id+'">'+
-    '<button class="btn sm" onclick="asgFileUp(\''+id+'\')">Upload file</button>'+
-    '<span id="afmsg-'+id+'" class="msg" role="status" aria-live="polite"></span></div>'+
-    '<div id="aflist-'+id+'">Loading\u2026</div>';
-  loadAsgFiles(id);
-}
-function asgFileUp(id){
-  var inp=el('af-'+id);
-  if(!inp.files||!inp.files.length){ setMsg('afmsg-'+id,'Choose a file first.','err'); return; }
-  var f=inp.files[0];
-  if(f.size>25*1024*1024){ setMsg('afmsg-'+id,'File too large (max 25 MB).','err'); return; }
-  var safe=f.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-  var path=id+'/'+Date.now()+'_'+safe;
-  setMsg('afmsg-'+id,'Uploading\u2026');
-  SB.storage.from('eq-assignment-files').upload(path, f, { upsert:false }).then(function(r){
-    if(r.error){ setMsg('afmsg-'+id, r.error.message,'err'); return; }
-    setMsg('afmsg-'+id,'Uploaded.','ok'); inp.value=''; loadAsgFiles(id);
-  }, function(){ setMsg('afmsg-'+id,'Upload failed.','err'); });
-}
-function loadAsgFiles(id){
-  var box=el('aflist-'+id); if(!box){ return; }
-  SB.storage.from('eq-assignment-files').list(id, { limit:100, sortBy:{column:'name',order:'asc'} }).then(function(r){
-    var files=r.data||[];
-    if(!files.length){ box.innerHTML='<div class="note">No files attached yet.</div>'; return; }
-    var html='<ul style="list-style:none;padding:0;margin:0">';
-    for(var i=0;i<files.length;i++){ var f=files[i]; var nice=f.name.replace(/^\d+_/,'');
-      html += '<li class="row" style="justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding:5px 0">'+
-        '<span>\uD83D\uDCCE '+esc(nice)+'</span>'+
-        '<span class="row"><button class="btn ghost sm" onclick="asgFileDl(\''+esc(id+'/'+f.name)+'\')">Download</button>'+
-        '<button class="btn ghost sm" onclick="asgFileRm(\''+esc(id+'/'+f.name)+'\',\''+id+'\')">Remove</button></span></li>';
-    }
-    html += '</ul>'; box.innerHTML = html;
-  });
-}
-function asgFileDl(path){ SB.storage.from('eq-assignment-files').createSignedUrl(path,3600).then(function(su){ if(su.data&&su.data.signedUrl){ window.open(su.data.signedUrl,'_blank'); } }); }
-function asgFileRm(path,id){ if(!confirm('Remove this file?')){ return; } SB.storage.from('eq-assignment-files').remove([path]).then(function(){ loadAsgFiles(id); }); }
-function asgGrade(id, title, points){
-  var panel=el('asggrade-'+id); if(!panel){ return; }
-  if(!panel.classList.contains('hidden')){ panel.classList.add('hidden'); panel.innerHTML=''; return; }
-  panel.classList.remove('hidden'); panel.innerHTML='<span class="spin"></span> Loading\u2026';
-  Promise.all([
-    SB.from('eq_submissions').select('*').eq('assignment_id',id),
-    SB.from('eq_enrollments').select('student_id, eq_profiles(email,full_name)').eq('course_id',asgCourse)
-  ]).then(function(res){
-    var subs=res[0].data||[]; var enr=res[1].data||[];
-    var subBy={}; for(var i=0;i<subs.length;i++){ subBy[subs[i].student_id]=subs[i]; }
-    if(!enr.length){ panel.innerHTML='<div class="note">No enrolled students yet.</div>'; return; }
-    var html='<table><caption class="sr-only">Submissions for '+esc(title)+'</caption><thead><tr><th>Student</th><th>Submission</th><th>Score (/'+points+')</th><th>Feedback</th><th></th></tr></thead><tbody>';
-    for(var j=0;j<enr.length;j++){ var e=enr[j]; var p=e.eq_profiles||{}; var s=subBy[e.student_id];
-      var who=esc(p.full_name||p.email||e.student_id);
-      var submitted = s ? ('<div style="white-space:pre-wrap;max-width:240px">'+esc(s.text_response||'')+'</div>'+(s.link_url?'<a href="'+esc(s.link_url)+'" target="_blank" rel="noopener">Open link</a>':'')+'<div class="meta">'+(s.submitted_at?new Date(s.submitted_at).toLocaleString():'')+'</div>') : '<span class="note">Not submitted</span>';
-      html += '<tr><td>'+who+'</td><td>'+submitted+'</td>'+
-        '<td>'+(s?('<label class="sr-only" for="asc-'+e.student_id+'">Score for '+who+'</label><input id="asc-'+e.student_id+'" type="number" min="0" max="'+points+'" value="'+(s.score!=null?s.score:'')+'" style="width:70px" data-sid="'+s.id+'">'):'\u2013')+'</td>'+
-        '<td>'+(s?('<label class="sr-only" for="afb-'+e.student_id+'">Feedback for '+who+'</label><textarea id="afb-'+e.student_id+'" rows="2" style="width:200px" data-sid="'+s.id+'">'+esc(s.feedback||'')+'</textarea>'):'\u2013')+'</td>'+
-        '<td>'+(s?('<button class="btn sm" onclick="asgSaveGrade(\''+e.student_id+'\')">Save</button>'):'')+'</td></tr>';
-    }
-    html += '</tbody></table>'; panel.innerHTML = html;
-  });
-}
-function asgSaveGrade(sidKey){
-  var scEl=el('asc-'+sidKey), fbEl=el('afb-'+sidKey);
-  var sid=scEl.getAttribute('data-sid');
-  var score=scEl.value===''?null:parseInt(scEl.value,10);
-  SB.from('eq_submissions').update({ score:score, feedback:fbEl.value, graded_at:new Date().toISOString(), graded_by:SESSION.user.id }).eq('id',sid).then(function(){});
-}
-
 function vRoster(){
   rosterCourse = MY_COURSES.length ? MY_COURSES[0].id : null;
   el('view').innerHTML = '<div class="page-h">Roster</div><div class="page-sub">Enrolled students and accommodations.</div>' +
@@ -1760,21 +1361,46 @@ function vRoster(){
   if(rosterCourse){ loadRoster(); }
 }
 function rosterSwitch(id){ rosterCourse = id; loadRoster(); }
+function rosterCourseObj(){
+  for(var i=0;i<MY_COURSES.length;i++){ if(MY_COURSES[i].id===rosterCourse){ return MY_COURSES[i]; } }
+  return null;
+}
+function pillSpan(txt){
+  return '<span style="display:inline-block;padding:2px 8px;border-radius:999px;background:rgba(201,146,10,.15);color:#c9920a;font-size:12px;font-weight:600">' + txt + '</span>';
+}
 function loadRoster(){
   el('roster-host').innerHTML = '<span class="spin"></span> Loading\u2026';
   Promise.all([
     SB.from('eq_enrollments').select('student_id, enrolled_at, eq_profiles(full_name, email)').eq('course_id', rosterCourse),
-    SB.from('eq_accommodations').select('*').eq('course_id', rosterCourse)
+    SB.from('eq_accommodations').select('*').eq('course_id', rosterCourse),
+    SB.from('eq_subscriptions').select('student_id, status, stripe_session_id').eq('course_id', rosterCourse).eq('status','active')
   ]).then(function(r){
-    var roster = r[0].data||[], accom = {}; var ac = r[1].data||[];
+    var roster = r[0].data||[], accom = {}, comp = {}; var ac = r[1].data||[], subs = r[2].data||[];
     for(var i=0;i<ac.length;i++){ accom[ac[i].student_id]=ac[i]; }
-    if(!roster.length){ el('roster-host').innerHTML = '<div class="banner">No students yet. Share the join code from <a href="#t-courses">Courses</a>.</div>'; return; }
-    var html = '<div class="panel"><table><thead><tr><th>Student</th><th>Email</th><th>Accommodation</th><th></th></tr></thead><tbody>';
+    for(var k=0;k<subs.length;k++){ if(!subs[k].stripe_session_id){ comp[subs[k].student_id]=true; } }
+    var co = rosterCourseObj(); var courseWaived = co && co.requires_payment === false;
+    var bar = '<div class="row" style="gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center">' +
+      '<button class="btn gold sm" onclick="addUserModal()">+ Add student / professor</button>' +
+      (isAdmin() ? '<button class="btn ghost sm" onclick="rosterWaiveCourse(' + (courseWaived?'false':'true') + ')">' +
+         (courseWaived ? 'Un-waive course fee' : 'Waive fee for whole course') + '</button>' : '') +
+      (courseWaived ? pillSpan('Course fee waived') : '') + '</div>';
+    if(!roster.length){ el('roster-host').innerHTML = bar + '<div class="banner">No students yet. Share the join code from <a href="#t-courses">Courses</a>, or use <b>Add student / professor</b> to add someone directly.</div>'; return; }
+    var html = bar + '<div class="panel"><table><thead><tr><th>Student</th><th>Email</th><th>Fee</th><th>Accommodation</th><th></th></tr></thead><tbody>';
     for(var s=0;s<roster.length;s++){
       var st = roster[s]; var pf = st.eq_profiles||{}; var a = accom[st.student_id];
       var atxt = a ? (a.time_multiplier + '\u00d7 time, +' + a.extra_attempts + ' attempts') : '\u2013';
-      html += '<tr><td>' + esc(pf.full_name||'\u2014') + '</td><td>' + esc(pf.email||'') + '</td><td>' + esc(atxt) + '</td>' +
-        '<td><button class="btn ghost sm" onclick="accomModal(\'' + st.student_id + '\',\'' + esc(pf.full_name||pf.email||'student').replace(/'/g,"") + '\')">Accommodate</button></td></tr>';
+      var em = (pf.email||'').replace(/'/g,"");
+      var nm = (pf.full_name||pf.email||'student').replace(/'/g,"");
+      var fee = courseWaived ? '<span class="note">course-wide</span>'
+              : (comp[st.student_id]
+                  ? pillSpan('waived') + ' <button class="btn ghost sm" onclick="rosterWaiveStudent(\'' + em + '\',false)">undo</button>'
+                  : '<button class="btn ghost sm" onclick="rosterWaiveStudent(\'' + em + '\',true)">waive</button>');
+      html += '<tr><td>' + esc(pf.full_name||'\u2014') + '</td><td>' + esc(pf.email||'') + '</td><td>' + fee + '</td><td>' + esc(atxt) + '</td>' +
+        '<td><div class="row" style="gap:6px;justify-content:flex-end;flex-wrap:wrap">' +
+        '<button class="btn ghost sm" onclick="accomModal(\'' + st.student_id + '\',\'' + nm + '\')">Accommodate</button>' +
+        '<button class="btn ghost sm" onclick="rosterRemoveCourse(\'' + em + '\',\'' + nm + '\')">Remove</button>' +
+        (isAdmin() ? '<button class="btn ghost sm" onclick="rosterRemovePlatform(\'' + em + '\',\'' + nm + '\')">Delete acct</button>' : '') +
+        '</div></td></tr>';
     }
     html += '</tbody></table></div>';
     el('roster-host').innerHTML = html;
@@ -1797,6 +1423,59 @@ function saveAccom(sid){
     closeModal(); loadRoster();
   });
 }
+/* ---------- Roster admin: add without signup, remove, waive ---------- */
+function addUserModal(){
+  var co = rosterCourseObj();
+  openModal('<h2>Add student / professor</h2>' +
+    '<p class="note">Creates the account if it does not exist \u2014 the person need not sign up first. A temporary password is shown for new accounts so you can pass it on; they can reset it anytime.</p>' +
+    '<div class="field"><label>Email</label><input id="aur-email" type="email" placeholder="person@school.edu"></div>' +
+    '<div class="field"><label>Full name (optional)</label><input id="aur-name" type="text"></div>' +
+    '<div class="field"><label>Role</label><select id="aur-role">' +
+      '<option value="student">Student \u2014 enroll in ' + esc(co?co.title:'this course') + '</option>' +
+      '<option value="instructor">Professor \u2014 platform instructor</option></select></div>' +
+    '<label class="row" style="gap:8px;align-items:center;margin:6px 0"><input id="aur-waive" type="checkbox"> Waive the fee for this student</label>' +
+    '<div class="msg" id="aur-msg"></div>' +
+    '<div class="row"><button class="btn gold" onclick="doAddUser()">Add</button><button class="btn ghost" onclick="closeModal()">Cancel</button></div>');
+}
+function doAddUser(){
+  var email = el('aur-email').value.trim(); if(!email){ setMsg('aur-msg','Email required.','err'); return; }
+  setMsg('aur-msg','Working\u2026');
+  callEdge('eq-admin-roster', { action:'add_user', email:email, full_name:el('aur-name').value.trim(),
+    role: el('aur-role').value, course_id: rosterCourse, waive: el('aur-waive').checked }).then(function(res){
+    if(res && res.error){ setMsg('aur-msg', res.error,'err'); return; }
+    var msg = res.created ? 'New account created and added.' : 'Existing account linked and added.';
+    if(res.temp_password){ msg += ' Temporary password: <b>' + esc(res.temp_password) + '</b>'; }
+    setMsg('aur-msg', msg, 'ok'); loadRoster();
+  });
+}
+function rosterWaiveCourse(on){
+  callEdge('eq-admin-roster', { action: on?'waive_course':'unwaive_course', course_id: rosterCourse }).then(function(res){
+    if(res && res.error){ alert(res.error); return; }
+    var co = rosterCourseObj(); if(co){ co.requires_payment = !on; }
+    if(COURSE && COURSE.id===rosterCourse){ COURSE.requires_payment = !on; }
+    loadRoster();
+  });
+}
+function rosterWaiveStudent(email, on){
+  callEdge('eq-admin-roster', { action: on?'waive_student':'unwaive_student', email: email, course_id: rosterCourse }).then(function(res){
+    if(res && res.error){ alert(res.error); return; }
+    loadRoster();
+  });
+}
+function rosterRemoveCourse(email, nm){
+  if(!confirm('Remove ' + nm + ' from this course?')){ return; }
+  callEdge('eq-admin-roster', { action:'remove_course', email: email, course_id: rosterCourse }).then(function(res){
+    if(res && res.error){ alert(res.error); return; }
+    loadRoster();
+  });
+}
+function rosterRemovePlatform(email, nm){
+  if(!confirm('Delete the account for ' + nm + ' entirely?\nThis removes them from the whole platform and cannot be undone.')){ return; }
+  callEdge('eq-admin-roster', { action:'remove_platform', email: email }).then(function(res){
+    if(res && res.error){ alert(res.error); return; }
+    loadRoster();
+  });
+}
 /* ---------- Gradebook (bulk, via view) ---------- */
 var gbCourse = null;
 function vGradebook(){
@@ -1815,39 +1494,20 @@ function loadGradebook(){
   var course = courseById(gbCourse);
   Promise.all([
     SB.from('eq_gradebook_v').select('*').eq('course_id', gbCourse),
-    SB.from('eq_exams').select('id, kind, total_points').eq('course_id', gbCourse),
-    SB.from('eq_enrollments').select('student_id, eq_profiles(email, full_name)').eq('course_id', gbCourse),
-    SB.from('eq_assignments').select('id, points').eq('course_id', gbCourse).eq('is_published', true),
-    SB.from('eq_submissions').select('assignment_id, student_id, score').eq('course_id', gbCourse),
-    SB.from('eq_grade_overrides').select('student_id, override_pct').eq('course_id', gbCourse)
+    SB.from('eq_exams').select('id, kind, total_points').eq('course_id', gbCourse)
   ]).then(function(r){
     var rows = r[0].data||[]; var exams = r[1].data||[];
-    var enr = r[2].data||[]; var aRows = r[3].data||[]; var subs = r[4].data||[]; var ovr = r[5].data||[];
-    // map email -> student_id (gradebook view may not expose student_id)
-    var sidByEmail = {};
-    for(var n=0;n<enr.length;n++){ var p=enr[n].eq_profiles||{}; if(p.email){ sidByEmail[String(p.email).toLowerCase()] = enr[n].student_id; } }
-    // assignment averages per student
-    var ptsOf={}; for(var a0=0;a0<aRows.length;a0++){ ptsOf[aRows[a0].id]=num(aRows[a0].points); }
-    var earn={}, poss={};
-    for(var s0=0;s0<subs.length;s0++){ var su=subs[s0]; if(su.score==null){ continue; }
-      if(!earn[su.student_id]){ earn[su.student_id]=0; poss[su.student_id]=0; }
-      earn[su.student_id]+=num(su.score); poss[su.student_id]+=(ptsOf[su.assignment_id]||0);
-    }
-    var asgPctBySid={}; for(var sid in earn){ asgPctBySid[sid]= poss[sid]>0 ? (earn[sid]/poss[sid]*100) : null; }
-    var ovrBySid={}; for(var o0=0;o0<ovr.length;o0++){ ovrBySid[ovr[o0].student_id]=num(ovr[o0].override_pct); }
-
     var totalByKind = { midterm:0, final:0 };
     for(var e=0;e<exams.length;e++){ totalByKind[exams[e].kind] = (totalByKind[exams[e].kind]||0) + num(exams[e].total_points); }
     var w = { reading:course.weight_reading, quizzes:course.weight_quizzes, labs:course.weight_labs, midterm:course.weight_midterm, final:course.weight_final };
     gbCache = [];
-    var html = '<div class="note" style="margin-bottom:10px">Assignments are shown for reference. To fold them (or participation) into a student\u2019s final grade, enter an <b>Override %</b> \u2014 it becomes the Final grade and is what the CSV exports.</div>';
-    html += '<div class="panel"><table><thead><tr><th>Student</th><th class="num">Reading</th><th class="num">Quizzes</th>' +
-      '<th class="num">Labs</th><th class="num">Assign</th><th class="num">Midterm</th><th class="num">Final</th><th class="num">Weighted</th><th class="num">Override %</th><th class="num">Final</th><th></th></tr></thead><tbody>';
+    var html = '<div class="panel"><table><thead><tr><th>Student</th><th class="num">Reading</th><th class="num">Quizzes</th>' +
+      '<th class="num">Labs</th><th class="num">Midterm</th><th class="num">Final</th><th class="num">Total</th><th class="num">Pending</th></tr></thead><tbody>';
     for(var i=0;i<rows.length;i++){
       var g = rows[i];
-      var sidv = g.student_id ? g.student_id : (g.email ? sidByEmail[String(g.email).toLowerCase()] : null);
-      var reading = num(g.reading_pct);
-      var quizzes = num(g.reading_pct);
+      /* view gives reading_pct (avg percent), labs_avg, practice_points, midterm_points, final_points */
+      var reading = num(g.reading_pct);              /* completion-ish percent */
+      var quizzes = num(g.reading_pct);              /* same source in this build */
       var labs = g.labs_avg!=null ? num(g.labs_avg) : null;
       var midPct = totalByKind.midterm>0 ? Math.min(100, num(g.midterm_points)/totalByKind.midterm*100) : null;
       var finPct = totalByKind.final>0 ? Math.min(100, num(g.final_points)/totalByKind.final*100) : null;
@@ -1859,39 +1519,25 @@ function loadGradebook(){
       ];
       var wsum=0, acc=0; for(var c=0;c<comps.length;c++){ if(comps[c].present && comps[c].w>0){ wsum+=comps[c].w; acc+=comps[c].w*(comps[c].p||0); } }
       var total = wsum>0?acc/wsum:0;
-      var asg = (sidv && asgPctBySid[sidv]!=null) ? asgPctBySid[sidv] : null;
-      var ovrPct = (sidv && ovrBySid[sidv]!=null) ? ovrBySid[sidv] : null;
-      var finalPct = ovrPct!=null ? ovrPct : total;
-      gbCache.push({ name:g.full_name||g.email, email:g.email, reading:reading, quizzes:quizzes, labs:labs, asg:asg, mid:midPct, fin:finPct, weighted:total, override:ovrPct, finalPct:finalPct });
-      var ovrInput = sidv ? ('<label class="sr-only" for="ov-'+sidv+'">Override percent for '+esc(g.full_name||g.email)+'</label><input id="ov-'+sidv+'" type="number" min="0" max="100" step="0.1" value="'+(ovrPct!=null?ovrPct:'')+'" style="width:64px" placeholder="\u2013">') : '\u2013';
-      var saveBtn = sidv ? ('<button class="btn ghost sm" onclick="gbSaveOverride(\''+sidv+'\')">Save</button>') : '';
+      gbCache.push({ name:g.full_name||g.email, email:g.email, reading:reading, quizzes:quizzes, labs:labs, mid:midPct, fin:finPct, total:total });
       html += '<tr><td>' + esc(g.full_name||g.email) + '</td>' +
         '<td class="num">' + fmtPct(reading) + '</td><td class="num">' + fmtPct(quizzes) + '</td>' +
         '<td class="num">' + (labs!=null?fmtPct(labs):'\u2013') + '</td>' +
-        '<td class="num">' + (asg!=null?fmtPct(asg):'\u2013') + '</td>' +
         '<td class="num">' + (midPct!=null?fmtPct(midPct):'\u2013') + '</td>' +
         '<td class="num">' + (finPct!=null?fmtPct(finPct):'\u2013') + '</td>' +
-        '<td class="num">' + fmtPct(total) + '</td>' +
-        '<td class="num">' + ovrInput + '</td>' +
-        '<td class="num"><b>' + fmtPct(finalPct) + '</b>' + (ovrPct!=null?' <span class="meta">ovr</span>':'') + '</td>' +
-        '<td>' + saveBtn + '</td></tr>';
+        '<td class="num"><b>' + fmtPct(total) + '</b></td>' +
+        '<td class="num">' + (num(g.pending_review_count)||'') + '</td></tr>';
     }
-    if(!rows.length){ html += '<tr><td colspan="11" class="note">No enrolled students.</td></tr>'; }
+    if(!rows.length){ html += '<tr><td colspan="8" class="note">No enrolled students.</td></tr>'; }
     html += '</tbody></table></div>';
     el('gb-host').innerHTML = html;
   });
 }
-function gbSaveOverride(sid){
-  var v=el('ov-'+sid).value;
-  if(v===''){ SB.from('eq_grade_overrides').delete().eq('course_id',gbCourse).eq('student_id',sid).then(function(){ loadGradebook(); }); return; }
-  var pctv=parseFloat(v); if(isNaN(pctv)){ return; }
-  SB.from('eq_grade_overrides').upsert({ course_id:gbCourse, student_id:sid, override_pct:pctv, set_by:SESSION.user.id, updated_at:new Date().toISOString() }, { onConflict:'course_id,student_id' }).then(function(){ loadGradebook(); });
-}
 function exportGradebook(){
   if(!gbCache.length){ return; }
-  var rows = [['Name','Email','Reading','Quizzes','Labs','Assignments','Midterm','Final exam','Weighted','Override','Final grade']];
+  var rows = [['Name','Email','Reading','Quizzes','Labs','Midterm','Final','Total']];
   for(var i=0;i<gbCache.length;i++){ var g=gbCache[i];
-    rows.push([g.name, g.email, r1(g.reading), r1(g.quizzes), g.labs!=null?r1(g.labs):'', g.asg!=null?r1(g.asg):'', g.mid!=null?r1(g.mid):'', g.fin!=null?r1(g.fin):'', r1(g.weighted), g.override!=null?r1(g.override):'', r1(g.finalPct)]); }
+    rows.push([g.name, g.email, r1(g.reading), r1(g.quizzes), g.labs!=null?r1(g.labs):'', g.mid!=null?r1(g.mid):'', g.fin!=null?r1(g.fin):'', r1(g.total)]); }
   var csv = rows.map(function(r){ return r.map(csvCell).join(','); }).join('\n');
   var blob = new Blob([csv], { type:'text/csv' });
   var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
@@ -1966,28 +1612,13 @@ function loadExistingExams(){
       for(var i=0;i<exams.length;i++){ var x=exams[i];
         html += '<tr><td>' + esc(x.title) + '</td><td>' + esc(x.kind) + '</td><td class="num">' + (x.item_ids?x.item_ids.length:0) + '</td>' +
           '<td class="num">' + num(x.total_points) + '</td><td>' + (x.is_published?'<span class="tag done">published</span>':'<span class="tag lock">draft</span>') + '</td>' +
-          '<td><button class="btn ghost sm" onclick="togglePub(\'' + x.id + '\',' + (x.is_published?'false':'true') + ')">' + (x.is_published?'Unpublish':'Publish') + '</button> <button class="btn ghost sm" onclick="eqIntegrity(\'' + x.id + '\')">Integrity</button></td></tr>';
+          '<td><button class="btn ghost sm" onclick="togglePub(\'' + x.id + '\',' + (x.is_published?'false':'true') + ')">' + (x.is_published?'Unpublish':'Publish') + '</button></td></tr>';
       }
       html += '</tbody></table>';
     }
     html += '</div>';
     el('asm-existing').innerHTML = html;
   });
-}
-function eqIntegrity(examId){
-  openModal('<h2>Exam integrity log</h2>'+
-    '<p class="note">Soft-proctoring flags recorded during this exam (fullscreen exits, tab switches, blocked copy/paste, webcam). Treat these as a signal worth a closer look \u2014 not proof of misconduct.</p>'+
-    '<div id="eqIntgBody">Loading\u2026</div>'+
-    '<div class="row" style="justify-content:space-between;margin-top:12px">'+
-      '<button class="btn ghost sm" onclick="eqIntegrityClear(\''+examId+'\')">Clear log + snapshots</button>'+
-      '<button class="btn sm" onclick="closeModal()">Close</button></div>');
-  if(typeof MNProctor !== 'undefined'){ MNProctor.renderIntegrityLog(examId, el('eqIntgBody')); }
-}
-function eqIntegrityClear(examId){
-  if(!confirm('Clear ALL integrity flags and snapshots for this exam? This permanently deletes the records for every student. This cannot be undone.')){ return; }
-  if(typeof MNProctor === 'undefined'){ return; }
-  MNProctor.clearLog(examId).then(function(){ closeModal(); alert('Integrity log and snapshots cleared.'); },
-    function(err){ alert('Could not fully clear: ' + ((err&&err.message)?err.message:'error')); });
 }
 function togglePub(id, pub){
   SB.from('eq_exams').update({ is_published: pub }).eq('id', id).then(function(){ loadExistingExams(); });
@@ -2009,8 +1640,6 @@ function renderAssembler(){
     '<div class="field" style="flex:1"><label>Closes</label><input id="asm-close" type="datetime-local"></div></div>' +
     '<div class="field"><label><input type="checkbox" id="asm-shuffle" checked> Shuffle question order</label></div>' +
     '<div class="field"><label><input type="checkbox" id="asm-review"> Let learners review their wrong answers after submitting (recommended for self-paced)</label></div>' +
-    '<div class="field"><label><input type="checkbox" id="asm-proctor" checked> Soft proctoring (fullscreen, tab-switch detection, copy/paste block, integrity log)</label></div>' +
-    '<div class="field"><label>Webcam monitoring</label><select id="asm-cammode"><option value="off">Off</option><option value="flag">On \u2014 allow if camera denied, but flag it</option><option value="block">On \u2014 require camera to start</option></select></div>' +
     '<div class="panel" style="background:var(--bg3)"><h2 style="font-size:16px">Question bank</h2>' +
     '<div class="row"><div class="field" style="flex:1"><label>Chapter</label><select id="asm-fch" onchange="loadBank()">' + chOpts + '</select></div>' +
     '<div class="field" style="flex:1"><label>Type</label><select id="asm-ftype" onchange="loadBank()">' + typeOpts + '</select></div>' +
@@ -2077,8 +1706,6 @@ function saveExam(){
       attempt_scoring: el('asm-score').value,
       shuffle_questions: el('asm-shuffle').checked,
       review_wrong: el('asm-review').checked,
-      proctored: el('asm-proctor') ? el('asm-proctor').checked : true,
-      camera_mode: el('asm-cammode') ? el('asm-cammode').value : 'off',
       is_published: false
     };
     var op = el('asm-open').value, cl = el('asm-close').value;
