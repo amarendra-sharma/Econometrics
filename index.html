@@ -83,9 +83,10 @@ td.num,th.num{text-align:right;font-family:var(--mono)}
 .modal .box{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:24px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto}
 .modal .box h2{font-family:var(--serif);font-weight:400;font-size:21px;margin-bottom:12px}
 .q-card{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px}
-.q-card .opt{display:block;padding:8px 11px;border:1px solid var(--line);border-radius:9px;margin-top:6px;color:var(--ink-dim);font-size:13.5px}
-.q-card .opt.sel{border-color:var(--teal);background:rgba(25,195,178,.08);color:var(--ink)}
-.q-card .opt.correct{border-color:var(--green);color:var(--green)} .q-card .opt.wrong{border-color:var(--coral);color:var(--coral)}
+.opt{display:block;padding:9px 12px;border:1px solid var(--line);border-radius:9px;margin-top:6px;color:var(--ink-dim);font-size:13.5px;cursor:pointer;transition:border-color .12s,background-color .12s,color .12s}
+.opt:hover{border-color:var(--teal)}
+.opt.sel{border-color:var(--teal);background:rgba(25,195,178,.14);color:var(--ink)}
+.opt.correct{border-color:var(--green);background:rgba(52,211,153,.10);color:var(--green)} .opt.wrong{border-color:var(--coral);background:rgba(248,113,113,.10);color:var(--coral)}
 .countdown{font-family:var(--mono);font-size:15px;color:var(--gold)} .countdown.warn{color:var(--coral)}
 .examnav{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px}
 .dots{display:flex;gap:5px;flex-wrap:wrap}
