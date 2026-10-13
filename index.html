@@ -689,6 +689,221 @@ function route(){
   ROUTES[base](hash);
 }
 function msgPanel(title, body){ return '<div class="panel"><h2>' + esc(title) + '</h2><p>' + esc(body) + '</p></div>'; }
+
+/* ============================================================
+   DUE-TO-DATE LETTER GRADES
+   ------------------------------------------------------------
+   An item counts toward the letter as soon as its DEADLINE HAS
+   PASSED. Work not done by then is a zero; work not yet due is
+   not in the denominator at all, so every student in a section
+   is marked out of the same total and the letter answers "how
+   are they doing on everything that was due?" rather than "how
+   did they do on whichever bits they chose to do?"
+
+   Deadlines in this course:
+     reading ch.n / quiz ch.n   eq_quiz_deadlines.closes_at
+     lab                        its chapter's quiz deadline
+                                (eq_labs.chapter -> the same row)
+     midterm / final            eq_exams.closes_at
+   An exam ALSO counts once it is graded for a student, so a paper
+   exam with no close date is never discarded.
+
+   Set the deadlines with the Deadlines button on a course card.
+   With none set, nothing is due and the letter shows a dash.
+   Needs eq_grade_scale_and_deadlines.sql.
+
+   NOTE: percentages here are 0-100, not 0-1, matching the rest
+   of this portal (weights are 0-100 too).
+   ============================================================ */
+function dueBefore(ts, nowMs){
+  if(ts===null || ts===undefined || ts===''){ return false; }
+  var t = new Date(ts).getTime();
+  if(isNaN(t)){ return false; }
+  return t <= nowMs;
+}
+function eqDueChapters(rows, nowMs){
+  var out = [];
+  (rows||[]).forEach(function(d){
+    if(d && d.chapter!=null && dueBefore(d.closes_at, nowMs)){ out.push(Number(d.chapter)); }
+  });
+  return out;
+}
+function eqDueSet(list){ var m={}; (list||[]).forEach(function(x){ m[x]=true; }); return m; }
+/* parts: [{key, w (0-100 weight), n (size of the due set), earned (sum of
+   0-100 scores over that set)}]. Returns 0-100, or null when nothing is due. */
+function eqDueWeighted(parts){
+  var w=0, acc=0;
+  (parts||[]).forEach(function(p){
+    if(!p || !(p.w>0) || !(p.n>0)){ return; }
+    var pct = p.earned/p.n;
+    if(isNaN(pct) || pct<0){ pct=0; }
+    if(pct>100){ pct=100; }
+    w += p.w; acc += p.w*pct;
+  });
+  return w>0 ? acc/w : null;
+}
+var DEFAULT_GRADE_SCALE = [
+  {min:93,letter:"A"},{min:90,letter:"A-"},{min:87,letter:"B+"},{min:83,letter:"B"},
+  {min:80,letter:"B-"},{min:77,letter:"C+"},{min:73,letter:"C"},{min:70,letter:"C-"},
+  {min:67,letter:"D+"},{min:63,letter:"D"},{min:60,letter:"D-"},{min:0,letter:"F"}
+];
+function effectiveGradeScale(c){
+  var sc = c && c.grade_scale;
+  if(!sc || !sc.length){ return DEFAULT_GRADE_SCALE; }
+  var arr=[];
+  for(var i=0;i<sc.length;i++){
+    if(sc[i] && sc[i].letter!=null && sc[i].letter!=='' && isFinite(Number(sc[i].min))){
+      arr.push({ min:Number(sc[i].min), letter:String(sc[i].letter) });
+    }
+  }
+  if(!arr.length){ return DEFAULT_GRADE_SCALE; }
+  arr.sort(function(a,b){ return b.min-a.min; });
+  return arr;
+}
+function letterForPct(pct, scale){
+  if(pct==null || isNaN(Number(pct))){ return '–'; }
+  scale = (scale && scale.length) ? scale : DEFAULT_GRADE_SCALE;
+  for(var i=0;i<scale.length;i++){ if(Number(pct) >= Number(scale[i].min)){ return scale[i].letter; } }
+  return scale[scale.length-1].letter;
+}
+
+/* ---------- per-chapter deadlines: the editor ---------- */
+var dlCache = [];
+function deadlinesModal(id){
+  var c = courseById(id);
+  openModal('<h2>Deadlines — ' + esc(c.title) + '</h2>' +
+    '<p class="note">A chapter’s date closes its reading, its quiz and any lab belonging to that chapter. ' +
+    'Once a date has passed, that work counts toward every student’s letter grade whether they did it or not. ' +
+    'Leave a chapter blank to keep it out of the letter.</p>' +
+    '<div id="dl-rows" style="margin-top:12px">Loading…</div>' +
+    '<div class="msg" id="dl-msg"></div>' +
+    '<div class="row"><button class="btn" onclick="saveDeadlines(\'' + id + '\')">Save</button>' +
+    '<button class="btn ghost" onclick="closeModal()">Cancel</button></div>');
+  SB.from('eq_quiz_deadlines').select('chapter, closes_at').eq('course_id', id).then(function(r){
+    if(r.error){
+      el('dl-rows').innerHTML = '<p class="note">Deadlines are not installed on this course yet — run ' +
+        'eq_grade_scale_and_deadlines.sql, then reopen this window.</p>';
+      return;
+    }
+    dlCache = r.data || [];
+    var by = {}; dlCache.forEach(function(d){ by[Number(d.chapter)] = d.closes_at; });
+    var h = '';
+    for(var ch=1; ch<=TOTAL_CHAPTERS; ch++){
+      var v = by[ch] ? String(by[ch]).slice(0,16).replace(' ','T') : '';
+      h += '<div class="row" style="align-items:flex-end;gap:8px;margin-bottom:6px">' +
+        '<div class="field" style="width:92px;margin:0"><label>Chapter</label><input type="text" value="' + ch + '" disabled></div>' +
+        '<div class="field" style="flex:1;margin:0"><label>Closes</label>' +
+        '<input id="dl-' + ch + '" type="datetime-local" value="' + esc(v) + '"></div></div>';
+    }
+    el('dl-rows').innerHTML = h;
+  });
+}
+function saveDeadlines(id){
+  var ups = [], dels = [];
+  for(var ch=1; ch<=TOTAL_CHAPTERS; ch++){
+    var e = el('dl-' + ch); if(!e){ continue; }
+    var v = e.value;
+    if(v){ ups.push({ course_id:id, chapter:ch, closes_at:new Date(v).toISOString() }); }
+    else { dels.push(ch); }
+  }
+  setMsg('dl-msg','Saving…');
+  var work = [];
+  if(ups.length){ work.push(SB.from('eq_quiz_deadlines').upsert(ups, { onConflict:'course_id,chapter' })); }
+  if(dels.length){ work.push(SB.from('eq_quiz_deadlines').delete().eq('course_id', id).in('chapter', dels)); }
+  Promise.all(work).then(function(res){
+    for(var i=0;i<res.length;i++){ if(res[i] && res[i].error){ setMsg('dl-msg', res[i].error.message, 'err'); return; } }
+    closeModal();
+    if(gbCourse === id){ loadGradebook(); }
+  });
+}
+
+/* ---------- the grade scale: the editor ---------- */
+var gsScale = [];
+function gradeScaleModal(id){
+  var c = courseById(id);
+  gsScale = effectiveGradeScale(c).slice();
+  openModal('<h2>Grade scale — ' + esc(c.title) + '</h2>' +
+    '<p class="note">Each student’s letter is the highest band whose minimum they meet, measured on their ' +
+    '<b>To date</b> percentage — their score on everything whose deadline has passed.</p>' +
+    '<div id="gs-rows" style="margin-top:12px"></div>' +
+    '<div class="row" style="margin-top:4px"><button class="btn ghost sm" onclick="gsAdd()">+ Add band</button>' +
+    '<button class="btn ghost sm" onclick="gsReset()">Reset to default</button></div>' +
+    '<div class="msg" id="gs-msg"></div>' +
+    '<div class="row"><button class="btn" onclick="saveGradeScale(\'' + id + '\')">Save</button>' +
+    '<button class="btn ghost" onclick="closeModal()">Cancel</button></div>');
+  gsRender();
+}
+function gsRender(){
+  var h = '';
+  for(var i=0;i<gsScale.length;i++){
+    h += '<div class="row" style="align-items:flex-end;gap:8px;margin-bottom:6px">' +
+      '<div class="field" style="width:100px;margin:0"><label>Letter</label><input id="gs-l-' + i + '" type="text" value="' + esc(gsScale[i].letter) + '"></div>' +
+      '<div class="field" style="width:120px;margin:0"><label>Min %</label><input id="gs-m-' + i + '" type="number" step="0.1" value="' + esc(String(gsScale[i].min)) + '"></div>' +
+      '<button class="btn ghost sm" onclick="gsDel(' + i + ')">Remove</button></div>';
+  }
+  el('gs-rows').innerHTML = h;
+}
+function gsRead(){
+  var out = [];
+  for(var i=0;i<gsScale.length;i++){
+    var L = el('gs-l-' + i), M = el('gs-m-' + i);
+    if(!L || !M){ continue; }
+    if(L.value.trim()!=='' && M.value!==''){ out.push({ letter:L.value.trim(), min:Number(M.value) }); }
+  }
+  return out;
+}
+function gsAdd(){ gsScale = gsRead(); gsScale.push({letter:'',min:0}); gsRender(); }
+function gsDel(i){ gsScale = gsRead(); gsScale.splice(i,1); gsRender(); }
+function gsReset(){ gsScale = DEFAULT_GRADE_SCALE.slice(); gsRender(); }
+function saveGradeScale(id){
+  var arr = gsRead();
+  if(!arr.length){ setMsg('gs-msg','Add at least one grade band.','err'); return; }
+  for(var i=0;i<arr.length;i++){
+    if(isNaN(arr[i].min) || arr[i].min<0 || arr[i].min>100){ setMsg('gs-msg','Each Min % must be between 0 and 100.','err'); return; }
+  }
+  arr.sort(function(a,b){ return b.min-a.min; });
+  setMsg('gs-msg','Saving…');
+  SB.from('eq_courses').update({ grade_scale: arr }).eq('id', id).then(function(r){
+    if(r.error){
+      setMsg('gs-msg', (String(r.error.message||'').toLowerCase().indexOf('grade_scale')>=0
+        ? 'Custom grade scales are not installed on this course yet — run eq_grade_scale_and_deadlines.sql, then reopen this window. Until then every course uses the standard scale.'
+        : r.error.message), 'err');
+      return;
+    }
+    loadProfile().then(function(){ closeModal(); renderCoursesList(); if(gbCourse===id){ loadGradebook(); } });
+  });
+}
+
+/* ---------- the audit trail behind one student's letter ---------- */
+function letterBasisModal(i){
+  var g = gbCache[i]; if(!g){ return; }
+  var parts = (g.dueParts||[]).filter(function(p){ return p.w>0 && p.n>0; });
+  var dw = 0; parts.forEach(function(p){ dw += p.w; });
+  var h = '<h2>Letter grade — ' + esc(g.name) + '</h2>' +
+    '<p class="note">Performance on everything whose deadline has passed. The “out of” column is the same ' +
+    'for every student in the section, so work not done counts as 0. Items not yet due are left out entirely.</p>';
+  if(!parts.length){
+    h += '<p class="note" style="margin-top:12px">Nothing is due yet in this course, so there is no letter grade to show. ' +
+      'Set chapter deadlines with the Deadlines button on the course card.</p>';
+  } else {
+    h += '<table style="margin-top:12px"><thead><tr><th>Component</th><th class="num">Earned</th><th class="num">Out of</th>' +
+      '<th class="num">Score</th><th class="num">Weight</th><th class="num">Contribution</th></tr></thead><tbody>';
+    parts.forEach(function(p){
+      var pct = p.n>0 ? p.earned/p.n : 0;
+      if(isNaN(pct)||pct<0){ pct=0; } if(pct>100){ pct=100; }
+      var eff = dw>0 ? p.w/dw*100 : 0;
+      h += '<tr><td>' + esc(p.key) + '</td><td class="num">' + (Math.round(p.earned*10)/10) + '</td>' +
+        '<td class="num">' + (Math.round(p.n*10)/10) + '</td><td class="num">' + fmtPct(pct) + '</td>' +
+        '<td class="num">' + (Math.round(eff*10)/10) + '%</td>' +
+        '<td class="num">' + (Math.round(pct*eff/100*10)/10) + '%</td></tr>';
+    });
+    h += '</tbody><tfoot><tr><td><b>To date</b></td><td colspan="4"></td><td class="num"><b>' + fmtPct(g.duePct) + '</b></td></tr>' +
+      '<tr><td><b>Letter</b></td><td colspan="4"></td><td class="num"><b>' + esc(g.letter) + '</b></td></tr></tfoot></table>';
+  }
+  h += '<div class="row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Close</button></div>';
+  openModal(h);
+}
+
 function openModal(html){ el('modal-box').innerHTML = html; el('modal').classList.add('on'); }
 function closeModal(){ el('modal').classList.remove('on'); el('modal-box').innerHTML=''; }
 window.addEventListener('hashchange', route);
@@ -1160,7 +1375,9 @@ function computeCompletion(studentId, course){
     SB.from('eq_chapter_progress').select('chapter, percent').eq('student_id', studentId),
     SB.from('eq_lab_results').select('lab_id, score').eq('student_id', studentId),
     course ? SB.from('eq_exams').select('*').eq('course_id', course.id).eq('is_published', true) : Promise.resolve({data:[]}),
-    course ? SB.from('eq_attempts').select('exam_id, attempt_no, points_earned, graded_at, item_id').eq('student_id', studentId).eq('course_id', course.id) : Promise.resolve({data:[]})
+    course ? SB.from('eq_attempts').select('exam_id, attempt_no, points_earned, graded_at, item_id').eq('student_id', studentId).eq('course_id', course.id) : Promise.resolve({data:[]}),
+    course ? SB.from('eq_quiz_deadlines').select('chapter, closes_at').eq('course_id', course.id) : Promise.resolve({data:[]}),
+    SB.from('eq_labs').select('id, chapter')
   ]).then(function(r){
     var cp = r[0].data || [], lr = r[1].data || [], exams = r[2].data || [], att = r[3].data || [];
     /* reading + quizzes */
@@ -1198,10 +1415,43 @@ function computeCompletion(studentId, course){
       {key:'midterm', label:'Midterm', weight:weights.midterm, pct:midtermPct, present:midtermPct!=null && weights.midterm>0},
       {key:'final', label:'Final', weight:weights.final, pct:finalPct, present:finalPct!=null && weights.final>0}
     ];
+    /* ---- DUE-TO-DATE: the basis for the letter grade. Same rule as the
+       instructor gradebook, so the two always agree: a chapter's deadline
+       governs its reading, its quiz and any lab belonging to that chapter;
+       an exam counts once it closes or is graded; work not done by its
+       deadline is a zero and work not yet due is left out entirely. */
+    var NOW = Date.now();
+    var dueCh = eqDueChapters((r[4] && !r[4].error) ? (r[4].data||[]) : [], NOW);
+    var dueChSet = eqDueSet(dueCh);
+    var dRead = 0, dQuiz = 0;
+    for(var dc=0; dc<dueCh.length; dc++){
+      var p0 = byCh[dueCh[dc]] || 0;
+      if(p0 > 100){ p0 = 100; } if(p0 < 0){ p0 = 0; }
+      if(p0 >= 1){ dRead += 100; }
+      dQuiz += p0;
+    }
+    var dueLabIds = [];
+    ((r[5] && r[5].data) ? r[5].data : []).forEach(function(L){ if(dueChSet[Number(L.chapter)]){ dueLabIds.push(L.id); } });
+    var dLabs = 0;
+    for(var dl=0; dl<dueLabIds.length; dl++){ var bv = bestLab[dueLabIds[dl]]; dLabs += (bv==null?0:bv); }
+    function examByKind(kind){ for(var e2=0;e2<exams.length;e2++){ if(exams[e2].kind===kind){ return exams[e2]; } } return null; }
+    var midEx = examByKind('midterm'), finEx = examByKind('final');
+    var dueParts = [
+      { key:'Reading', w:num(weights.reading), n:dueCh.length,     earned:dRead },
+      { key:'Quizzes', w:num(weights.quizzes), n:dueCh.length,     earned:dQuiz },
+      { key:'Labs',    w:num(weights.labs),    n:dueLabIds.length, earned:dLabs }
+    ];
+    if(midtermPct!=null || (midEx && dueBefore(midEx.closes_at, NOW))){
+      dueParts.push({ key:'Midterm', w:num(weights.midterm), n:1, earned:(midtermPct==null?0:midtermPct) });
+    }
+    if(finalPct!=null || (finEx && dueBefore(finEx.closes_at, NOW))){
+      dueParts.push({ key:'Final', w:num(weights.final), n:1, earned:(finalPct==null?0:finalPct) });
+    }
+    var duePct = eqDueWeighted(dueParts);
     var wsum=0, acc=0;
     for(var x=0;x<comps.length;x++){ if(comps[x].present && comps[x].weight>0){ wsum+=comps[x].weight; acc += comps[x].weight*(comps[x].pct||0); } }
     var total = wsum>0 ? acc/wsum : 0;
-    return { components: comps, total: total, eligible: total >= PASS_THRESHOLD };
+    return { components: comps, total: total, eligible: total >= PASS_THRESHOLD, duePct: duePct, dueParts: dueParts, course: course };
   });
 }
 
@@ -1220,7 +1470,17 @@ function vProgress(){
     badges += badge('Chapters touched', chDone + '/' + TOTAL_CHAPTERS);
     badges += badge('Labs attempted', Object.keys(labCount).length + '/' + LABS.length);
     badges += badge('Course completion', fmtPct(comp.total));
+    var _gsc = effectiveGradeScale(comp.course);
+    var _letter = (comp.duePct==null) ? '\u2013' : letterForPct(comp.duePct, _gsc);
+    badges += badge('Letter grade', _letter);
     var html = '<div class="cards" style="margin-bottom:18px">' + badges + '</div>';
+    html += '<p class="note" style="margin:-6px 0 14px">' +
+      (comp.duePct==null
+        ? 'Your letter grade appears once your instructor sets deadlines and the first of them passes.'
+        : ('Your letter grade comes from your score on everything due so far \u2014 <b>' + fmtPct(comp.duePct) + '</b>. ' +
+           'Work you did not do by its deadline counts as 0; work not yet due is not counted at all. The ' +
+           fmtPct(comp.total) + ' course-completion figure is different: it measures the whole course, so work ' +
+           'not yet due counts as 0 there too.')) + '</p>';
     html += '<div class="panel"><h2>Course Completion</h2>';
     html += '<table><thead><tr><th>Component</th><th class="num">Weight</th><th class="num">Your score</th></tr></thead><tbody>';
     for(var c=0;c<comp.components.length;c++){
@@ -1367,7 +1627,9 @@ function renderCoursesList(){
       '<span class="pill">Reading ' + c.weight_reading + '</span><span class="pill">Quizzes ' + c.weight_quizzes + '</span>' +
       '<span class="pill">Labs ' + c.weight_labs + '</span><span class="pill">Midterm ' + c.weight_midterm + '</span>' +
       '<span class="pill">Final ' + c.weight_final + '</span></div>' +
-      '<div class="row" style="margin-top:10px"><button class="btn ghost sm" onclick="editCourseModal(\'' + c.id + '\')">Edit weights</button></div></div>';
+      '<div class="row" style="margin-top:10px"><button class="btn ghost sm" onclick="editCourseModal(\'' + c.id + '\')">Edit weights</button>' +
+      '<button class="btn ghost sm" onclick="deadlinesModal(\'' + c.id + '\')" title="Set when each chapter\u2019s reading, quiz and lab are due">Deadlines</button>' +
+      '<button class="btn ghost sm" onclick="gradeScaleModal(\'' + c.id + '\')" title="Set the percentage cut-offs for each letter grade">Grade scale</button></div></div>';
   }
   el('courses-host').innerHTML = html;
 }
@@ -1548,8 +1810,10 @@ function rosterRemovePlatform(email, nm){
 var gbCourse = null;
 function vGradebook(){
   gbCourse = MY_COURSES.length ? MY_COURSES[0].id : null;
-  el('view').innerHTML = '<div class="page-h">Gradebook</div><div class="page-sub">Weighted, renormalized over available components. ' +
-    'Exam scores reflect each exam\u2019s attempt-scoring rule.</div>' +
+  el('view').innerHTML = '<div class="page-h">Gradebook</div><div class="page-sub"><b>To date</b> is the number the ' +
+    '<b>Letter</b> comes from: performance on everything whose deadline has passed, with work not done counted as 0, ' +
+    'so every student is marked out of the same total. Click a letter to see the items behind it. <b>Total</b> ' +
+    'renormalizes over the components that have data. Exam scores reflect each exam\u2019s attempt-scoring rule.</div>' +
     courseSelector(gbCourse, 'gbSwitch') +
     '<div class="row" style="margin-bottom:12px"><button class="btn ghost sm" onclick="exportGradebook()">Export CSV</button></div>' +
     '<div id="gb-host"></div>';
@@ -1560,17 +1824,86 @@ var gbCache = [];
 function loadGradebook(){
   el('gb-host').innerHTML = '<span class="spin"></span> Loading\u2026';
   var course = courseById(gbCourse);
+  // Per-chapter progress and per-lab results for the whole course: eq_gradebook_v
+  // returns course-wide averages, which cannot be narrowed to the chapters whose
+  // deadline has passed -- and that narrowing is what makes the letter comparable
+  // between students. Both are paged; PostgREST caps a response at ~1000 rows
+  // without saying so, and a section times 17 chapters passes that.
+  function pageAll(table, cols){
+    var all=[], PAGE=1000;
+    function page(from){
+      return SB.from(table).select(cols).eq('course_id', gbCourse)
+        .order('student_id',{ascending:true}).range(from, from+PAGE-1)
+        .then(function(res){
+          if(res && res.error){ return { data:all, error:res.error }; }
+          var got = res.data||[];
+          all = all.concat(got);
+          if(got.length < PAGE){ return { data:all }; }
+          if(from > 500000){ return { data:all }; }
+          return page(from+PAGE);
+        });
+    }
+    return page(0);
+  }
   Promise.all([
     SB.from('eq_gradebook_v').select('*').eq('course_id', gbCourse),
-    SB.from('eq_exams').select('id, kind, total_points').eq('course_id', gbCourse)
+    SB.from('eq_exams').select('id, kind, total_points, closes_at').eq('course_id', gbCourse),
+    SB.from('eq_quiz_deadlines').select('chapter, closes_at').eq('course_id', gbCourse),
+    pageAll('eq_chapter_progress', 'student_id, chapter, percent'),
+    pageAll('eq_lab_results', 'student_id, lab_id, score'),
+    SB.from('eq_labs').select('id, chapter')
   ]).then(function(r){
     var rows = r[0].data||[]; var exams = r[1].data||[];
     var totalByKind = { midterm:0, final:0 };
     for(var e=0;e<exams.length;e++){ totalByKind[exams[e].kind] = (totalByKind[exams[e].kind]||0) + num(exams[e].total_points); }
     var w = { reading:course.weight_reading, quizzes:course.weight_quizzes, labs:course.weight_labs, midterm:course.weight_midterm, final:course.weight_final };
+    var gscale = effectiveGradeScale(course);
+    // ---- DUE-TO-DATE sets. A chapter's date governs its reading, its quiz and
+    // any lab belonging to that chapter; an exam counts once it closes or is
+    // graded. Missing the deadline tables is not an error -- nothing is due, and
+    // the Letter column shows a dash until they are installed and set.
+    var NOW = Date.now();
+    var dueCh = eqDueChapters((r[2] && !r[2].error) ? (r[2].data||[]) : [], NOW);
+    var dueChSet = eqDueSet(dueCh);
+    var labsByChapter = {};
+    (r[5].data||[]).forEach(function(L){ labsByChapter[L.id] = Number(L.chapter); });
+    var dueLabIds = [];
+    (r[5].data||[]).forEach(function(L){ if(dueChSet[Number(L.chapter)]){ dueLabIds.push(L.id); } });
+    // per student: reading engagement and quiz score over the due chapters
+    var dRead = {}, dQuiz = {};
+    (r[3].data||[]).forEach(function(p){
+      if(!dueChSet[Number(p.chapter)]){ return; }
+      var sid = p.student_id;
+      if(dRead[sid]==null){ dRead[sid]=0; dQuiz[sid]=0; }
+      var pc = num(p.percent); if(pc<0){ pc=0; } if(pc>100){ pc=100; }
+      if(pc>=1){ dRead[sid] += 100; }      // reading is engaged / not engaged
+      dQuiz[sid] += pc;
+    });
+    // per student: best score on each due lab, labs not attempted counting 0
+    var bestLab = {};
+    (r[4].data||[]).forEach(function(x){
+      var sid = x.student_id;
+      if(!bestLab[sid]){ bestLab[sid] = {}; }
+      var s = num(x.score);
+      if(bestLab[sid][x.lab_id]==null || s > bestLab[sid][x.lab_id]){ bestLab[sid][x.lab_id] = s; }
+    });
+    var dLabs = {};
+    for(var sid in bestLab){
+      if(!bestLab.hasOwnProperty(sid)){ continue; }
+      var t = 0;
+      for(var li=0; li<dueLabIds.length; li++){ var v = bestLab[sid][dueLabIds[li]]; t += (v==null?0:v); }
+      dLabs[sid] = t;
+    }
+    var midEx = null, finEx = null;
+    for(var ei=0; ei<exams.length; ei++){
+      if(exams[ei].kind==='midterm' && !midEx){ midEx = exams[ei]; }
+      if(exams[ei].kind==='final' && !finEx){ finEx = exams[ei]; }
+    }
     gbCache = [];
     var html = '<div class="panel"><table><thead><tr><th>Student</th><th class="num">Reading</th><th class="num">Quizzes</th>' +
-      '<th class="num">Labs</th><th class="num">Midterm</th><th class="num">Final</th><th class="num">Total</th><th class="num">Pending</th></tr></thead><tbody>';
+      '<th class="num">Labs</th><th class="num">Midterm</th><th class="num">Final</th><th class="num">Total</th>' +
+      '<th class="num" title="Performance on work whose deadline has passed \u2014 the basis for the letter">To date</th>' +
+      '<th class="num" title="Auto letter from the grade scale">Letter</th><th class="num">Pending</th></tr></thead><tbody>';
     for(var i=0;i<rows.length;i++){
       var g = rows[i];
       /* view gives reading_pct (avg percent), labs_avg, practice_points, midterm_points, final_points */
@@ -1587,25 +1920,50 @@ function loadGradebook(){
       ];
       var wsum=0, acc=0; for(var c=0;c<comps.length;c++){ if(comps[c].present && comps[c].w>0){ wsum+=comps[c].w; acc+=comps[c].w*(comps[c].p||0); } }
       var total = wsum>0?acc/wsum:0;
-      gbCache.push({ name:g.full_name||g.email, email:g.email, reading:reading, quizzes:quizzes, labs:labs, mid:midPct, fin:finPct, total:total });
+      // ---- LETTER BASIS: everything due so far, un-done work counted as 0.
+      var sid = g.student_id;
+      var dueParts = [
+        { key:'Reading', w:num(w.reading), n:dueCh.length,     earned:(dRead[sid]||0) },
+        { key:'Quizzes', w:num(w.quizzes), n:dueCh.length,     earned:(dQuiz[sid]||0) },
+        { key:'Labs',    w:num(w.labs),    n:dueLabIds.length, earned:(dLabs[sid]||0) }
+      ];
+      if(midPct!=null || (midEx && dueBefore(midEx.closes_at, NOW))){
+        dueParts.push({ key:'Midterm', w:num(w.midterm), n:1, earned:(midPct==null?0:midPct) });
+      }
+      if(finPct!=null || (finEx && dueBefore(finEx.closes_at, NOW))){
+        dueParts.push({ key:'Final', w:num(w.final), n:1, earned:(finPct==null?0:finPct) });
+      }
+      var duePct = eqDueWeighted(dueParts);
+      var letter = (duePct==null) ? '\u2013' : letterForPct(duePct, gscale);
+      gbCache.push({ name:g.full_name||g.email, email:g.email, reading:reading, quizzes:quizzes, labs:labs, mid:midPct, fin:finPct, total:total,
+                     duePct:duePct, dueParts:dueParts, letter:letter });
       html += '<tr><td>' + esc(g.full_name||g.email) + '</td>' +
         '<td class="num">' + fmtPct(reading) + '</td><td class="num">' + fmtPct(quizzes) + '</td>' +
         '<td class="num">' + (labs!=null?fmtPct(labs):'\u2013') + '</td>' +
         '<td class="num">' + (midPct!=null?fmtPct(midPct):'\u2013') + '</td>' +
         '<td class="num">' + (finPct!=null?fmtPct(finPct):'\u2013') + '</td>' +
         '<td class="num"><b>' + fmtPct(total) + '</b></td>' +
+        '<td class="num">' + (duePct==null?'\u2013':fmtPct(duePct)) + '</td>' +
+        '<td class="num"><button class="btn ghost sm" onclick="letterBasisModal(' + (gbCache.length-1) + ')" ' +
+          'title="' + (duePct==null?'nothing due yet':(Math.round(duePct*10)/10) + '% on work due to date') + '" ' +
+          'style="font-weight:700;padding:2px 6px">' + esc(letter) + '</button></td>' +
         '<td class="num">' + (num(g.pending_review_count)||'') + '</td></tr>';
     }
-    if(!rows.length){ html += '<tr><td colspan="8" class="note">No enrolled students.</td></tr>'; }
+    if(!rows.length){ html += '<tr><td colspan="10" class="note">No enrolled students.</td></tr>'; }
+    if(rows.length && !dueCh.length){
+      html += '<tr><td colspan="10" class="note">No chapter deadlines are set yet, so nothing counts as due and the ' +
+        'letter column is blank. Set them with the <b>Deadlines</b> button on this course\u2019s card.</td></tr>';
+    }
     html += '</tbody></table></div>';
     el('gb-host').innerHTML = html;
   });
 }
 function exportGradebook(){
   if(!gbCache.length){ return; }
-  var rows = [['Name','Email','Reading','Quizzes','Labs','Midterm','Final','Total']];
+  var rows = [['Name','Email','Reading','Quizzes','Labs','Midterm','Final','Total','To date','Letter']];
   for(var i=0;i<gbCache.length;i++){ var g=gbCache[i];
-    rows.push([g.name, g.email, r1(g.reading), r1(g.quizzes), g.labs!=null?r1(g.labs):'', g.mid!=null?r1(g.mid):'', g.fin!=null?r1(g.fin):'', r1(g.total)]); }
+    rows.push([g.name, g.email, r1(g.reading), r1(g.quizzes), g.labs!=null?r1(g.labs):'', g.mid!=null?r1(g.mid):'', g.fin!=null?r1(g.fin):'', r1(g.total),
+               g.duePct!=null?r1(g.duePct):'', g.letter||'']); }
   var csv = rows.map(function(r){ return r.map(csvCell).join(','); }).join('\n');
   var blob = new Blob([csv], { type:'text/csv' });
   var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
