@@ -176,6 +176,15 @@ td.num,th.num{text-align:right;font-family:var(--mono)}
 .cert .sig .nm2{font-family:var(--serif);font-size:17px}
 .cert .wm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.05;pointer-events:none}
 .cert .wm svg{width:360px;height:360px}
+/* self-study module (mn-selfstudy.js) uses the class names of the other MacroNations consoles */
+#ssHome,#ssAdmin{--text-muted:var(--ink-dim);--text-subtle:var(--ink-faint);--border:var(--line);--bg-subtle:var(--bg3)}
+#ssHome .card,#ssAdmin .card,.mn-ss-modal .card{margin-bottom:16px}
+.btn.btn-primary{background:var(--teal);color:#062a26}
+.btn:not(.btn-ghost)[disabled]{opacity:.55}
+#ssHome .msg,#ssAdmin .msg{display:block}
+#ssHome select,#ssHome input[type=date],#ssHome input[type=time],#ssHome input[type=number]{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:7px 9px}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--teal);border-radius:50%;animation:sp 0.7s linear infinite;vertical-align:-2px}
+.tbl th,.tbl td{padding:6px 8px;border-bottom:1px solid var(--line)}
 </style>
 <script>
 /* MacroNations visit tracking (shared across courses, build pvname-2026-10).
@@ -339,6 +348,7 @@ td.num,th.num{text-align:right;font-family:var(--mono)}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="mn-proctor.js"></script>
+<script src="mn-selfstudy.js"></script>
 <script>
 /* ============================================================
    Econometrics unified app - Safari-safe front-end dialect
@@ -462,7 +472,72 @@ function initClient(){
     MNProctor.onAutoSubmit(function(){ exSubmit(true); });
   }
   SB.auth.onAuthStateChange(function(event){ if(event === 'PASSWORD_RECOVERY'){ openResetPassword(); } });
+  eqSelfStudyInit();
   return true;
+}
+/* Paid self-study with Asha (mn-selfstudy.js; server side: eq_selfstudy_* RPCs, migration eq_30). */
+function eqSSState(){
+  var u = SESSION && SESSION.user ? SESSION.user : null;
+  var profCourse = (COURSE && !COURSE.is_self_paced) ? COURSE.id : null;   // a professor's course (or the student's own self-study section)
+  return { user: (u && !isAnon()) ? { id: u.id, email: u.email } : null, role: roleOf(), guest: isAnon(),
+           settings: SETTINGS ? SETTINGS : { stripe_link: STRIPE_LINK }, payCourseId: profCourse, selfCourseId: null };
+}
+function eqSelfStudyInit(){
+  if(typeof MNSelfStudy === 'undefined' || eqSelfStudyInit.done){ return; }
+  eqSelfStudyInit.done = true;
+  MNSelfStudy.init({
+    sb: SB, prefix: 'eq', name: 'Econometrics', chapters: TOTAL_CHAPTERS, arenas: 14, arenaWord: 'labs',
+    state: eqSSState,
+    loadSettings: function(){ return SB.from('eq_platform_settings').select('*').eq('id',1).maybeSingle().then(function(r){ if(r && r.data){ SETTINGS = r.data; } }); },
+    refresh: function(){ return loadProfile().then(function(){ renderWho(); renderNav(); if(window.eqAshaRefresh){ window.eqAshaRefresh(); } if((location.hash||'#home')==='#home'){ eqSSExtras(); } }); },
+    payRef: function(uid, cid){ return 'eq|' + uid + '|' + cid; },   // what eq-stripe-webhook reads
+    courseTable: 'eq_courses', examTable: 'eq_exams', proctorTable: 'mn_proctor_events',
+    quizExamId: function(ch, cid){ return 'quiz-ch' + ch + '-' + cid; },
+    threshold: PASS_THRESHOLD / 100,
+    /* the same grade the student sees under My Progress (computeCompletion), as fractions for the admin overview */
+    compute: function(cid, sid){
+      return SB.from('eq_courses').select('*').eq('id', cid).maybeSingle().then(function(r){
+        if(!r || !r.data){ return null; }
+        return computeCompletion(sid, r.data).then(function(res){
+          return { total: (res.total || 0) / 100, comps: (res.components || []).map(function(c){
+            var exam = (c.key === 'midterm' || c.key === 'final');
+            return [c.label, c.pct == null ? null : c.pct / 100, c.weight, exam ? (c.pct == null) : undefined];
+          }) };
+        });
+      });
+    },
+    openCourse: function(cid){
+      SB.from('eq_courses').select('*').eq('id', cid).maybeSingle().then(function(r){
+        if(r && r.data){ window.__eqSSOpen = cid; MY_COURSES = [r.data].concat(MY_COURSES.filter(function(c){ return c.id !== cid; })); gbCourse = cid; rosterCourse = cid; }
+        location.hash = '#t-gradebook'; route();
+      });
+    }
+  });
+}
+/* Home, self-study section: the syllabus Asha posts and her announcements (this console has no Materials page). */
+function eqSSExtras(){
+  var host = el('ssExtras'); if(!host){ return; }
+  host.innerHTML = '';
+  if(!COURSE || !COURSE.is_self_study || typeof MNSelfStudy === 'undefined'){ return; }
+  Promise.all([
+    SB.from('eq_materials').select('*').eq('course_id', COURSE.id).order('created_at', { ascending: false }),
+    SB.from('eq_announcements').select('title, body, created_at').eq('course_id', COURSE.id).order('created_at', { ascending: false }).limit(5)
+  ]).then(function(r){
+    var mats = (r[0] && r[0].data) || [], anns = (r[1] && r[1].data) || [];
+    var html = '';
+    if(mats.length){
+      html += '<div class="panel"><h2 style="font-size:16px;margin-bottom:8px">Course materials</h2>' + mats.map(function(m){
+        return '<div style="padding:6px 0;border-bottom:1px solid var(--line)">' + MNSelfStudy.bodyLink(m, 'color:var(--teal-bright);text-decoration:none;font-size:15px;') + '</div>';
+      }).join('') + '</div>';
+    }
+    if(anns.length){
+      html += '<div class="panel"><h2 style="font-size:16px;margin-bottom:8px">Announcements from Asha</h2>' + anns.map(function(a){
+        return '<div style="padding:8px 0;border-bottom:1px solid var(--line)"><b>' + esc(a.title) + '</b> <span style="font-size:12px;color:var(--ink-faint)">' + esc(new Date(a.created_at).toLocaleString()) + '</span><div style="font-size:13.5px;color:var(--ink-dim);margin-top:3px">' + esc(a.body) + '</div></div>';
+      }).join('') + '</div>';
+    }
+    host.innerHTML = html;
+    MNSelfStudy.wireBodies(host);
+  }, function(){});
 }
 
 function doForgotPassword(){
@@ -600,7 +675,10 @@ function doLogout(){ SB.auth.signOut().then(function(){ location.hash=''; locati
    and already-enrolled users are skipped. */
 function maybeEnrollSelfPaced(){
   if(COURSE || isStaff() || isAnon()){ return Promise.resolve(true); }
-  return hasPaidAccess().then(function(acc){
+  return SB.rpc('eq_selfstudy_status').then(function(ss){
+    if(ss && ss.data && ss.data.status && ss.data.status !== 'none' && ss.data.status !== 'signed_out'){ return false; }
+    return hasPaidAccess();
+  }, function(){ return hasPaidAccess(); }).then(function(acc){
     if(!acc){ return true; }
     return SB.from('eq_courses').select('*').eq('is_self_paced', true).eq('is_active', true).limit(1).then(function(c){
       var sp = (c && c.data && c.data.length) ? c.data[0] : null;
@@ -635,6 +713,7 @@ function continueBoot(){
     renderWho(); renderNav();
     if(!location.hash){ location.hash = '#home'; }
     route();
+    if(isAnon() && typeof MNSelfStudy !== 'undefined'){ MNSelfStudy.handleSignupParam(function(){ openAuth('signup'); }, function(t){ setMsg('au-msg', t, 'ok'); }); }
   });
 }
 function ensureProfile(){
@@ -666,13 +745,14 @@ function loadProfile(){
     COURSE = null;
     if(en && en.data && en.data.length){
       for(var i=0;i<en.data.length;i++){ if(en.data[i].eq_courses){ COURSE = en.data[i].eq_courses; break; } }
+      for(var i2=0;i2<en.data.length;i2++){ if(en.data[i2].eq_courses && en.data[i2].eq_courses.is_self_study){ COURSE = en.data[i2].eq_courses; break; } }
     }
     return maybeEnrollSelfPaced();   /* paid independent learners get the self-paced course */
   }).then(function(){
     /* instructor's owned courses */
     if(isStaff()){
       return SB.from('eq_courses').select('*').eq('owner_id', SESSION.user.id).order('created_at',{ascending:false}).then(function(c){
-        MY_COURSES = (c && c.data) ? c.data : []; return true;
+        MY_COURSES = ((c && c.data) ? c.data : []).filter(function(x){ return !x.is_self_study || x.id === window.__eqSSOpen; }); return true;
       });
     }
     MY_COURSES = []; return true;
@@ -1060,7 +1140,7 @@ function vHome(){
     html += '<div class="banner">You are exploring independently. Have a class join code? ' +
       '<button class="btn ghost sm" onclick="openJoin()">Join a course</button></div>';
   }
-  html += '<div id="home-access"></div>';
+  html += '<div id="home-access"></div><div id="ssHome"></div><div id="ssExtras"></div>';
   html += '<div class="cards" style="margin-top:8px">' +
     card('\u2630 Textbook', 'Work through the interactive textbook. Live regressions in every chapter.', '#chapters', 'Open') +
     card('\u269B Labs', '14 original Labs. Start free with the Least-Squares Archer.', '#labs', 'Open') +
@@ -1069,6 +1149,7 @@ function vHome(){
     card('\u2709 About the author', 'Meet the economist behind the course.', '#about', 'Read') +
     '</div>';
   el('view').innerHTML = html;
+  if(typeof MNSelfStudy !== 'undefined' && !guest){ MNSelfStudy.mountHome(el('ssHome')); eqSSExtras(); }
   hasPaidAccess().then(function(paid){
     if(paid || isStaff()){ return; }
     el('home-access').innerHTML = '<div class="banner">Free preview active \u2014 Chapters 1\u20132 and the Least-Squares Archer lab. ' +
@@ -4101,6 +4182,8 @@ function vPlatform(){
       '<div class="field" style="flex:1"><label>Currency</label><input id="pf-cur" type="text" value="' + esc(s.currency||'usd') + '"></div></div>' +
       '<div class="field"><label>Stripe payment link</label><input id="pf-link" type="text" value="' + esc(s.stripe_link||'') + '"></div>' +
       '<div class="field"><label>Notification email</label><input id="pf-notify" type="email" value="' + esc(s.notify_email||'') + '"></div>' +
+      '<div class="field"><label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input id="pf-selfstudy" type="checkbox" style="width:auto" ' + (s.self_study_enabled === true ? 'checked' : '') + '> Offer paid self-study with Asha</label>' +
+        '<div style="font-size:12.5px;color:var(--ink-faint);margin-top:4px">When on, students who are not in a professor\u2019s course see a self-study offer on their Home page. They pay the price above through the Stripe link, choose their course length and live-class times, and Asha teaches a private section on that schedule, with proctored exams. When off, no new self-study students can sign up; existing ones continue.</div></div>' +
       '<div class="field"><label>Author photo</label><input id="pf-photo" type="text" placeholder="https://\u2026 or upload below" value="' + esc(s.author_photo_url||'') + '">' +
         '<div class="row" style="gap:10px;margin-top:6px;align-items:center">' +
         '<input id="pf-photo-file" type="file" accept="image/*">' +
@@ -4109,13 +4192,16 @@ function vPlatform(){
         '</div></div>' +
       '<div class="field"><label>Author bio</label><textarea id="pf-bio">' + esc(s.author_bio||'') + '</textarea></div>' +
       '<div class="msg" id="pf-msg"></div><div class="row"><button class="btn" onclick="savePlatform()">Save settings</button></div></div>';
-    el('pf-host').innerHTML = html;
+    el('pf-host').innerHTML = html + '<div id="ssAdmin" style="margin-top:18px"></div>';
+    SB.from('eq_platform_private').select('notify_email').eq('id',1).maybeSingle().then(function(p){ if(p && p.data && el('pf-notify')){ el('pf-notify').value = p.data.notify_email || ''; } }, function(){});
+    if(typeof MNSelfStudy !== 'undefined'){ MNSelfStudy.mountAdmin(el('ssAdmin')); }
   });
 }
 function savePlatform(){
   var rec = { id:1, price_cents:num(el('pf-price').value), currency:el('pf-cur').value.trim()||'usd',
     stripe_link:el('pf-link').value.trim(), notify_email:el('pf-notify').value.trim(),
-    author_photo_url:el('pf-photo').value.trim(), author_bio:el('pf-bio').value.trim() };
+    author_photo_url:el('pf-photo').value.trim(), author_bio:el('pf-bio').value.trim(),
+    self_study_enabled: !!(el('pf-selfstudy') && el('pf-selfstudy').checked) };
   setMsg('pf-msg','Saving\u2026');
   SB.from('eq_platform_settings').update(rec).eq('id',1).then(function(res){
     if(res.error){ setMsg('pf-msg', res.error.message,'err'); return; }
@@ -4234,5 +4320,6 @@ function renderDiag(results){
 boot();
 </script>
 <script src="macronations-enhance.js" defer></script>
+<script src="eq-asha.js" defer></script>
 </body>
 </html>
